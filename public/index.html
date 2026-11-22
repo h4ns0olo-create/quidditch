@@ -268,6 +268,22 @@
   .podio .nom { font-weight: 800; font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .podio .base { border-radius: 10px 10px 4px 4px; display: grid; place-items: center; font-family: var(--titulo); font-weight: 900; font-size: 1.6rem; color: var(--t);
     background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 45%, #000)); border: 1px solid var(--a); }
+  #capa-snitch.senuelo { background: radial-gradient(ellipse at 50% 40%, #8a5a1e, #3d2508 50%, #100903 90%); }
+  .polilla { width: 210px; height: 126px; animation: flotar 1.1s ease-in-out infinite; }
+  .polilla .alaP { animation: aletearP .3s ease-in-out infinite alternate; }
+  @keyframes aletearP { to { opacity: .75; } }
+  .practicas { display: grid; gap: 8px; }
+  .practica-btn { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; text-align: left; padding: 12px; }
+  .practica-btn svg.ico.jin { width: 46px; height: 38px; grid-row: span 3; }
+  .practica-btn small { color: var(--suave); font-weight: 600; font-size: .8rem; }
+  .salir-esq { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 12px; z-index: 2; }
+  .arena { width: 100%; max-width: 360px; display: block; margin: 0 auto; }
+  .arena-nombres { margin-top: 4px; }
+  .duelistas { display: flex; gap: 8px; align-items: center; margin: 6px 0 10px; }
+  .duelistas select { flex: 1; min-width: 0; font: inherit; font-size: 16px; padding: 10px; border-radius: 10px; background: rgba(10,7,25,.7); color: var(--texto); border: 1px solid rgba(255,255,255,.16); }
+  .tabla-duelo { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 8px; }
+  .tabla-duelo th, .tabla-duelo td { padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: center; }
+  .tabla-duelo td:first-child { text-align: left; }
   .formatos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .formatos button { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .formatos button small { font-weight: 600; font-size: .75rem; color: var(--suave); }
@@ -304,7 +320,19 @@
       <button class="ancho" type="submit">🧹 Entrar al estadio</button>
     </form>
   </div>
+  <button class="sec ancho" id="ir-practica" style="margin-top:0">🎯 Práctica libre</button>
   <p class="suave" style="text-align:center"><a href="#" id="ir-admin">Soy el administrador</a></p>
+</section>
+
+<!-- Práctica libre -->
+<section id="p-practica" class="oculto">
+  <div class="portada"><h1 style="font-size:1.9rem">PRÁCTICA LIBRE</h1></div>
+  <div class="panel oculto" id="practica-resultado"></div>
+  <div class="panel">
+    <p class="suave">Practica el minijuego de tu posición, sin sala. Cada acierto sube de nivel y se pone más difícil. Tienes 3 vidas.</p>
+    <div class="practicas" id="practicas"></div>
+  </div>
+  <p class="suave"><a href="#" id="practica-volver">← Volver</a></p>
 </section>
 
 <!-- Administración: crear sala -->
@@ -319,6 +347,7 @@
         <button type="button" class="sec elegida" data-tipo="oficial">🏆 Partido oficial</button>
         <button type="button" class="sec" data-tipo="entrenamiento">🧹 Entrenamiento</button>
       </div>
+      <button type="button" class="sec ancho" data-tipo="duelo" style="margin-top:8px">⚔️ Duelos (buscador o guardián)</button>
       <p class="suave" id="ayuda-tipo"></p>
       <div id="formatos-caja" class="oculto">
         <label>¿Cuántos por lado?</label>
@@ -331,10 +360,12 @@
       </div>
       <label for="i-codigo-nuevo">Código para la nueva sala</label>
       <input id="i-codigo-nuevo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
-      <label>Equipo 1</label>
-      <div class="casas" id="casas-A" data-grupo="A"></div>
-      <label>Equipo 2</label>
-      <div class="casas" id="casas-B" data-grupo="B"></div>
+      <div id="equipos-caja">
+        <label>Equipo 1</label>
+        <div class="casas" id="casas-A" data-grupo="A"></div>
+        <label>Equipo 2</label>
+        <div class="casas" id="casas-B" data-grupo="B"></div>
+      </div>
       <button class="ancho" type="submit">✨ Crear sala</button>
     </form>
     <div id="admin-ok" class="oculto">
@@ -360,6 +391,7 @@
   <div class="marcador" id="marcador"></div>
   <div class="panel final oculto" id="panel-final"></div>
 
+  <div class="panel oculto" id="panel-duelo"></div>
   <div class="panel admin oculto" id="panel-admin"></div>
   <div class="panel jugada" id="panel-jugada"></div>
 
@@ -399,6 +431,7 @@
 
 <!-- Reto (minijuego) -->
 <div id="capa-reto" class="capa oculto">
+  <button class="sec peq salir-esq oculto" id="salir-reto" data-salir-practica>✕ Terminar</button>
   <div class="caja">
     <div class="reto-icono" id="reto-icono"></div>
     <div class="reto-titulo" id="reto-titulo"></div>
@@ -423,6 +456,7 @@
 
 <!-- Snitch (solo buscadores) -->
 <div id="capa-snitch" class="capa oculto">
+  <button class="sec peq salir-esq oculto" id="salir-snitch" data-salir-practica>✕ Terminar</button>
   <div class="caja">
     <div class="reto-titulo" id="sn-titulo">✨ ¡La snitch dorada!</div>
     <div class="sn-rondas" id="sn-rondas"></div>
@@ -561,7 +595,7 @@
       $('f-admin').classList.add('oculto');
       $('admin-ok').classList.remove('oculto');
       $('admin-codigo').textContent = m.codigo;
-      $('admin-equipos').textContent = `${m.tipo === 'entrenamiento' ? `entrenamiento ${NOMBRE_FORMATO[m.formato] || ''}` : 'partido oficial'} · ${k(m.equipos.A).emo} ${m.nombres.A} contra ${m.nombres.B} ${k(m.equipos.B).emo}`;
+      $('admin-equipos').textContent = m.tipo === 'duelo' ? 'sala de duelos' : `${m.tipo === 'entrenamiento' ? `entrenamiento ${NOMBRE_FORMATO[m.formato] || ''}` : 'partido oficial'} · ${k(m.equipos.A).emo} ${m.nombres.A} contra ${m.nombres.B} ${k(m.equipos.B).emo}`;
       return;
     }
     if (m.t === 'bienvenida') {
@@ -576,13 +610,14 @@
       posesionHasta = sala.pelota ? ahora + sala.pelota.restaMs : 0;
       if (sala.partido) reloj = { recibido: ahora, transcurrido: sala.partido.transcurridoMs };
       pintar();
-      if (!sala.enJuego && reto && !reto.resultado) cerrarReto();
-      if (!['partido', 'muerte'].includes(sala.fase) && sn && !sn.cerrando) cerrarSnitch();
+      if (!sala.enJuego && reto && !reto.resultado && !reto.duelo && !reto.local) cerrarReto();
+      if (!['partido', 'muerte'].includes(sala.fase) && sn && sn.modo === 'partido' && !sn.cerrando) cerrarSnitch();
       return;
     }
     if (m.t === 'reto') return abrirReto(m.reto);
     if (m.t === 'resultado') return mostrarResultado(m.texto, m.bueno);
     if (m.t === 'snitch') return snitchMensaje(m);
+    if (m.t === 'duelo') return m.pos === 'buscador' ? snitchMensaje({ ...m, modo: 'duelo' }) : dueloGuardian(m);
     if (m.t === 'comentario') return mostrarComentario(m);
     if (m.t === 'anim') return alAnim(m);
     if (m.t === 'fuera') { guardar.borrar(); yo = null; sala = null; mostrar('p-inicio'); }
@@ -597,7 +632,7 @@
     if (texto) timerAviso = setTimeout(() => avisar(''), 5000);
   }
   function mostrar(id) {
-    for (const s of ['p-inicio', 'p-admin', 'p-sala']) $(s).classList.toggle('oculto', s !== id);
+    for (const s of ['p-inicio', 'p-admin', 'p-sala', 'p-practica']) $(s).classList.toggle('oculto', s !== id);
     if (id !== 'p-sala') { cerrarReto(); cerrarSnitch(); $('capa-moneda').classList.add('oculto'); }
     window.scrollTo(0, 0);
   }
@@ -618,9 +653,12 @@
     $('ayuda-tipo').textContent = tipoSala === 'oficial'
       ? 'Partido oficial: 7 por equipo, dos casas distintas y comentaristas.'
       : 'Entrenamiento: con menos gente y sin comentaristas. Elige la misma casa dos veces para dividir un equipo en dos, o dos casas distintas. Sirve la clave de capitanes.';
+    if (tipoSala === 'duelo') $('ayuda-tipo').textContent = 'Duelos: dos aspirantes a buscador o a guardián se enfrentan al mejor de 5. Los demás pueden mirar. Sirve la clave de capitanes.';
+    $('equipos-caja').classList.toggle('oculto', tipoSala === 'duelo');
     $('formatos-caja').classList.toggle('oculto', tipoSala !== 'entrenamiento');
     for (const b of document.querySelectorAll('[data-formato]')) b.classList.toggle('elegida', b.dataset.formato === formatoSala);
     $('l-clave').textContent = tipoSala === 'oficial' ? 'Contraseña de administración' : 'Contraseña (de administración o de capitanes)';
+    $('f-admin').querySelector('button[type=submit]').textContent = tipoSala === 'duelo' ? '⚔️ Crear sala de duelos' : '✨ Crear sala';
   }
   pintarTipo();
   for (const b of document.querySelectorAll('[data-tipo]')) b.addEventListener('click', () => { tipoSala = b.dataset.tipo; pintarTipo(); });
@@ -639,6 +677,8 @@
     mandar({ t: 'entrar', nombre: $('i-nombre').value, casa: elegidas.entrar, codigo: $('i-codigo').value });
   });
   $('ir-admin').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-admin'); });
+  $('ir-practica').addEventListener('click', () => { $('practica-resultado').classList.add('oculto'); pintarPracticas(); mostrar('p-practica'); });
+  $('practica-volver').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-inicio'); });
   $('volver-inicio').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-inicio'); });
   $('f-admin').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -672,7 +712,7 @@
 
   // Botones que se pintan dinámicamente
   document.body.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-pasar],[data-tirar],[data-bludger],[data-invitado],[data-duracion],[data-empezar],[data-terminar],[data-nueva],[data-llave]');
+    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-pasar],[data-tirar],[data-bludger],[data-invitado],[data-duracion],[data-empezar],[data-terminar],[data-nueva],[data-llave],[data-practica],[data-salir-practica],[data-duelo-pos],[data-duelo-rondas],[data-empezar-duelo],[data-detener-duelo]');
     if (!b) return;
     const d = b.dataset;
     if (d.casaPick) { elegidas[d.grupo] = d.casaPick; pintarCasas(); }
@@ -688,6 +728,15 @@
     else if ('empezar' in d) empezar();
     else if ('terminar' in d) { if (confirm('¿Terminar el partido ahora? Ganará quien tenga más puntos.')) mandar({ t: 'terminar' }); }
     else if ('nueva' in d) mandar({ t: 'nueva_partida' });
+    else if (d.practica) empezarPractica(d.practica);
+    else if ('salirPractica' in d) terminarPractica();
+    else if (d.dueloPos) { dueloPos = d.dueloPos; pintarAdmin(persona(yo)); }
+    else if (d.dueloRondas) { dueloRondas = Number(d.dueloRondas); pintarAdmin(persona(yo)); }
+    else if ('empezarDuelo' in d) {
+      if (!selA || !selB || selA === selB) return avisar('Elige a dos personas distintas.');
+      mandar({ t: 'empezar_duelo', a: selA, b: selB, pos: dueloPos, rondas: dueloRondas });
+    }
+    else if ('detenerDuelo' in d) { if (confirm('¿Detener el duelo?')) mandar({ t: 'detener_duelo' }); }
     else if ('llave' in d) {
       const clave = prompt(entreno() ? 'Contraseña de administración o de capitanes:' : 'Contraseña de administración:');
       if (clave) { claveAdmin = clave; mandar({ t: 'admin_login', clave }); }
@@ -719,6 +768,7 @@
   const etiqueta = (p) => `<span class="punto" style="background:${k(p.casa).c}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}${p.admin ? ' 🔑' : ''}</span>`;
   const miTipo = (mi) => mi.plaza ? POSICIONES.find((x) => x[0] === mi.plaza.split('-')[1])[2] : null;
   const jugando = () => ['inicio', 'partido', 'muerte'].includes(sala.fase);
+  const seg = (ms) => (ms / 1000).toFixed(2).replace('.', ',') + ' s';
   const mmss = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 
   function pintar() {
@@ -735,21 +785,31 @@
     $('sala-codigo').textContent = sala.codigo;
     $('sala-cuenta').textContent = `${sala.participantes.length}/${sala.max} participantes`;
 
-    pintarReloj();
-    pintarMarcador();
-    pintarFinal();
+    const esDuelo = sala.tipo === 'duelo';
+    for (const id of ['reloj', 'marcador', 'equipo-A', 'equipo-B']) $(id).classList.toggle('oculto', esDuelo);
+    document.querySelector('.panel.campo').classList.toggle('oculto', esDuelo);
+    $('panel-duelo').classList.toggle('oculto', !esDuelo);
     pintarAdmin(mi);
-    pintarJugada(mi);
-    pintarCampo(mi);
+    if (esDuelo) {
+      pintarDuelo();
+      $('panel-jugada').classList.add('oculto');
+      $('panel-final').classList.add('oculto');
+    } else {
+      pintarReloj();
+      pintarMarcador();
+      pintarFinal();
+      pintarJugada(mi);
+      pintarCampo(mi);
+    }
     $('panel-comentar').classList.toggle('oculto', !(mi.invitado && mi.invitado.startsWith('comentarista')));
     $('panel-registro').classList.toggle('oculto', !sala.log);
     if (sala.log) {
       let extra = sala.accion ? `<div>⏳ ${esc(sala.accion.texto)}</div>` : '';
       if (sala.snitch) extra = `<div>✨ Snitch en juego: ronda ${sala.snitch.ronda} (${esc(N('A'))} ${sala.snitch.victorias.A} - ${sala.snitch.victorias.B} ${esc(N('B'))})</div>` + extra;
-      $('registro-sub').textContent = entreno() ? 'En los entrenamientos todos ven las jugadas.' : 'Solo lo ven los invitados (comentaristas, prefectos y administración).';
+      $('registro-sub').textContent = sala.tipo === 'duelo' ? 'Comentarios automáticos del duelo.' : entreno() ? 'En los entrenamientos todos ven las jugadas.' : 'Solo lo ven los invitados (comentaristas, prefectos y administración).';
       $('registro').innerHTML = extra + sala.log.slice().reverse().map((l) => `<div>${esc(l.texto)}</div>`).join('');
     }
-    for (const eq of ['A', 'B']) pintarEquipo(eq, mi);
+    if (sala.tipo !== 'duelo') for (const eq of ['A', 'B']) pintarEquipo(eq, mi);
     pintarInvitados(mi);
     pintarMoneda();
   }
@@ -761,6 +821,7 @@
       return `${mini(miTipo(mi), x.c, x.a)} ${nom} · ${x.emo} ${esc(N(eq))}${mi.admin ? ' · 🔑' : ''}`;
     }
     const llave = mi.admin ? ' · 🔑' : '';
+    if (sala.tipo === 'duelo') return `⚔️ Sala de duelos${llave}`;
     if (mi.invitado) return `${ICONO_PAPEL[mi.invitado]} ${esc(nombrePapel(mi.invitado))}${llave}`;
     if (mi.lados.length) return `${esc(mi.casa)} · elige tu posición${llave}`;
     return `Invitado · elige tu papel${llave}`;
@@ -848,6 +909,7 @@
     const el = $('panel-admin');
     if (!mi || !mi.admin) { el.classList.add('oculto'); return; }
     el.classList.remove('oculto');
+    if (sala.tipo === 'duelo') return pintarAdminDuelo(el);
     let h = '<h2>🔑 Administración</h2>';
     if (sala.fase === 'lobby') {
       const llenas = (eq) => posSala().filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
@@ -1237,6 +1299,13 @@
   }
 
   function pintarInvitados(mi) {
+    if (sala.tipo === 'duelo') {
+      let h = '<h2>👥 En la sala</h2><p class="suave">Todos pueden mirar los duelos. Solo el capitán elige quién se enfrenta.</p>';
+      h += sala.participantes.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="ocupa">${etiqueta(p)}</span></div>`).join('');
+      if (!mi.admin) h += `<div class="aviso-fijo" style="color:var(--suave)">🔑 ¿Eres el administrador o capitán? <button class="sec peq" data-llave>Activar administración</button></div>`;
+      $('panel-invitados').innerHTML = h;
+      return;
+    }
     const invitados = sala.participantes.filter((p) => p.invitado);
     const ocupado = (papel) => invitados.find((p) => p.invitado === papel);
     let h = entreno() ? '<h2>👀 Invitados</h2><p class="suave">Miran el entrenamiento.</p>'
@@ -1438,7 +1507,7 @@
 
   // Dibujito de la jugada encima de cada reto
   function escena(r) {
-    const mi = persona(yo);
+    const mi = sala && yo ? persona(yo) : null;
     const eq = mi && mi.equipo;
     const yoC = eq ? L(eq) : INVITADO, otroC = eq ? L(eq === 'A' ? 'B' : 'A') : INVITADO;
     const aros = (x) => [0, 1, 2].map((i) => `<line x1="${x + i * 22}" y1="${i === 1 ? 26 : 34}" x2="${x + i * 22}" y2="78" stroke="#e8c45a" stroke-width="2.5"/><circle cx="${x + i * 22}" cy="${i === 1 ? 18 : 26}" r="9" fill="none" stroke="#f2c14e" stroke-width="3.5"/>`).join('');
@@ -1486,18 +1555,32 @@
     }
     const resta = Math.max(0, reto.limite - ms) / 1000;
     const cuenta = $('reto-cuenta');
-    cuenta.textContent = reto.resultado ? '' : reto.enviado ? 'Enviado, esperando resultado…' : `Te quedan ${resta.toFixed(1)} s`;
+    $('salir-reto').classList.toggle('oculto', !practica);
+    if (reto.duelo) {
+      cuenta.textContent = reto.resultado ? '' : reto.enviado ? 'Enviado…' : reto.senal ? '¡ATAJA YA!' : 'Espera el tiro…';
+      cuenta.classList.toggle('urgente', !!reto.senal && !reto.enviado);
+      return requestAnimationFrame(animar);
+    }
+    cuenta.textContent = reto.resultado ? '' : reto.enviado ? (reto.local ? '' : 'Enviado, esperando resultado…') : `Te quedan ${resta.toFixed(1)} s`;
     cuenta.classList.toggle('urgente', !reto.enviado && resta < 2);
+    if (reto.local && !reto.enviado && ms > reto.limite) { reto.enviado = true; return practicaTap(null); }
     if (ms > reto.limite + 4000) return cerrarReto(); // por si se perdió la respuesta
     requestAnimationFrame(animar);
   }
   function tocar(e) {
     e.preventDefault();
-    if (!reto || reto.enviado) return;
+    if (!reto || reto.enviado || reto.resultado) return;
     reto.enviado = true;
-    mandar({ t: 'tap', reto: reto.id, ms: Math.round(performance.now() - reto.t0) });
+    const ms = Math.round(performance.now() - reto.t0);
     $('btn-tap').textContent = 'Enviado';
     $('btn-tap').classList.add('enviado');
+    if (reto.local) return practicaTap(ms);
+    if (reto.duelo) {
+      if (!reto.senal) { mandar({ t: 'duelo_tap', rondaId: reto.rondaId, antes: true }); $('reto-titulo').textContent = '❌ ¡Antes del tiro!'; }
+      else mandar({ t: 'duelo_tap', rondaId: reto.rondaId, ms: Math.round(performance.now() - reto.tSenal), msAguja: ms });
+      return;
+    }
+    mandar({ t: 'tap', reto: reto.id, ms });
   }
   function cerrarReto() {
     reto = null;
@@ -1506,24 +1589,50 @@
   // pointerdown responde antes que click en el celular
   $('btn-tap').addEventListener('pointerdown', tocar);
 
-  // ---------- Snitch (solo para buscadores)
+  // ---------- Snitch (buscadores: partido, duelos y práctica)
+  // La polilla dorada es el señuelo: se parece (dorada, con alas) pero tiene alas anchas y redondas, sin bolita,
+  // un dorado más ámbar, y el fondo no se ilumina como con la snitch de verdad.
+  const ALA_P = '<path d="M58,34 C40,4 10,6 8,26 C7,40 30,43 58,38 Z" fill="#c98a2e" stroke="#7a4e12" stroke-width="1.5"/><path d="M58,38 C36,44 20,58 30,65 C40,70 54,54 58,40 Z" fill="#b0701f" stroke="#7a4e12" stroke-width="1.5"/><circle cx="28" cy="23" r="5.5" fill="#7a4e12" opacity=".75"/><circle cx="36" cy="56" r="3" fill="#7a4e12" opacity=".6"/>';
+  const POLILLA_SVG = `<svg class="polilla" viewBox="0 0 120 72" aria-label="Polilla dorada (señuelo)">
+    <g class="alaP">${ALA_P}</g><g class="alaP der" transform="translate(120,0) scale(-1,1)"><g>${ALA_P}</g></g>
+    <ellipse cx="60" cy="40" rx="4.5" ry="15" fill="#5a3a10"/><circle cx="60" cy="23" r="4.5" fill="#5a3a10"/>
+    <path d="M58,20 Q52,8 45,5 M62,20 Q68,8 75,5" stroke="#5a3a10" stroke-width="1.6" fill="none"/></svg>`;
   let sn = null;
   function snitchMensaje(m) {
+    const modo = m.modo || 'partido';
     const capa = $('capa-snitch');
-    if (!sn) sn = {};
-    if (m.fase === 'espera') { clearTimeout(sn.timerCierre); sn.cerrando = false; }
-    Object.assign(sn, { rondaId: m.rondaId, yo: m.yo, victorias: m.victorias, rival: m.rival, muerte: m.muerte, ronda: m.ronda });
-    capa.classList.remove('oculto');
-    $('sn-titulo').textContent = m.muerte ? '⚡ ¡Muerte súbita! La snitch' : '✨ ¡La snitch dorada!';
-    const dots = (n) => [0, 1].map((i) => `<i class="${i < n ? 'ok' : ''}"></i>`).join('');
-    const otro = m.yo === 'A' ? 'B' : 'A';
-    $('sn-rondas').innerHTML = `<span>Tú <span class="dots">${dots(m.victorias[m.yo])}</span></span><span>${esc(m.rival || 'sin rival')} <span class="dots">${dots(m.victorias[otro])}</span></span>`;
+    if (!sn || sn.modo !== modo) sn = { modo };
+    if (m.fase === 'espera' || m.fase === 'cuenta') { clearTimeout(sn.timerCierre); sn.cerrando = false; }
+    if (m.rondaId) sn.rondaId = m.rondaId;
+    capa.classList.remove('oculto', 'senal', 'senuelo');
+    $('salir-snitch').classList.toggle('oculto', modo !== 'practica');
     const zona = $('sn-zona');
-    capa.classList.remove('senal');
-    if (m.fase === 'espera') {
+    if (modo === 'practica') {
+      $('sn-titulo').textContent = `🎯 Práctica de buscador · nivel ${practica ? practica.nivel : ''}`;
+      $('sn-rondas').innerHTML = practica ? `<span>${'❤️'.repeat(practica.vidas)}${'🖤'.repeat(3 - practica.vidas)}</span>` : '';
+    } else {
+      $('sn-titulo').textContent = modo === 'duelo' ? '⚔️ Duelo de buscadores' : m.muerte ? '⚡ ¡Muerte súbita! La snitch' : '✨ ¡La snitch dorada!';
+      if (m.victorias) {
+        const n = m.necesarias || 2, otro = m.yo === 'A' ? 'B' : 'A';
+        const dots = (v) => Array.from({ length: n }, (_, i) => `<i class="${i < v ? 'ok' : ''}"></i>`).join('');
+        $('sn-rondas').innerHTML = `<span>Tú <span class="dots">${dots(m.victorias[m.yo])}</span></span><span>${esc(m.rival || 'sin rival')} <span class="dots">${dots(m.victorias[otro])}</span></span>`;
+      }
+      if (m.yo) sn.yo = m.yo;
+    }
+    if (m.fase === 'cuenta') {
+      sn.fase = 'pausa';
+      zona.innerHTML = '<div class="grande esperando">¡Prepárate!</div>';
+      $('sn-texto').textContent = `Contra ${m.rival}, al mejor de ${m.rondas}.`;
+    } else if (m.fase === 'espera') {
       sn.fase = 'espera'; sn.enviado = false;
       zona.innerHTML = '<div class="grande esperando">Espera…<br>¡no toques todavía!</div>';
-      $('sn-texto').textContent = `Ronda ${m.ronda} de 3 · gana quien toque primero cuando aparezca la snitch. Si tocas antes, pierdes la ronda.`;
+      $('sn-texto').textContent = modo === 'practica'
+        ? `Toca en cuanto aparezca la snitch (tienes ${seg(m.limite)}). Si ves una polilla dorada, ¡no la toques!`
+        : `${modo === 'duelo' ? `Ronda ${m.ronda} · al mejor de ${m.rondas}` : `Ronda ${m.ronda} de 3`} · gana quien toque primero cuando aparezca la snitch. Si ves una polilla dorada, ¡no la toques! Tocar antes pierde la ronda.`;
+    } else if (m.fase === 'senuelo') {
+      sn.fase = 'senuelo';
+      capa.classList.add('senuelo');
+      zona.innerHTML = `<div>${POLILLA_SVG}</div>`;
     } else if (m.fase === 'senal') {
       sn.fase = 'senal';
       sn.tSenal = performance.now() - (m.desdeSenal || 0);
@@ -1534,32 +1643,35 @@
       if (navigator.vibrate) try { navigator.vibrate(150); } catch {}
     } else if (m.fase === 'ronda' || m.fase === 'pausa') {
       sn.fase = 'pausa';
-      if (m.fase === 'ronda') {
+      if (modo === 'practica') { zona.innerHTML = `<div class="grande">${esc(m.propio)}</div>`; $('sn-texto').textContent = ''; }
+      else if (m.fase === 'ronda') {
         const gane = m.ganador === m.yo;
         zona.innerHTML = `<div class="grande">${m.ganador ? (gane ? '🏆 ¡Ganaste la ronda!' : '😣 Perdiste la ronda') : '🤷 Nadie gana la ronda'}</div>`;
         $('sn-texto').textContent = `${m.motivo || ''}. Siguiente ronda en un momento…`;
-      } else {
-        zona.innerHTML = '<div class="grande esperando">Siguiente ronda…</div>';
-      }
+      } else zona.innerHTML = '<div class="grande esperando">Siguiente ronda…</div>';
     } else if (m.fase === 'fin') {
       sn.fase = 'fin'; sn.cerrando = true;
-      zona.innerHTML = `<div class="grande">${m.atrapada ? (m.ganador === m.yo ? '🏆 ¡ATRAPASTE LA SNITCH!<br>+150' : '😣 El otro buscador atrapó la snitch') : '✨ La snitch se escapó…'}</div>`;
-      $('sn-texto').textContent = m.atrapada ? '' : 'Volverá a aparecer.';
+      const txt = modo === 'duelo'
+        ? (m.ganador ? (m.ganador === m.yo ? '🏆 ¡GANASTE EL DUELO!' : '😣 Perdiste el duelo') : '🤝 Duelo empatado')
+        : (m.atrapada ? (m.ganador === m.yo ? '🏆 ¡ATRAPASTE LA SNITCH!<br>+150' : '😣 El otro buscador atrapó la snitch') : '✨ La snitch se escapó…');
+      zona.innerHTML = `<div class="grande">${txt}</div>`;
+      $('sn-texto').textContent = modo === 'partido' && !m.atrapada ? 'Volverá a aparecer.' : '';
       sn.timerCierre = setTimeout(cerrarSnitch, 3500);
     }
   }
   $('capa-snitch').addEventListener('pointerdown', (e) => {
     e.preventDefault();
+    if (e.target.closest('[data-salir-practica]')) return terminarPractica();
     if (!sn || sn.enviado) return;
-    if (sn.fase === 'espera') {
-      sn.enviado = true;
-      mandar({ t: 'snitch_tap', rondaId: sn.rondaId, antes: true });
-      $('sn-zona').innerHTML = '<div class="grande">❌ ¡Tocaste antes de tiempo!</div>';
-    } else if (sn.fase === 'senal') {
-      sn.enviado = true;
-      mandar({ t: 'snitch_tap', rondaId: sn.rondaId, ms: Math.round(performance.now() - sn.tSenal) });
-      $('sn-zona').innerHTML = '<div class="grande">✋ ¡Enviado!</div>';
-    }
+    const fase = sn.fase;
+    const antes = fase === 'espera' || fase === 'senuelo';
+    if (!antes && fase !== 'senal') return;
+    sn.enviado = true;
+    const ms = antes ? null : Math.round(performance.now() - sn.tSenal);
+    if (sn.modo === 'practica') return practicaSnitchTap(antes, ms, fase === 'senuelo');
+    const t = sn.modo === 'duelo' ? 'duelo_tap' : 'snitch_tap';
+    mandar(antes ? { t, rondaId: sn.rondaId, antes: true } : { t, rondaId: sn.rondaId, ms });
+    $('sn-zona').innerHTML = antes ? `<div class="grande">❌ ${fase === 'senuelo' ? '¡Era una polilla!' : '¡Tocaste antes de tiempo!'}</div>` : '<div class="grande">✋ ¡Enviado!</div>';
   });
   function cerrarSnitch() {
     if (sn) clearTimeout(sn.timerCierre);
@@ -1568,8 +1680,214 @@
     $('capa-snitch').classList.remove('senal');
   }
 
+  // ---------- Duelo de guardianes (en la pantalla de retos): la aguja se mueve; tras "¡TIRO!", ataja en lo verde.
+  function dueloGuardian(m) {
+    const dots = (v) => Array.from({ length: m.necesarias }, (_, i) => `<i class="${i < v ? 'ok' : ''}"></i>`).join('');
+    const otro = m.yo === 'A' ? 'B' : 'A';
+    const marcador = m.victorias ? `<div class="sn-rondas"><span>Tú <span class="dots">${dots(m.victorias[m.yo])}</span></span><span>${esc(m.rival)} <span class="dots">${dots(m.victorias[otro])}</span></span></div>` : '';
+    const capa = $('capa-reto');
+    if (m.fase === 'cuenta') {
+      reto = { duelo: true, resultado: true, periodo: 1, t0: performance.now(), limite: 1e9, dibujar: () => {} };
+      $('reto-icono').textContent = '⚔️';
+      $('reto-titulo').textContent = 'Duelo de guardianes';
+      $('reto-escena').innerHTML = marcador;
+      $('reto-ayuda').textContent = `Contra ${m.rival}, al mejor de ${m.rondas}. Espera el aviso ¡TIRO! y ataja con la aguja en lo verde. Si tocas antes, pierdes la ronda.`;
+      $('reto-visual').innerHTML = '<div class="grande esperando" style="font-family:var(--titulo);font-size:1.6rem">¡Prepárate!</div>';
+      $('btn-tap').classList.add('oculto');
+      $('reto-resultado').classList.add('oculto');
+      capa.classList.remove('oculto');
+      return;
+    }
+    if (m.fase === 'espera' && m.aguja) {
+      reto = { duelo: true, rondaId: m.rondaId, periodo: m.aguja.periodo, t0: performance.now() - m.aguja.desde, limite: 1e9, enviado: false, resultado: false, senal: false };
+      $('reto-icono').textContent = '🧤';
+      $('reto-titulo').textContent = `Ronda ${m.ronda} · espera el tiro…`;
+      $('reto-escena').innerHTML = marcador;
+      $('reto-ayuda').textContent = 'Cuando salga ¡TIRO!, ataja con la aguja en lo verde. Si tocas antes, pierdes la ronda.';
+      reto.dibujar = construirVisual({ visual: 'aguja', zonaIni: m.aguja.zonaIni, zonaFin: m.aguja.zonaFin });
+      $('vis-toque').addEventListener('pointerdown', tocar);
+      const btn = $('btn-tap');
+      btn.textContent = '¡ATAJAR!';
+      btn.classList.remove('enviado', 'oculto');
+      $('reto-resultado').classList.add('oculto');
+      capa.classList.remove('oculto');
+      requestAnimationFrame(animar);
+      return;
+    }
+    if (!reto || !reto.duelo) return;
+    if (m.fase === 'senal') {
+      reto.senal = true;
+      reto.tSenal = performance.now() - (m.desdeSenal || 0);
+      $('reto-titulo').textContent = '🥅 ¡TIRO!';
+      sonar('reto');
+      if (navigator.vibrate) try { navigator.vibrate(120); } catch {}
+    } else if (m.fase === 'ronda' || m.fase === 'fin') {
+      reto.resultado = true;
+      const r = $('reto-resultado');
+      const gane = m.ganador === m.yo;
+      r.innerHTML = m.fase === 'fin'
+        ? (m.ganador ? (gane ? '🏆 ¡GANASTE EL DUELO!' : '😣 Perdiste el duelo') : '🤝 Duelo empatado')
+        : `${m.ganador ? (gane ? '🏆 ¡Ganaste la ronda!' : '😣 Perdiste la ronda') : '🤷 Nadie gana la ronda'}<div class="suave" style="font-size:.9rem;font-weight:600">${esc(m.motivo || '')}</div>`;
+      r.classList.toggle('malo', m.ganador !== m.yo);
+      r.classList.remove('oculto');
+      $('btn-tap').classList.add('oculto');
+      $('reto-escena').innerHTML = marcador;
+      sonar(gane ? 'bien' : 'fallo');
+      if (m.fase === 'fin') setTimeout(() => { if (reto && reto.duelo) cerrarReto(); }, 3500);
+    }
+  }
+
+  // ---------- Práctica libre (sin sala: todo pasa en tu celular)
+  let practica = null;
+  const PRACTICAS = {
+    cazador: { clase: 'tiro', visual: 'barra', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡LANZAR!', nombre: 'Cazador', ayuda: 'Por rapidez: acierta en lo verde lo antes posible.' },
+    guardian: { clase: 'atajar', visual: 'aguja', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡ATAJAR!', nombre: 'Guardián', ayuda: 'Ataja con la aguja en lo verde.' },
+    golpeador: { clase: 'bateo', visual: 'circulo', ancho: 0.14, periodo: 1400, limite: 6000, boton: '¡BATEAR!', nombre: 'Golpeador', ayuda: 'Toca cuando el círculo encaje en el punteado.' },
+    buscador: { nombre: 'Buscador', ayuda: 'Toca en cuanto aparezca la snitch. ¡Ojo con la polilla dorada!' },
+  };
+  const difP = () => Math.min(1, (practica.nivel - 1) / 12);
+  function pintarPracticas() {
+    const rec = (pos) => { try { return JSON.parse(localStorage.getItem('quidditch_practica_' + pos) || 'null'); } catch { return null; } };
+    $('practicas').innerHTML = Object.entries(PRACTICAS).map(([pos, c]) => {
+      const r = rec(pos);
+      return `<button class="sec practica-btn" data-practica="${pos}">${mini(pos, '#9d8fd6', '#fff')}<b>${c.nombre}</b><small>${c.ayuda}</small>${r ? `<small>🏅 Récord: nivel ${r.nivel}${r.mejor ? ` · ${seg(r.mejor)}` : ''}</small>` : ''}</button>`;
+    }).join('');
+  }
+  function empezarPractica(pos) {
+    practica = { pos, nivel: 1, vidas: 3, aciertos: 0, intentos: 0, tiempos: [], timers: [] };
+    $('practica-resultado').classList.add('oculto');
+    rondaPractica();
+  }
+  function rondaPractica() {
+    if (!practica) return;
+    if (practica.pos === 'buscador') return rondaSnitchPractica();
+    const c = PRACTICAS[practica.pos], f = difP();
+    const ancho = c.ancho * (1 - 0.55 * f), periodo = Math.round(c.periodo / (1 + 0.6 * f));
+    const centro = 0.25 + Math.random() * 0.5;
+    abrirReto({ id: 'local', clase: c.clase, visual: c.visual, titulo: `Nivel ${practica.nivel} · ${'❤️'.repeat(practica.vidas)}${'🖤'.repeat(3 - practica.vidas)}`,
+      boton: c.boton, zonaIni: centro - ancho / 2, zonaFin: centro + ancho / 2, periodo, limite: c.limite, desde: 0, local: true });
+    $('reto-ayuda').textContent = c.ayuda;
+  }
+  function practicaTap(ms) {
+    const r = reto;
+    if (!r || !practica) return;
+    practica.intentos++;
+    let ok = false;
+    if (ms !== null) { const f = (ms % r.periodo) / r.periodo, pos = f < 0.5 ? f * 2 : 2 - f * 2; ok = pos >= r.zonaIni - 0.015 && pos <= r.zonaFin + 0.015; }
+    if (ok) { practica.aciertos++; practica.tiempos.push(ms); practica.nivel++; mostrarResultado(`✅ ¡Bien! ${seg(ms)} · sube al nivel ${practica.nivel}`, true); }
+    else { practica.vidas--; mostrarResultado(ms === null ? '⏰ Se acabó el tiempo' : '❌ Fuera de la zona', false); }
+    practica.timers.push(setTimeout(() => { if (practica) (practica.vidas > 0 ? rondaPractica() : terminarPractica()); }, 2000));
+  }
+  function rondaSnitchPractica() {
+    const f = difP(), id = 'P' + Date.now();
+    const limite = Math.round(1500 - 950 * f); // hay que reaccionar antes de esto
+    practica.limiteSnitch = limite;
+    snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite });
+    const pausa = 1500 + Math.random() * 3000;
+    const senuelo = practica.nivel >= 3 && Math.random() < 0.5;
+    const t = practica.timers;
+    if (senuelo) {
+      t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senuelo', rondaId: id }); }, pausa * 0.5));
+      t.push(setTimeout(() => { if (sn && sn.fase === 'senuelo') snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite }); }, pausa * 0.5 + 800));
+    }
+    const tSenal = pausa + (senuelo ? 1400 : 0);
+    t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senal', rondaId: id }); }, tSenal));
+    t.push(setTimeout(() => { if (sn && sn.fase === 'senal' && !sn.enviado) { sn.enviado = true; practicaSnitchTap(false, null); } }, tSenal + 2500));
+  }
+  function practicaSnitchTap(antes, ms, polilla) {
+    if (!practica) return;
+    practica.timers.forEach(clearTimeout);
+    practica.timers = [];
+    practica.intentos++;
+    let ok = false, txt;
+    if (antes) txt = polilla ? '❌ ¡Era una polilla!' : '❌ ¡Tocaste antes de tiempo!';
+    else if (ms === null) txt = '⏰ Se escapó: muy tarde';
+    else if (ms > practica.limiteSnitch) txt = `🐢 ${seg(ms)}: muy lento (máx. ${seg(practica.limiteSnitch)})`;
+    else { ok = true; txt = `✨ ¡Atrapada en ${seg(ms)}!`; }
+    if (ok) { practica.aciertos++; practica.tiempos.push(ms); practica.nivel++; } else practica.vidas--;
+    snitchMensaje({ modo: 'practica', fase: 'ronda', propio: txt });
+    sonar(ok ? 'bien' : 'fallo');
+    practica.timers.push(setTimeout(() => { if (practica) (practica.vidas > 0 ? rondaSnitchPractica() : terminarPractica()); }, 2000));
+  }
+  function terminarPractica() {
+    const p = practica;
+    if (!p) return;
+    p.timers.forEach(clearTimeout);
+    practica = null;
+    cerrarReto();
+    cerrarSnitch();
+    const mejor = p.tiempos.length ? Math.min(...p.tiempos) : null;
+    const prom = p.tiempos.length ? Math.round(p.tiempos.reduce((a, b) => a + b, 0) / p.tiempos.length) : null;
+    let rec = null;
+    try { rec = JSON.parse(localStorage.getItem('quidditch_practica_' + p.pos) || 'null'); } catch {}
+    const nuevoRecord = !rec || p.nivel > rec.nivel || (p.nivel === rec.nivel && mejor && (!rec.mejor || mejor < rec.mejor));
+    if (nuevoRecord) try { localStorage.setItem('quidditch_practica_' + p.pos, JSON.stringify({ nivel: p.nivel, mejor })); } catch {}
+    $('practica-resultado').innerHTML = `<h2>🎯 ${PRACTICAS[p.pos].nombre}: ¡práctica terminada!</h2>
+      <p style="font-family:var(--titulo);font-size:1.6rem;font-weight:900;margin:4px 0">Nivel ${p.nivel}${nuevoRecord ? ' 🏅' : ''}</p>
+      ${nuevoRecord ? '<p>¡Nuevo récord personal!</p>' : ''}
+      <p>✅ Aciertos: <b>${p.aciertos}</b> de ${p.intentos}</p>
+      ${mejor !== null ? `<p>⚡ Mejor tiempo: <b>${seg(mejor)}</b> · promedio ${seg(prom)}</p>` : ''}`;
+    $('practica-resultado').classList.remove('oculto');
+    pintarPracticas();
+    mostrar('p-practica');
+  }
+
+  // ---------- Sala de duelos: arena para los que miran
+  let dueloPos = 'buscador', dueloRondas = 5, selA = '', selB = '';
+  function pintarDuelo() {
+    const el = $('panel-duelo');
+    const d = sala.duelo;
+    let h;
+    if (!d) {
+      h = '<h2>⚔️ Duelos</h2><p>Esperando a que el capitán elija a los dos aspirantes…</p><p class="suave">Duelo de <b>buscadores</b> (atrapar la snitch primero) o de <b>guardianes</b> (atajar primero tras el aviso ¡TIRO!). Cada ronda es más difícil.</p>';
+    } else {
+      const c = [k(d.casas[0]), k(d.casas[1])];
+      const dots = (v) => Array.from({ length: d.necesarias }, (_, i) => `<i class="${i < v ? 'ok' : ''}"></i>`).join('');
+      const estado = { cuenta: '¡Prepárense!', espera: d.pos === 'buscador' ? 'Esperando la snitch…' : 'Esperando el tiro…', senal: d.pos === 'buscador' ? '✨ ¡La snitch!' : '🥅 ¡TIRO!', pausa: 'Ronda terminada', fin: 'Duelo terminado' }[d.estado] || '';
+      const centro = d.pos === 'buscador'
+        ? (d.estado === 'senal' ? '<g transform="translate(150,48)"><ellipse cx="-12" rx="12" ry="4" fill="#fff6d8"/><ellipse cx="12" rx="12" ry="4" fill="#fff6d8"/><circle r="8" fill="#f2c14e" stroke="#a8730f"/></g>' : '<text x="150" y="56" text-anchor="middle" font-size="28" fill="#fff" opacity=".4">?</text>')
+        : [0, 1, 2].map((i) => `<line x1="${128 + i * 22}" y1="${i === 1 ? 32 : 40}" x2="${128 + i * 22}" y2="92" stroke="#e8c45a" stroke-width="2.5"/><circle cx="${128 + i * 22}" cy="${i === 1 ? 24 : 32}" r="9" fill="none" stroke="#f2c14e" stroke-width="3.5"/>`).join('');
+      h = `<h2>⚔️ Duelo de ${d.pos === 'buscador' ? 'buscadores' : 'guardianes'}</h2>
+        <svg class="arena" viewBox="0 0 300 110">
+          <g transform="translate(62,60) scale(2.3)">${jinete(d.pos, c[0].c, c[0].a, false)}</g>
+          ${centro}
+          <g transform="translate(238,60) scale(2.3)">${jinete(d.pos, c[1].c, c[1].a, true)}</g>
+        </svg>
+        <div class="arena-nombres sn-rondas"><span>${esc(d.nombres[0])} <span class="dots">${dots(d.victorias[0])}</span></span><span>${esc(d.nombres[1])} <span class="dots">${dots(d.victorias[1])}</span></span></div>
+        <p style="text-align:center;font-weight:800">${d.ronda ? `Ronda ${d.ronda} · ` : ''}${estado}</p>`;
+      if (d.estado === 'fin' && d.resultado) {
+        const r = d.resultado;
+        h += `<div class="final" style="padding:10px;border-radius:14px;margin-top:6px"><div class="gana">${r.ganador !== null ? `🏆 ¡Gana ${esc(d.nombres[r.ganador])}!` : '🤝 Empate'}</div>`;
+        h += '<table class="tabla-duelo"><tr><th></th><th>Rondas</th><th>Reacción media</th><th>Mejor</th></tr>' +
+          r.stats.map((x) => `<tr><td><b>${esc(x.nombre)}</b></td><td>${x.victorias}</td><td>${x.promedio !== null ? seg(x.promedio) : '—'}</td><td>${x.mejor !== null ? seg(x.mejor) : '—'}</td></tr>`).join('') + '</table></div>';
+      }
+    }
+    if (el.dataset.html !== h) { el.innerHTML = h; el.dataset.html = h; }
+  }
+  function pintarAdminDuelo(el) {
+    const d = sala.duelo;
+    let h = '<h2>🔑 Administración</h2>';
+    if (d && d.estado !== 'fin') h += '<button class="sec ancho" data-detener-duelo>⏹ Detener el duelo</button>';
+    else {
+      const lista = sala.participantes.filter((p) => p.conectado);
+      if (!lista.find((p) => p.id === selA)) selA = lista[0] ? lista[0].id : '';
+      if (!lista.find((p) => p.id === selB) || selB === selA) selB = (lista.find((p) => p.id !== selA) || {}).id || '';
+      const opts = (sel) => lista.map((p) => `<option value="${p.id}" ${p.id === sel ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('');
+      h += `<p class="suave">Elige a los dos aspirantes:</p><div class="duelistas"><select id="sel-a">${opts(selA)}</select><span>⚔️</span><select id="sel-b">${opts(selB)}</select></div>
+        <div class="duraciones"><button class="sec ${dueloPos === 'buscador' ? 'elegida' : ''}" data-duelo-pos="buscador">✨ Buscador</button><button class="sec ${dueloPos === 'guardian' ? 'elegida' : ''}" data-duelo-pos="guardian">🧤 Guardián</button></div>
+        <p class="suave">Al mejor de:</p><div class="duraciones">${[3, 5, 7].map((n) => `<button class="sec ${n === dueloRondas ? 'elegida' : ''}" data-duelo-rondas="${n}">${n}</button>`).join('')}</div>
+        <button class="ancho btn-lanzar" data-empezar-duelo ${lista.length < 2 ? 'disabled' : ''}>⚔️ Empezar duelo</button>`;
+    }
+    if (el.dataset.html !== h) { el.innerHTML = h; el.dataset.html = h; }
+  }
+  document.body.addEventListener('change', (e) => {
+    if (e.target.id === 'sel-a') selA = e.target.value;
+    if (e.target.id === 'sel-b') selB = e.target.value;
+  });
+
   // ---------- Arranque
   pintarBotonSonido();
+  pintarPracticas();
   if (guardar.leer()) conectar();
 })();
 </script>

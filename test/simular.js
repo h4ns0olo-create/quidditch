@@ -228,6 +228,7 @@ async function main() {
 
     console.log('\n8) Pases y tiro: gana quien acierta primero');
     let { r } = await pase('centro');
+    const anchoInicial = r.zonaFin - r.zonaIni;
     comprobar(r.visual === 'barra' && obs.estado.pasesBuenos === 1, 'pase bueno con la barra (1 de 2)');
     comprobar((await portador().error({ t: 'tirar' })).msg.includes('Todavía no'), 'con 1 pase todavía no se puede lanzar');
     await pase('centro');
@@ -251,7 +252,9 @@ async function main() {
     await pase('imposible');
     comprobar(pel().equipo !== eq0 && log('tiempo no válido'), 'tiempo imposible = pase fallido, la quaffle cambia de equipo');
     eq0 = pel().equipo;
-    await pase('fuera');
+    const rTarde = (await pase('fuera')).r;
+    comprobar(rTarde.zonaFin - rTarde.zonaIni < anchoInicial - 0.003 && rTarde.periodo < 1600,
+      `la dificultad sube con el reloj: zona ${Math.round(anchoInicial * 100)} % → ${Math.round((rTarde.zonaFin - rTarde.zonaIni) * 100)} %, marca más rápida`);
     comprobar(pel().equipo !== eq0 && log('fuera de la zona'), 'tocar fuera de la zona = pase fallido');
     eq0 = pel().equipo;
     await obs.recibir((m) => m.t === 'estado' && m.sala.pelota && m.sala.pelota.equipo !== eq0, 12000);
@@ -383,6 +386,67 @@ async function main() {
     t3.mandar({ t: 'empezar', duracion: 10 });
     await t3.recibir((m) => m.t === 'estado' && m.sala.fase === 'partido', 3000);
     comprobar(t3.estado.partido.snitchMs.length === 0, 'en 3 contra 3 no hay snitch: se gana por puntos');
+
+    console.log('\n15c) Duelos');
+    capi.mandar({ t: 'crear_sala', tipo: 'duelo', clave: CAPI, codigo: 'DUELO' });
+    comprobar((await capi.recibir((m) => m.t === 'sala_creada' && m.codigo === 'DUELO')).tipo === 'duelo', 'con la clave de capitanes se crea una sala de duelos');
+    const jefeD = await nuevo('Jefe'); await jefeD.entrar('DUELO', 'Invitado');
+    const cho = await nuevo('Cho'); comprobar((await cho.entrar('DUELO', 'Ravenclaw')).t === 'bienvenida', 'en la sala de duelos se entra con cualquier casa');
+    const mae = await nuevo('Maenor'); await mae.entrar('DUELO', 'Ravenclaw');
+    const miraD = await nuevo('Mira'); await miraD.entrar('DUELO', 'Gryffindor');
+    comprobar((await cho.error({ t: 'empezar_duelo', a: cho.id, b: mae.id, pos: 'buscador' })).msg.includes('administración'), 'solo el capitán puede empezar un duelo');
+    jefeD.mandar({ t: 'admin_login', clave: CAPI });
+    await esperar(100);
+    jefeD.mandar({ t: 'empezar_duelo', a: cho.id, b: mae.id, pos: 'buscador', rondas: 3 });
+    const esperaD1 = await cho.recibir((m) => m.t === 'duelo' && m.fase === 'espera', 6000);
+    comprobar(esperaD1.necesarias === 2 && esperaD1.rival === 'Maenor', 'duelo de buscadores al mejor de 3 (gana quien llegue a 2)');
+    comprobar(!miraD.mensajes.some((m) => m.t === 'duelo') && Array.isArray(miraD.estado.log) && miraD.estado.duelo.ids.length === 2, 'los demás miran (con los comentarios automáticos) pero no juegan');
+    // Ronda 1: Cho toca antes de tiempo.
+    let finR = mae.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 8000);
+    cho.mandar({ t: 'duelo_tap', rondaId: esperaD1.rondaId, antes: true });
+    comprobar((await finR).ganador === 'B', 'ronda 1: Cho toca antes de tiempo y gana Maenor');
+    // Ronda 2: los dos tocan; Cho reacciona más rápido.
+    const [sen1, sen2b] = await Promise.all([cho.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000), mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000)]);
+    finR = cho.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 5000);
+    await esperar(400);
+    mae.mandar({ t: 'duelo_tap', rondaId: sen2b.rondaId, ms: 380 });
+    cho.mandar({ t: 'duelo_tap', rondaId: sen1.rondaId, ms: 250 });
+    comprobar((await finR).ganador === 'A', 'ronda 2: gana Cho, que reaccionó antes');
+    // Ronda 3: hay señuelo (polilla). Cho la toca y pierde la ronda.
+    const senR3 = await cho.recibir((m) => m.t === 'duelo' && (m.fase === 'senuelo' || m.fase === 'senal'), 12000);
+    comprobar(senR3.fase === 'senuelo', 'desde la ronda 3 aparece la polilla dorada (señuelo) antes que la snitch');
+    const finDueloP = miraD.recibir((m) => m.t === 'estado' && m.sala.duelo && m.sala.duelo.estado === 'fin', 6000);
+    cho.mandar({ t: 'duelo_tap', rondaId: senR3.rondaId, antes: true });
+    await finDueloP;
+    const resD = miraD.estado.duelo.resultado;
+    comprobar(resD.ganador === 1 && miraD.estado.log.some((l) => l.texto.includes('Cho tocó antes')), 'tocar la polilla pierde la ronda: Maenor gana el duelo 2-1');
+    comprobar(resD.stats[0].mejor === 250 && resD.stats[1].mejor === 380, 'resultado con el mejor tiempo de reacción de cada uno');
+    // Duelo de guardianes
+    jefeD.mandar({ t: 'empezar_duelo', a: cho.id, b: mae.id, pos: 'guardian', rondas: 3 });
+    const gEsp = await cho.recibir((m) => m.t === 'duelo' && m.fase === 'espera' && m.pos === 'guardian', 6000);
+    comprobar(!!gEsp.aguja && gEsp.aguja.zonaFin > gEsp.aguja.zonaIni, 'duelo de guardianes: los dos reciben la misma aguja');
+    finR = mae.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 8000);
+    cho.mandar({ t: 'duelo_tap', rondaId: gEsp.rondaId, antes: true });
+    comprobar((await finR).ganador === 'B', 'atajar antes del aviso ¡TIRO! pierde la ronda');
+    // Ronda 2: tras el aviso, los dos atajan en lo verde; Cho antes.
+    const recibirAgujaD = (c) => c.recibir((m) => m.t === 'duelo' && m.fase === 'espera', 8000).then((e) => ({ e, t0: Date.now() - e.aguja.desde }));
+    const [agA, agB] = await Promise.all([recibirAgujaD(cho), recibirAgujaD(mae)]);
+    const [tirA, tirB] = await Promise.all([cho.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 10000), mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 10000)]);
+    const momentoAguja = (g, extra) => {
+      const { zonaIni, zonaFin, periodo } = g.e.aguja, c = (zonaIni + zonaFin) / 2, ahora = Date.now() - g.t0 + 60;
+      const cand = [];
+      for (let k = 0; k < 6; k++) cand.push((c / 2) * periodo + k * periodo, (1 - c / 2) * periodo + k * periodo);
+      return cand.sort((x, y) => x - y).filter((x) => x >= ahora)[extra];
+    };
+    finR = cho.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 6000);
+    const atajarDuelo = async (c, g, sen2, extra) => {
+      const msA = momentoAguja(g, extra);
+      const tSen = Date.now();
+      await esperar(Math.max(0, msA - (Date.now() - g.t0)));
+      c.mandar({ t: 'duelo_tap', rondaId: sen2.rondaId, ms: Math.max(120, Date.now() - tSen + (sen2.desdeSenal || 0)), msAguja: Math.round(msA) });
+    };
+    await Promise.all([atajarDuelo(cho, agA, tirA, 0), atajarDuelo(mae, agB, tirB, 1)]);
+    comprobar((await finR).ganador === 'A', 'tras ¡TIRO!, gana quien ataja primero con la aguja en lo verde');
 
     console.log('\n16) Fin por tiempo, empate y muerte súbita (otro servidor: 1 minuto = 0,4 s)');
     servidor2 = await arrancarServidor(3998, 400);

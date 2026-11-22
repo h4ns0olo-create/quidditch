@@ -38,6 +38,19 @@ Cómo funciona (paso 3):
 en los pases y tiros, las bludgers, la snitch revoloteando); brillo en quien está jugando un reto; "¡GOL!" con
 confeti; escenas en cada minijuego; podio con el jugador destacado al final; y sonidos (botón 🔊 para apagarlos).
 
+**Duelos, práctica libre y dificultad** (paso 6):
+- **⚔️ Duelos** (sala aparte, con la clave de administración o de capitanes): el capitán elige a dos aspirantes a
+  **buscador** (gana quien atrapa la snitch primero) o **guardián** (gana quien ataja primero, con la aguja en lo
+  verde, tras el aviso "¡TIRO!"). Al mejor de 3, 5 o 7 (por defecto 5). Los demás miran con comentarios automáticos.
+  Al final: ganador, reacción media y mejor tiempo de cada uno.
+- **🎯 Práctica libre** (botón en la portada, sin sala): cada uno practica el minijuego de su posición; 3 vidas, cada
+  acierto sube de nivel y se guarda el récord en el celular.
+- **Dificultad que sube:** en partidos y entrenamientos la zona se achica y la marca acelera con el reloj; en los
+  duelos, ronda a ronda; en la práctica, nivel a nivel.
+- **Señuelos:** una polilla dorada (parecida a la snitch pero con alas anchas, sin bolita, más ámbar y sin iluminar el
+  fondo). Tocarla pierde la ronda. Salen desde la 2.ª aparición de la snitch y en la muerte súbita, desde la ronda 3
+  en los duelos y desde el nivel 3 en la práctica.
+
 Todavía NO incluye: corrección del marcador por la administración.
 
 ## Probarlo en tu computadora (opcional)

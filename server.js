@@ -77,6 +77,11 @@ const POSICIONES_DE = {
   e5: ['cazador1', 'cazador2', 'golpeador1', 'guardian', 'buscador'],
 };
 const FORMATOS = ['e3', 'e4b', 'e4g', 'e5'];
+POSICIONES_DE.duelo = [];
+// Señuelos de la snitch (una polilla dorada): secuencia fija de rondas en las que aparece uno.
+const SENUELOS = [1, 0, 1, 1, 0, 1, 0, 1];
+const SENUELO_MS = 800;
+const RONDAS_DUELO = [3, 5, 7];
 const conSnitch = (sala) => POSICIONES_DE[sala.formato].includes('buscador');
 
 // ---------------------------------------------------------------- Estado
@@ -206,6 +211,7 @@ function estadoPublico(sala, esInvitado) {
     posiciones: POSICIONES_DE[sala.formato],
     formato: sala.formato,
     snitchActiva: !!sala.snitch,
+    duelo: dueloPublico(sala),
     actuando: actuando(sala),
     participantes: [...sala.participantes.values()].map((p) => ({
       id: p.id, nombre: p.nombre, casa: p.casa, equipo: p.equipo, lados: p.lados, conectado: p.conectado, plaza: p.plaza, invitado: p.invitado, admin: p.admin,
@@ -239,18 +245,18 @@ function difundir(sala) {
   const paraInvitados = JSON.stringify({ t: 'estado', sala: estadoPublico(sala, true) });
   const paraJugadores = JSON.stringify({ t: 'estado', sala: estadoPublico(sala, false) });
   for (const p of sala.participantes.values()) {
-    if (p.ws && p.ws.readyState === 1) p.ws.send(p.invitado || sala.tipo === 'entrenamiento' ? paraInvitados : paraJugadores);
+    if (p.ws && p.ws.readyState === 1) p.ws.send(p.invitado || sala.tipo !== 'oficial' ? paraInvitados : paraJugadores);
   }
 }
 
 // ---------------------------------------------------------------- Entrada y reconexión
 // La contraseña de administración sirve para todo; la de capitanes, solo en entrenamientos.
 function esClaveAdmin(tipo, clave) {
-  return clave === ADMIN_PASSWORD || (tipo === 'entrenamiento' && !!CAPITAN_PASSWORD && clave === CAPITAN_PASSWORD);
+  return clave === ADMIN_PASSWORD || (tipo !== 'oficial' && !!CAPITAN_PASSWORD && clave === CAPITAN_PASSWORD);
 }
 
 function crearSala(ws, m) {
-  const tipo = m.tipo === 'entrenamiento' ? 'entrenamiento' : 'oficial';
+  const tipo = ['entrenamiento', 'duelo'].includes(m.tipo) ? m.tipo : 'oficial';
   if (!esClaveAdmin(tipo, m.clave)) {
     return error(ws, tipo === 'oficial' && CAPITAN_PASSWORD && m.clave === CAPITAN_PASSWORD
       ? 'La clave de capitanes solo sirve para crear entrenamientos.' : 'Contraseña incorrecta.');
@@ -258,12 +264,13 @@ function crearSala(ws, m) {
   const codigo = limpiarCodigo(m.codigo);
   if (codigo.length < 3 || codigo.length > 10) return error(ws, 'El código debe tener entre 3 y 10 letras o números.');
   if (salas.has(codigo)) return enviar(ws, { t: 'sala_creada', codigo, equipos: salas.get(codigo).equipos, nombres: salas.get(codigo).nombres, tipo: salas.get(codigo).tipo, yaExistia: true });
+  if (tipo === 'duelo') { m.equipoA = m.equipoA || 'Gryffindor'; m.equipoB = m.equipoB || 'Slytherin'; }
   if (!CASAS.includes(m.equipoA) || !CASAS.includes(m.equipoB)) return error(ws, 'Elige la casa de cada equipo.');
   if (m.equipoA === m.equipoB && tipo === 'oficial') return error(ws, 'En un partido oficial los dos equipos deben ser de casas distintas.');
-  const formato = tipo === 'oficial' ? 'oficial' : FORMATOS.includes(m.formato) ? m.formato : 'e5';
+  const formato = tipo === 'oficial' ? 'oficial' : tipo === 'duelo' ? 'duelo' : FORMATOS.includes(m.formato) ? m.formato : 'e5';
   const sala = nuevaSala(codigo, { A: m.equipoA, B: m.equipoB }, tipo, formato);
   salas.set(codigo, sala);
-  registrar(sala, `${tipo === 'entrenamiento' ? 'Entrenamiento' : 'Partido'} ${codigo} creado: ${sala.nombres.A} contra ${sala.nombres.B}.`);
+  registrar(sala, tipo === 'duelo' ? `Sala de duelos ${codigo} creada.` : `${tipo === 'entrenamiento' ? 'Entrenamiento' : 'Partido'} ${codigo} creado: ${sala.nombres.A} contra ${sala.nombres.B}.`);
   enviar(ws, { t: 'sala_creada', codigo, equipos: sala.equipos, nombres: sala.nombres, tipo, formato });
 }
 
@@ -279,7 +286,7 @@ function entrar(ws, m) {
   const esInvitado = m.casa === 'Invitado';
   if (!esInvitado && !CASAS.includes(m.casa)) return error(ws, 'Elige tu casa o "Invitado".');
   let lados = [];
-  if (!esInvitado) {
+  if (!esInvitado && sala.tipo !== 'duelo') {
     lados = EQUIPOS.filter((e) => sala.equipos[e] === m.casa); // en un entrenamiento de una sola casa, puede ir a los dos lados
     if (!lados.length) {
       return error(ws, `${m.casa} no juega en este partido (${sala.nombres.A} contra ${sala.nombres.B}). Puedes entrar como Invitado.`, 'casa_no_juega');
@@ -325,6 +332,7 @@ function reconectar(ws, m) {
     if (r.pid === p.id && r.precision === undefined) enviarReto(sala, r);
   }
   if (sala.snitch) enviarSnitch(sala, p.id);
+  if (sala.duelo && sala.duelo.estado !== 'fin') enviarDuelo(sala, p.id);
 }
 
 function conectar(sala, p, ws) {
@@ -548,7 +556,7 @@ function limpiarTimers(sala) {
   clearTimeout(sala.timerPosesion);
   if (sala.accion) { clearTimeout(sala.accion.timer); clearTimeout(sala.accion.timerRevisar); }
   sala.accion = null;
-  if (sala.snitch) { clearTimeout(sala.snitch.timer); clearTimeout(sala.snitch.revisar); }
+  if (sala.snitch) { for (const t of ['timer', 'revisar', 'timerSenuelo', 'timerSenuelo2']) clearTimeout(sala.snitch[t]); }
   sala.snitch = null;
 }
 
@@ -592,8 +600,20 @@ function nuevaAccion(sala, tipo, datos, texto) {
   return a;
 }
 
+// Dificultad del partido: de 0 (al empezar) a 1 (al final). Igual para los dos equipos.
+function dificultad(sala) {
+  if (sala.fase === 'muerte') return 1;
+  if (sala.fase !== 'partido' || !sala.partido) return 0;
+  const dur = sala.partido.duracionMin * MINUTO_MS;
+  return Math.max(0, Math.min(1, (Date.now() - sala.partido.inicio) / dur));
+}
+// La zona se achica (hasta ~55 %) y la marca acelera (hasta +25 %) a medida que avanza el partido.
+function ajustar(cfg, f) {
+  return { ...cfg, ancho: cfg.ancho * (1 - 0.45 * f), periodo: Math.round(cfg.periodo / (1 + 0.25 * f)) };
+}
+
 function lanzarReto(sala, a, pid, clase, titulo, centroFijo) {
-  const cfg = RETOS[clase];
+  const cfg = ajustar(RETOS[clase], dificultad(sala));
   const centro = centroFijo !== undefined ? centroFijo : CENTROS[sala.contadorRetos++ % CENTROS.length];
   const r = {
     id: hex(4), pid, clase, titulo, ...cfg,
@@ -927,7 +947,8 @@ function aparecerSnitch(sala, muerte) {
     registrar(sala, '✨ La snitch aparece… pero no hay buscadores. Se escapa.');
     return difundir(sala);
   }
-  sala.snitch = { muerte, ronda: 0, victorias: { A: 0, B: 0 }, busc, estado: 'pausa', rondaId: null, taps: { A: null, B: null }, senalEn: 0, timer: null, revisar: null };
+  sala.aparicionesSnitch = (sala.aparicionesSnitch || 0) + 1;
+  sala.snitch = { muerte, senuelos: muerte || sala.aparicionesSnitch >= 2, ronda: 0, victorias: { A: 0, B: 0 }, busc, estado: 'pausa', rondaId: null, taps: { A: null, B: null }, senalEn: 0, timer: null, revisar: null };
   animar(sala, { tipo: 'snitch', fase: 'aparece' });
   registrar(sala, muerte ? '⚡ ¡La snitch aparece en la muerte súbita! (al mejor de 3)' : '✨ ¡Apareció la snitch dorada! Los buscadores se lanzan a por ella (al mejor de 3).');
   nuevaRonda(sala);
@@ -943,13 +964,26 @@ function nuevaRonda(sala) {
   s.taps = { A: null, B: null };
   const pausa = SNITCH.pausas[sala.contadorPausas++ % SNITCH.pausas.length];
   enviarSnitch(sala);
+  const extra = s.senuelos ? programarSenuelo(sala, s, pausa, (fase) => enviarSnitch(sala, null, { fase })) : 0;
   s.timer = setTimeout(() => {
     if (sala.snitch !== s || s.estado !== 'espera') return;
     s.estado = 'senal';
     s.senalEn = Date.now();
     enviarSnitch(sala);
     s.timer = setTimeout(() => evaluarRonda(sala, true), SNITCH.limiteMs + AJUSTES.margenRedMs);
-  }, pausa);
+  }, pausa + extra);
+}
+
+// Señuelo: a mitad de la espera aparece una polilla dorada durante un momento. Tocarla cuenta como tocar antes.
+// Devuelve cuánto se alarga la espera.
+function programarSenuelo(sala, estado, pausa, mandar) {
+  const i = sala.contadorSenuelos || 0;
+  sala.contadorSenuelos = i + 1;
+  if (!SENUELOS[i % SENUELOS.length]) return 0;
+  const t = Math.round(pausa * 0.5);
+  estado.timerSenuelo = setTimeout(() => { if (estado.estado === 'espera') mandar('senuelo'); }, t);
+  estado.timerSenuelo2 = setTimeout(() => { if (estado.estado === 'espera') mandar('espera'); }, t + SENUELO_MS);
+  return SENUELO_MS + 600;
 }
 
 function enviarSnitch(sala, soloId, extra) {
@@ -1015,8 +1049,7 @@ function evaluarRonda(sala, final) {
 
 function terminarRonda(sala, ganador, motivo) {
   const s = sala.snitch;
-  clearTimeout(s.timer);
-  clearTimeout(s.revisar);
+  for (const t of ['timer', 'revisar', 'timerSenuelo', 'timerSenuelo2']) clearTimeout(s[t]);
   s.estado = 'pausa';
   if (ganador) { s.victorias[ganador]++; stat(sala, s.busc[ganador], 'rondasSnitch'); }
   const marcadorRondas = `${sala.nombres.A} ${s.victorias.A} - ${s.victorias.B} ${sala.nombres.B}`;
@@ -1057,6 +1090,190 @@ function atraparSnitch(sala, eq) {
   finalizar(sala, 'snitch', eq);
 }
 
+// ---------------------------------------------------------------- Duelos (buscador o guardián)
+// El capitán elige a dos aspirantes. En cada ronda los dos reciben el mismo reto a la vez y cada ronda es más difícil.
+//  - Buscador: "espera…", aparece la snitch y gana quien toca primero (desde la ronda 3 hay señuelos).
+//  - Guardián: la aguja se mueve; tras el aviso "¡TIRO!" gana quien ataja primero con la aguja en lo verde.
+//  Tocar antes de la señal pierde la ronda.
+const NOMBRE_DUELO = { buscador: 'buscadores', guardian: 'guardianes' };
+
+function dueloPublico(sala) {
+  const d = sala.duelo;
+  if (!d) return null;
+  return {
+    pos: d.pos, ids: d.ids, nombres: d.nombres, casas: d.casas, victorias: d.victorias, necesarias: d.necesarias,
+    rondas: d.rondas, ronda: d.ronda, estado: d.estado, resultado: d.resultado,
+  };
+}
+
+function empezarDuelo(ws, m) {
+  const { sala } = soloAdmin(ws);
+  if (!sala) return;
+  if (sala.tipo !== 'duelo') return error(ws, 'Los duelos se hacen en una sala de duelos.');
+  if (sala.duelo && sala.duelo.estado !== 'fin') return error(ws, 'Ya hay un duelo en marcha.');
+  const pos = m.pos === 'guardian' ? 'guardian' : m.pos === 'buscador' ? 'buscador' : null;
+  if (!pos) return error(ws, 'Elige si es un duelo de buscadores o de guardianes.');
+  const rondas = RONDAS_DUELO.includes(Number(m.rondas)) ? Number(m.rondas) : 5;
+  const ids = [String(m.a || ''), String(m.b || '')];
+  if (ids[0] === ids[1]) return error(ws, 'Elige a dos personas distintas.');
+  const ps = ids.map((id) => sala.participantes.get(id));
+  if (ps.some((x) => !x || !x.conectado)) return error(ws, 'Los dos aspirantes tienen que estar conectados en la sala.');
+  sala.duelo = {
+    pos, ids, nombres: ps.map((x) => x.nombre), casas: ps.map((x) => x.casa), victorias: [0, 0], necesarias: (rondas + 1) / 2,
+    rondas, maxRondas: rondas + 4, ronda: 0, estado: 'cuenta', rondaId: null, taps: [null, null],
+    tiempos: [[], []], resultado: null,
+  };
+  registrar(sala, `⚔️ ¡Duelo de ${NOMBRE_DUELO[pos]}! ${ps[0].nombre} contra ${ps[1].nombre}, al mejor de ${rondas}.`);
+  sala.duelo.timer = setTimeout(() => nuevaRondaDuelo(sala), 3000);
+  enviarDuelo(sala, null, { fase: 'cuenta' });
+  difundir(sala);
+}
+
+function detenerDuelo(ws) {
+  const { sala } = soloAdmin(ws);
+  if (!sala || !sala.duelo || sala.duelo.estado === 'fin') return;
+  registrar(sala, 'La administración detiene el duelo.');
+  finDuelo(sala, 'detenido');
+}
+
+function limpiarDuelo(d) {
+  for (const t of ['timer', 'revisar', 'timerSenuelo', 'timerSenuelo2']) clearTimeout(d[t]);
+}
+
+function enviarDuelo(sala, soloId, extra) {
+  const d = sala.duelo;
+  if (!d) return;
+  d.ids.forEach((id, i) => {
+    if (soloId && soloId !== id) return;
+    const p = sala.participantes.get(id);
+    enviar(p && p.ws, {
+      t: 'duelo', pos: d.pos, fase: d.estado, rondaId: d.rondaId, ronda: d.ronda, rondas: d.rondas, necesarias: d.necesarias,
+      yo: i === 0 ? 'A' : 'B', victorias: { A: d.victorias[0], B: d.victorias[1] }, rival: d.nombres[1 - i],
+      desdeSenal: d.estado === 'senal' ? Date.now() - d.senalEn : 0,
+      aguja: d.pos === 'guardian' && d.aguja ? { zonaIni: d.aguja.zonaIni, zonaFin: d.aguja.zonaFin, periodo: d.aguja.periodo, desde: Date.now() - d.aguja.inicio } : null,
+      ...extra,
+    });
+  });
+}
+
+function nuevaRondaDuelo(sala) {
+  const d = sala.duelo;
+  if (!d || d.estado === 'fin') return;
+  d.ronda++;
+  d.rondaId = hex(4);
+  d.taps = [null, null];
+  d.estado = 'espera';
+  const f = Math.min(1, (d.ronda - 1) / Math.max(1, d.rondas - 1)); // cada ronda, más difícil
+  const pausa = SNITCH.pausas[sala.contadorPausas++ % SNITCH.pausas.length];
+  let extra = 0;
+  if (d.pos === 'guardian') {
+    const centro = CENTROS[sala.contadorRetos++ % CENTROS.length];
+    const ancho = 0.18 * (1 - 0.45 * f);
+    d.aguja = { zonaIni: centro - ancho / 2, zonaFin: centro + ancho / 2, periodo: Math.round(1500 / (1 + 0.35 * f)), inicio: Date.now() };
+    enviarDuelo(sala);
+  } else {
+    enviarDuelo(sala);
+    if (d.ronda >= 3) extra = programarSenuelo(sala, d, pausa, (fase) => enviarDuelo(sala, null, { fase }));
+  }
+  d.timer = setTimeout(() => {
+    if (sala.duelo !== d || d.estado !== 'espera') return;
+    d.estado = 'senal';
+    d.senalEn = Date.now();
+    if (d.aguja) d.senalMs = d.senalEn - d.aguja.inicio;
+    enviarDuelo(sala);
+    d.timer = setTimeout(() => evaluarDuelo(sala, true), SNITCH.limiteMs + AJUSTES.margenRedMs);
+  }, pausa + extra);
+  difundir(sala);
+}
+
+function dueloTap(ws, m) {
+  const { sala, p } = quien(ws);
+  const d = sala && sala.duelo;
+  if (!p || !d || m.rondaId !== d.rondaId || !['espera', 'senal'].includes(d.estado)) return;
+  const i = d.ids.indexOf(p.id);
+  if (i < 0 || d.taps[i]) return;
+  if (d.estado === 'espera' || m.antes) d.taps[i] = { antes: true };
+  else {
+    const ms = Number(m.ms);
+    const trans = Date.now() - d.senalEn;
+    if (!Number.isFinite(ms) || ms < SNITCH.minimoMs || ms > trans + AJUSTES.margenRelojMs) d.taps[i] = { antes: true, invalido: true };
+    else if (d.pos === 'guardian') {
+      const msA = Number(m.msAguja);
+      const transA = Date.now() - d.aguja.inicio;
+      if (!Number.isFinite(msA) || msA > transA + AJUSTES.margenRelojMs || msA < d.senalMs - AJUSTES.margenRelojMs) d.taps[i] = { antes: true, invalido: true };
+      else {
+        const pos = posicionMarca(msA, d.aguja.periodo);
+        const dentro = pos >= d.aguja.zonaIni - AJUSTES.tolerancia && pos <= d.aguja.zonaFin + AJUSTES.tolerancia;
+        d.taps[i] = dentro ? { ms } : { fuera: true };
+      }
+    } else d.taps[i] = { ms };
+  }
+  evaluarDuelo(sala, false);
+}
+
+function evaluarDuelo(sala, final) {
+  const d = sala.duelo;
+  if (!d || !['espera', 'senal'].includes(d.estado)) return;
+  const t = d.taps;
+  for (const i of [0, 1]) {
+    if (t[i] && t[i].antes) {
+      const gana = !(t[1 - i] && t[1 - i].antes) ? 1 - i : null;
+      return terminarRondaDuelo(sala, gana, t[i].invalido ? `${d.nombres[i]} dio un tiempo imposible` : `${d.nombres[i]} tocó antes de tiempo`);
+    }
+  }
+  if (final) for (const i of [0, 1]) if (!t[i]) t[i] = { nada: true };
+  const tiempo = (i) => (!t[i] ? null : t[i].ms !== undefined ? t[i].ms : Infinity);
+  const a = tiempo(0), b = tiempo(1);
+  if (a !== null && b !== null) {
+    if (a === Infinity && b === Infinity) return terminarRondaDuelo(sala, null, d.pos === 'guardian' ? 'ninguno atajó en lo verde' : 'nadie tocó a tiempo');
+    if (a === b) return terminarRondaDuelo(sala, null, 'empate exacto');
+    return terminarRondaDuelo(sala, a < b ? 0 : 1, `reaccionó en ${seg(Math.min(a, b))}`);
+  }
+  if (d.estado !== 'senal') return;
+  const conocido = a !== null ? a : b;
+  if (conocido === Infinity) return;
+  const trans = Date.now() - d.senalEn;
+  if (trans > conocido + VENTANA_RED_MS) return terminarRondaDuelo(sala, a !== null ? 0 : 1, `reaccionó en ${seg(conocido)}`);
+  clearTimeout(d.revisar);
+  d.revisar = setTimeout(() => evaluarDuelo(sala, false), conocido + VENTANA_RED_MS - trans + 20);
+}
+
+function terminarRondaDuelo(sala, ganador, motivo) {
+  const d = sala.duelo;
+  limpiarDuelo(d);
+  d.estado = 'pausa';
+  d.taps.forEach((x, i) => { if (x && x.ms !== undefined) d.tiempos[i].push(x.ms); });
+  if (ganador !== null) d.victorias[ganador]++;
+  registrar(sala, `⚔️ Ronda ${d.ronda}: ${ganador !== null ? `gana ${d.nombres[ganador]}` : 'nadie gana'} (${motivo}). Duelo: ${d.nombres[0]} ${d.victorias[0]} - ${d.victorias[1]} ${d.nombres[1]}.`);
+  enviarDuelo(sala, null, { fase: 'ronda', ganador: ganador === null ? null : ganador === 0 ? 'A' : 'B', motivo });
+  if (ganador !== null && d.victorias[ganador] >= d.necesarias) return finDuelo(sala, 'ganado');
+  if (d.ronda >= d.maxRondas) return finDuelo(sala, 'rondas');
+  d.timer = setTimeout(() => nuevaRondaDuelo(sala), SNITCH.entreRondasMs);
+  difundir(sala);
+}
+
+function finDuelo(sala, motivo) {
+  const d = sala.duelo;
+  limpiarDuelo(d);
+  d.estado = 'fin';
+  const [va, vb] = d.victorias;
+  const ganador = va > vb ? 0 : vb > va ? 1 : null;
+  const resumen = (i) => {
+    const ts = d.tiempos[i];
+    return {
+      nombre: d.nombres[i], victorias: d.victorias[i], aciertos: ts.length, rondas: d.ronda,
+      promedio: ts.length ? Math.round(ts.reduce((x, y) => x + y, 0) / ts.length) : null,
+      mejor: ts.length ? Math.min(...ts) : null,
+    };
+  };
+  d.resultado = { ganador, motivo, stats: [resumen(0), resumen(1)] };
+  registrar(sala, ganador !== null
+    ? `🏆 ¡${d.nombres[ganador]} gana el duelo de ${NOMBRE_DUELO[d.pos]} ${d.victorias[ganador]} a ${d.victorias[1 - ganador]}!`
+    : `🤝 El duelo termina empatado ${va} a ${vb}.`);
+  enviarDuelo(sala, null, { fase: 'fin', ganador: ganador === null ? null : ganador === 0 ? 'A' : 'B' });
+  difundir(sala);
+}
+
 // ---------------------------------------------------------------- Comentaristas
 function comentar(ws, m) {
   const { sala, p } = quien(ws);
@@ -1092,6 +1309,9 @@ const ACCIONES = {
   bludger: lanzarBludger,
   tap,
   snitch_tap: snitchTap,
+  empezar_duelo: empezarDuelo,
+  detener_duelo: detenerDuelo,
+  duelo_tap: dueloTap,
   comentar,
 };
 
