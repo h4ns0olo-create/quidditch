@@ -1,15 +1,21 @@
 # Quidditch entre amigos — prototipo (paso 1)
 
-Qué incluye este primer paso:
-- Una página web para el celular (en español, vertical, sin instalar nada).
-- La administradora crea la sala con su contraseña y un código (ej.: `FIESTA`).
-- Cada persona entra con nombre, casa y código. Máximo 20; no se repiten nombres.
-- Elegir posición en el Equipo A o B (14 plazas únicas) o mirar como invitado.
-- Si alguien se desconecta, su plaza queda guardada 1 minuto; al volver a abrir la página la recupera sola.
-- "Prueba de pases": un cazador toma la pelota, elige a qué compañero pasar y le aparece la barra.
-  Si toca en el verde, pase bueno; si falla o no toca en 6 s, la pelota pasa al otro equipo.
+Qué incluye (paso 2):
+- Página para el celular con los colores y emblemas de las casas 🦁🐍🦅🦡 y un mapa del campo con las posiciones
+  (cazador = círculo, golpeador = rombo, guardián = escudo, buscador = estrella; la quaffle es la bolita roja).
+- El administrador crea la sala con su contraseña, un código y las dos casas que juegan.
+- Entrada con nombre, casa y código. Máximo 20; no se repiten nombres. Plaza guardada 1 minuto si alguien se desconecta.
+- Jugadas de prueba (en el lobby):
+  - **Pase** (cazadores, barra): 2 pases buenos permiten lanzar. Pueden ir y volver entre 2 cazadores;
+    si un equipo se queda con 1 solo cazador, puede lanzar directo.
+  - **Lanzar a la meta**: botón especial. El cazador hace la barra y el guardián rival la aguja; gol si el
+    cazador acierta más cerca del centro que el guardián. Gol = 10 puntos.
+  - **Bludger** (golpeadores, círculo): cuando el rival tiene la quaffle, un golpeador la batea (una cada 20 s por
+    equipo). Si acierta, los golpeadores rivales tienen 3 s para repelerla; si nadie lo logra, se pierde la quaffle.
+- Los jugadores no ven el registro de jugadas: solo lo ven los invitados. Los comentaristas escriben y sus
+  comentarios aparecen como banners arriba en la pantalla de todos.
 
-Todavía NO incluye: capitanes, cuenta regresiva, partido con reloj, tiro, bludgers, snitch, marcador ni informe final (son los siguientes pasos).
+Todavía NO incluye: capitanes, cuenta regresiva, partido con reloj, snitch, corrección de marcador ni informe final.
 
 ## Probarlo en tu computadora (opcional)
 Necesita Node.js 18 o más nuevo.
@@ -39,5 +45,5 @@ Importante del plan gratuito:
 - Si se reinicia, las salas se borran (no hay base de datos). Habría que crear la sala de nuevo.
 
 ## Ajustes
-En `server.js`, arriba del todo: tiempo de la barra (`limiteMs`), velocidad (`periodoMs`),
-ancho del verde (`anchoZona`) y margen para la latencia (`tolerancia`).
+En `server.js`, arriba del todo: puntos por gol, espera entre bludgers,
+y en `RETOS` el ancho de la zona (`ancho`), la velocidad (`periodo`) y el tiempo (`limite`) de cada minijuego.

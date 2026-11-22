@@ -3,118 +3,247 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1b1530">
+<meta name="theme-color" content="#120d26">
 <title>Quidditch entre amigos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --fondo: #1b1530; --panel: #2a2245; --panel2: #352c56; --texto: #f4f0ff; --suave: #b9b0d6;
-    --acento: #f2c14e; --verde: #3ccf6e; --rojo: #ef5b5b; --equipoA: #e0703a; --equipoB: #4a8fe0;
-    --casa1: #f2c14e; --casa2: #7f0909;
+    --fondo: #0e0b1f; --texto: #f6f1ff; --suave: #b8aed8; --oro: #f2c14e; --oro2: #fff1b8;
+    --verde: #38d476; --rojo: #ff6b6b; --borde: rgba(255,255,255,.10);
+    --casa: #f2c14e; --casa-acento: #fff; --casa-texto: #fff;
+    --titulo: "Cinzel", Georgia, "Times New Roman", serif;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--fondo); color: var(--texto); }
+  html { background: var(--fondo); }
   body {
+    margin: 0 auto; max-width: 520px; min-height: 100vh; color: var(--texto); background: transparent;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.4;
-    padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto;
+    padding: 12px 16px calc(28px + env(safe-area-inset-bottom));
     -webkit-tap-highlight-color: transparent; touch-action: manipulation;
   }
-  h1 { font-size: 1.5rem; margin: 8px 0 4px; }
-  h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  /* Cielo nocturno con estrellas */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(1.5px 1.5px at 12% 18%, #fff9, transparent 60%),
+      radial-gradient(1px 1px at 78% 12%, #fff8, transparent 60%),
+      radial-gradient(1.5px 1.5px at 62% 34%, #fff6, transparent 60%),
+      radial-gradient(1px 1px at 28% 62%, #fff7, transparent 60%),
+      radial-gradient(1.5px 1.5px at 88% 70%, #fff6, transparent 60%),
+      radial-gradient(1px 1px at 45% 86%, #fff5, transparent 60%),
+      radial-gradient(1px 1px at 8% 92%, #fff6, transparent 60%),
+      radial-gradient(ellipse 90% 50% at 50% 0%, #3b2a72 0%, transparent 70%),
+      radial-gradient(ellipse 70% 40% at 100% 100%, #2a1a4a 0%, transparent 70%),
+      linear-gradient(#171230, #0e0b1f);
+  }
+  h1, h2, .titulo { font-family: var(--titulo); letter-spacing: .02em; }
+  h2 { font-size: 1.05rem; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
   p { margin: 6px 0; }
   .suave { color: var(--suave); font-size: .9rem; }
   .oculto { display: none !important; }
-  .panel { background: var(--panel); border-radius: 14px; padding: 14px; margin: 12px 0; }
-  label { display: block; margin: 10px 0 4px; font-weight: 600; }
-  input, select {
-    width: 100%; font-size: 16px; padding: 12px; border-radius: 10px; border: 1px solid #4b4170;
-    background: #15102a; color: var(--texto);
+  .panel {
+    background: linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
+    border: 1px solid var(--borde); border-radius: 18px; padding: 14px; margin: 12px 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25);
   }
+  label { display: block; margin: 12px 0 6px; font-weight: 700; font-size: .95rem; }
+  input, textarea {
+    width: 100%; font: inherit; font-size: 16px; padding: 12px 14px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.16); background: rgba(10,7,25,.7); color: var(--texto);
+  }
+  input:focus, textarea:focus { outline: 2px solid var(--oro); outline-offset: 1px; }
   button {
-    font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 12px 14px; cursor: pointer;
-    background: var(--acento); color: #1b1530; touch-action: manipulation;
+    font: inherit; font-weight: 800; border: 0; border-radius: 12px; padding: 12px 14px; cursor: pointer;
+    background: linear-gradient(180deg, #ffd66b, #e9a92a); color: #2a1a00; touch-action: manipulation;
+    box-shadow: 0 3px 0 #a8730f;
   }
-  button.sec { background: var(--panel2); color: var(--texto); }
-  button.peq { padding: 6px 10px; font-size: .85rem; }
-  button:disabled { opacity: .45; }
-  button.ancho { width: 100%; margin-top: 14px; }
-  a { color: var(--acento); }
+  button:active { transform: translateY(2px); box-shadow: 0 1px 0 #a8730f; }
+  button.sec { background: rgba(255,255,255,.1); color: var(--texto); box-shadow: none; border: 1px solid var(--borde); }
+  button.peq { padding: 7px 11px; font-size: .85rem; border-radius: 10px; }
+  button:disabled { opacity: .45; pointer-events: none; }
+  button.ancho { width: 100%; margin-top: 16px; }
+  a { color: var(--oro); }
 
-  .cabecera { display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    border-left: 6px solid var(--casa1); padding: 6px 10px; background: var(--panel); border-radius: 10px; }
-  .cabecera b { display: block; }
-  .estado-red { font-size: .8rem; padding: 3px 8px; border-radius: 99px; background: #2f5c3e; white-space: nowrap; }
-  .estado-red.mal { background: #6b2a2a; }
+  /* ---------- Portada */
+  .portada { text-align: center; padding: 18px 0 4px; }
+  .snitch { width: 120px; height: 60px; animation: flotar 3s ease-in-out infinite; }
+  .snitch .ala { transform-origin: center; animation: aletear .25s ease-in-out infinite alternate; }
+  @keyframes flotar { 50% { transform: translateY(-8px); } }
+  @keyframes aletear { to { transform: scaleY(.55); } }
+  .portada h1 {
+    font-size: 2.6rem; font-weight: 900; margin: 6px 0 0; line-height: 1;
+    background: linear-gradient(180deg, var(--oro2), var(--oro) 55%, #b47b14); -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 30px rgba(242,193,78,.25);
+  }
+  .portada .sub { font-family: var(--titulo); color: var(--suave); letter-spacing: .3em; font-size: .8rem; margin-top: 6px; }
+  .emblemas { display: flex; justify-content: center; gap: 10px; margin: 16px 0 4px; }
+  .emblema { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-size: 24px;
+    border: 2px solid var(--a); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); box-shadow: 0 4px 12px rgba(0,0,0,.4); }
 
-  .equipo h2 { display: flex; justify-content: space-between; align-items: center; }
-  .equipo.A h2 span.marca { color: var(--equipoA); }
-  .equipo.B h2 span.marca { color: var(--equipoB); }
-  .plaza { display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 8px 0; border-top: 1px solid #3b3260; min-height: 46px; }
-  .plaza .pos { color: var(--suave); font-size: .85rem; min-width: 92px; }
-  .plaza .quien { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .plaza.mia { background: #3a2f63; margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 8px; }
-  .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
-  .desc { opacity: .55; }
-  .desc::after { content: " (desconectado)"; font-size: .8rem; }
+  .casas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .casa-btn {
+    display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 14px; font-weight: 800; font-size: .95rem;
+    background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 55%, #000)); color: var(--t);
+    box-shadow: none; border: 2px solid transparent; opacity: .75; text-align: left;
+  }
+  .casa-btn .emo { font-size: 1.5rem; }
+  .casa-btn.elegida { opacity: 1; border-color: var(--a); box-shadow: 0 0 0 3px rgba(255,255,255,.15), 0 6px 16px rgba(0,0,0,.4); transform: scale(1.02); }
+  .casa-btn:active { transform: scale(.98); }
+
+  /* ---------- Cabecera de la sala */
+  .cabecera { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--casa) 55%, transparent), rgba(255,255,255,.04));
+    border: 1px solid color-mix(in srgb, var(--casa) 60%, transparent); }
+  .cabecera .emblema { flex: none; }
+  .cabecera .quien { flex: 1; min-width: 0; }
+  .cabecera b { display: block; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cabecera .rol { font-size: .85rem; color: #e9e2ff; display: flex; align-items: center; gap: 5px; }
+  .estado-red { font-size: .75rem; padding: 4px 9px; border-radius: 99px; background: #1f6b3c; white-space: nowrap; font-weight: 700; }
+  .estado-red.mal { background: #7a2b2b; }
+  .linea-sala { display: flex; justify-content: space-between; margin: 8px 2px 0; }
+
+  /* ---------- Marcador */
+  .marcador { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 0; border-radius: 18px; overflow: hidden;
+    margin: 12px 0; box-shadow: 0 8px 24px rgba(0,0,0,.35); border: 1px solid var(--borde); }
+  .lado { padding: 10px 12px; color: var(--t); background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 50%, #000)); }
+  .lado.B { text-align: right; }
+  .lado .nom { font-family: var(--titulo); font-weight: 900; font-size: .85rem; letter-spacing: .05em; opacity: .95; }
+  .lado .pts { font-family: var(--titulo); font-weight: 900; font-size: 2.1rem; line-height: 1.05; }
+  .lado.pulso .pts { animation: pulso 1s ease 3; }
+  @keyframes pulso { 50% { transform: scale(1.25); text-shadow: 0 0 18px #fff; } }
+  .vs { display: grid; place-items: center; padding: 0 8px; background: #0d0a1c; font-family: var(--titulo); color: var(--oro); font-weight: 900; }
+
+  /* ---------- Campo */
+  #campo svg { width: 100%; height: auto; display: block; }
+  .campo .libre { cursor: pointer; }
+  .campo .libre:hover .forma, .campo .libre:active .forma { stroke: var(--oro); }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: center; font-size: .8rem; color: var(--suave); margin-top: 6px; }
+  .leyenda span { display: inline-flex; align-items: center; gap: 4px; }
+  svg.ico { width: 18px; height: 18px; vertical-align: middle; flex: none; }
+
+  /* ---------- Tu jugada */
+  .jugada { border-left: 5px solid var(--casa); }
+  .jugada .botones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .btn-lanzar {
+    width: 100%; font-family: var(--titulo); font-size: 1.25rem; font-weight: 900; padding: 16px; margin-top: 10px; border-radius: 16px;
+    background: linear-gradient(180deg, #fff1b8, #f2c14e 45%, #d48d0c); animation: brillo 1.4s ease-in-out infinite;
+  }
+  @keyframes brillo { 50% { box-shadow: 0 3px 0 #a8730f, 0 0 26px rgba(255,214,107,.85); } }
+  .btn-bludger { width: 100%; background: linear-gradient(180deg, #ff9a4d, #d9531e); color: #fff; box-shadow: 0 3px 0 #8a2e0b; font-size: 1.05rem; padding: 14px; }
+  .progreso { display: flex; gap: 6px; align-items: center; margin-top: 6px; font-size: .9rem; color: var(--suave); }
+  .progreso i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--oro); display: inline-block; }
+  .progreso i.ok { background: var(--oro); }
+
+  /* ---------- Equipos */
+  .equipo { padding: 0; overflow: hidden; }
+  .equipo .tit { padding: 10px 14px; color: var(--t); background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 45%, #000));
+    display: flex; justify-content: space-between; align-items: center; font-family: var(--titulo); font-weight: 900; }
+  .equipo .filas { padding: 2px 14px 8px; }
+  .plaza { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.07); min-height: 46px; }
+  .plaza:first-child { border-top: 0; }
+  .plaza .pos { color: var(--suave); font-size: .82rem; width: 106px; flex: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .plaza .ocupa { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plaza.mia { background: rgba(255,255,255,.08); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 10px; }
+  .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; border: 1px solid rgba(255,255,255,.5); }
+  .desc { opacity: .5; }
+  .desc::after { content: " · sin conexión"; font-size: .78rem; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 
-  .registro { max-height: 260px; overflow-y: auto; font-size: .92rem; }
-  .registro div { padding: 4px 0; border-bottom: 1px solid #3b3260; }
-  .registro div:first-child { font-weight: 700; color: var(--acento); }
+  /* ---------- Registro y comentarios */
+  .registro { max-height: 280px; overflow-y: auto; font-size: .92rem; }
+  .registro div { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .registro div:first-child { font-weight: 800; color: var(--oro); }
+  .contador { text-align: right; font-size: .8rem; color: var(--suave); margin-top: 4px; }
+  #banners { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: 0; right: 0; z-index: 30; display: flex; flex-direction: column;
+    align-items: center; gap: 6px; padding: 0 12px; pointer-events: none; }
+  .banner { pointer-events: auto; width: 100%; max-width: 496px; padding: 9px 12px; border-radius: 14px; background: #161030; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    border: 1px solid var(--borde); border-left: 5px solid var(--c); box-shadow: 0 8px 22px rgba(0,0,0,.45); animation: bajar .35s ease; font-size: .95rem; }
+  .banner .de { font-size: .75rem; font-weight: 800; color: var(--oro); letter-spacing: .03em; }
+  .banner.sale { animation: subir .35s ease forwards; }
+  @keyframes bajar { from { transform: translateY(-120%); opacity: 0; } }
+  @keyframes subir { to { transform: translateY(-120%); opacity: 0; } }
 
-  .error { background: #5a2330; color: #ffdede; padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
+  .error { position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 40; max-width: 488px; margin: 0 auto;
+    background: #6b2232; color: #fff; padding: 12px 14px; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.5); font-weight: 600; }
+  #flash { position: fixed; left: 16px; right: 16px; top: 34%; z-index: 25; max-width: 488px; margin: 0 auto; text-align: center; pointer-events: none;
+    padding: 18px; border-radius: 20px; font-size: 1.25rem; font-weight: 800; background: rgba(18,13,38,.95); border: 2px solid var(--verde);
+    box-shadow: 0 12px 40px rgba(0,0,0,.6); animation: aparecer .3s ease; }
+  #flash.malo { border-color: var(--rojo); }
+  @keyframes aparecer { from { transform: scale(.8); opacity: 0; } }
 
-  /* Barra de pase a pantalla completa */
-  #capa-barra { position: fixed; inset: 0; background: rgba(15, 10, 32, .97); z-index: 10;
-    display: flex; flex-direction: column; justify-content: center; padding: 24px 16px; gap: 18px;
+  /* ---------- Retos (minijuegos) */
+  #capa-reto { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 20px 16px;
+    background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--casa) 40%, #120d26), #0b0818 75%);
     user-select: none; -webkit-user-select: none; }
-  #capa-barra .titulo { font-size: 1.3rem; font-weight: 800; text-align: center; }
-  .barra { position: relative; height: 64px; background: #3b3260; border-radius: 14px; overflow: hidden; }
-  .barra .zona { position: absolute; top: 0; bottom: 0; background: var(--verde); }
-  .barra .marca { position: absolute; top: -4px; bottom: -4px; width: 8px; margin-left: -4px;
-    background: #fff; border-radius: 4px; box-shadow: 0 0 10px #fff; will-change: transform; left: 0; }
-  #btn-tap { font-size: 1.6rem; padding: 26px; border-radius: 18px; background: var(--acento); }
-  #btn-tap.enviado { background: var(--panel2); color: var(--texto); }
-  .cuenta { text-align: center; font-size: 1.1rem; color: var(--suave); }
+  .reto-caja { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 14px; text-align: center; }
+  .reto-icono { font-size: 2.6rem; line-height: 1; }
+  .reto-titulo { font-family: var(--titulo); font-weight: 900; font-size: 1.45rem; }
+  .reto-ayuda { color: var(--suave); margin: 0; font-size: .95rem; }
+  .barra { position: relative; height: 66px; background: rgba(255,255,255,.12); border-radius: 16px; overflow: hidden; border: 2px solid rgba(255,255,255,.18); }
+  .barra .zona { position: absolute; top: 0; bottom: 0; background: linear-gradient(180deg, #5df09a, #22a957); }
+  .barra .marca { position: absolute; top: -4px; bottom: -4px; width: 8px; margin-left: -4px; left: 0;
+    background: #fff; border-radius: 4px; box-shadow: 0 0 12px #fff; will-change: transform; }
+  .vis-svg { width: 100%; max-width: 300px; margin: 0 auto; display: block; }
+  #btn-tap { font-family: var(--titulo); font-size: 1.7rem; font-weight: 900; padding: 26px; border-radius: 20px; }
+  #btn-tap.enviado { background: rgba(255,255,255,.12); color: var(--texto); box-shadow: none; }
+  .cuenta { color: var(--suave); font-size: 1.05rem; }
   .cuenta.urgente { color: var(--rojo); font-weight: 800; }
+  #reto-resultado { font-size: 1.5rem; font-weight: 900; padding: 20px; border-radius: 18px; background: rgba(56,212,118,.15); border: 2px solid var(--verde); }
+  #reto-resultado.malo { background: rgba(255,107,107,.15); border-color: var(--rojo); }
 </style>
 </head>
 <body>
 
-<!-- Pantalla de entrada -->
+<div id="banners" aria-live="polite"></div>
+
+<!-- Portada / entrada -->
 <section id="p-inicio">
-  <h1>🧹 Quidditch entre amigos</h1>
-  <p class="suave">Entra con tu nombre, tu casa y el código de la sala.</p>
+  <div class="portada">
+    <svg class="snitch" viewBox="0 0 120 60" aria-hidden="true">
+      <defs><radialGradient id="oro" cx="35%" cy="35%"><stop offset="0" stop-color="#fff6c9"/><stop offset=".5" stop-color="#f2c14e"/><stop offset="1" stop-color="#a8730f"/></radialGradient></defs>
+      <g class="ala"><path d="M46 30 C30 8, 8 10, 2 18 C12 20, 22 26, 46 32 Z" fill="#f4efe3" opacity=".9"/><path d="M46 32 C28 30, 14 34, 8 40 C20 40, 32 38, 46 34 Z" fill="#e6dfcf" opacity=".85"/></g>
+      <g class="ala"><path d="M74 30 C90 8, 112 10, 118 18 C108 20, 98 26, 74 32 Z" fill="#f4efe3" opacity=".9"/><path d="M74 32 C92 30, 106 34, 112 40 C100 40, 88 38, 74 34 Z" fill="#e6dfcf" opacity=".85"/></g>
+      <circle cx="60" cy="31" r="14" fill="url(#oro)" stroke="#8a5d0a" stroke-width="1"/>
+      <path d="M48 28 Q60 22 72 28 M48 34 Q60 40 72 34" stroke="#8a5d0a" stroke-width="1" fill="none" opacity=".6"/>
+    </svg>
+    <h1>QUIDDITCH</h1>
+    <div class="sub">ENTRE AMIGOS</div>
+    <div class="emblemas" id="emblemas"></div>
+  </div>
   <div class="panel">
     <form id="f-entrar" autocomplete="off">
       <label for="i-nombre">Tu nombre</label>
       <input id="i-nombre" maxlength="20" required placeholder="Ej.: Ana">
-      <label for="i-casa">Tu casa</label>
-      <select id="i-casa" required>
-        <option value="">Elige…</option>
-        <option>Gryffindor</option><option>Slytherin</option><option>Ravenclaw</option><option>Hufflepuff</option>
-      </select>
+      <label>Tu casa</label>
+      <div class="casas" id="casas-entrar" data-grupo="entrar"></div>
       <label for="i-codigo">Código de la sala</label>
       <input id="i-codigo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
-      <button class="ancho" type="submit">Entrar</button>
+      <button class="ancho" type="submit">🧹 Entrar al estadio</button>
     </form>
   </div>
-  <p class="suave"><a href="#" id="ir-admin">Soy la administradora</a></p>
+  <p class="suave" style="text-align:center"><a href="#" id="ir-admin">Soy el administrador</a></p>
 </section>
 
-<!-- Pantalla de administración -->
+<!-- Administración -->
 <section id="p-admin" class="oculto">
-  <h1>Administración</h1>
+  <div class="portada"><h1 style="font-size:1.8rem">ADMINISTRACIÓN</h1></div>
   <div class="panel">
     <form id="f-admin" autocomplete="off">
       <label for="i-clave">Contraseña de administración</label>
       <input id="i-clave" type="password" required>
       <label for="i-codigo-nuevo">Código para la nueva sala</label>
       <input id="i-codigo-nuevo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
-      <button class="ancho" type="submit">Crear sala</button>
+      <label>Equipo 1</label>
+      <div class="casas" id="casas-A" data-grupo="A"></div>
+      <label>Equipo 2</label>
+      <div class="casas" id="casas-B" data-grupo="B"></div>
+      <button class="ancho" type="submit">✨ Crear sala</button>
     </form>
     <div id="admin-ok" class="oculto">
-      <p>✅ Sala <b id="admin-codigo"></b> lista. Comparte este código con los invitados.</p>
+      <p>✅ Sala <b id="admin-codigo"></b> lista: <span id="admin-equipos"></span>.</p>
+      <p class="suave">Comparte el código con los invitados.</p>
       <button class="ancho" id="admin-entrar">Entrar yo también a la sala</button>
     </div>
   </div>
@@ -124,64 +253,112 @@
 <!-- Sala -->
 <section id="p-sala" class="oculto">
   <div class="cabecera">
-    <div><b id="yo-nombre"></b><span class="suave" id="yo-detalle"></span></div>
+    <div class="emblema" id="yo-emblema"></div>
+    <div class="quien"><b id="yo-nombre"></b><span class="rol" id="yo-rol"></span></div>
     <span class="estado-red" id="estado-red">Conectado</span>
   </div>
-  <p class="suave">Sala <b id="sala-codigo"></b> · <span id="sala-cuenta"></span></p>
+  <div class="linea-sala suave"><span>Sala <b id="sala-codigo"></b></span><span id="sala-cuenta"></span></div>
 
-  <div class="panel" id="panel-pelota">
-    <h2>🏐 Prueba de pases</h2>
-    <p id="pelota-texto"></p>
-    <div class="chips" id="pelota-botones"></div>
+  <div class="marcador" id="marcador"></div>
+
+  <div class="panel campo">
+    <div id="campo"></div>
+    <div class="leyenda" id="leyenda"></div>
   </div>
 
-  <div class="panel equipo A" id="equipo-A"></div>
-  <div class="panel equipo B" id="equipo-B"></div>
+  <div class="panel jugada" id="panel-jugada"></div>
+
+  <div class="panel oculto" id="panel-comentar">
+    <h2>🎙️ Comentar</h2>
+    <p class="suave">Lo que escribas aparecerá en la pantalla de todos.</p>
+    <form id="f-comentar" autocomplete="off">
+      <textarea id="i-comentario" rows="2" maxlength="140" placeholder="¡Qué atajada increíble!"></textarea>
+      <div class="contador" id="contador">0/140</div>
+      <button class="ancho" type="submit" style="margin-top:8px">Enviar comentario</button>
+    </form>
+  </div>
+
+  <div class="panel oculto" id="panel-registro">
+    <h2>📜 Lo que pasa en el campo</h2>
+    <p class="suave" style="margin-top:-6px">Solo lo ven los invitados (comentaristas, prefectos y administración).</p>
+    <div class="registro" id="registro"></div>
+  </div>
+
+  <div class="panel equipo" id="equipo-A"></div>
+  <div class="panel equipo" id="equipo-B"></div>
 
   <div class="panel">
     <h2>👀 Invitados</h2>
-    <p class="suave">Solo miran el partido.</p>
+    <p class="suave">Miran el partido. Los comentaristas escriben lo que pasa para todos.</p>
     <div id="lista-invitados"></div>
     <div class="chips">
-      <button class="sec peq" data-invitado="comentarista">Ser comentarista</button>
-      <button class="sec peq" data-invitado="prefecto">Ser prefecto</button>
-      <button class="sec peq" data-invitado="administracion">Administración</button>
+      <button class="sec peq" data-invitado="comentarista">🎙️ Comentarista</button>
+      <button class="sec peq" data-invitado="prefecto">📋 Prefecto</button>
+      <button class="sec peq" data-invitado="administracion">🔑 Administración</button>
     </div>
     <div id="sin-plaza" class="suave"></div>
-  </div>
-
-  <div class="panel">
-    <h2>📜 Lo que pasa</h2>
-    <div class="registro" id="registro"></div>
   </div>
 
   <button class="sec ancho" id="btn-salir">Salir de la sala</button>
 </section>
 
 <div id="aviso" class="error oculto" role="alert"></div>
+<div id="flash" class="oculto"></div>
 
-<!-- Barra de pase -->
-<div id="capa-barra" class="oculto">
-  <div class="titulo" id="barra-titulo">Pasa a …</div>
-  <p class="suave" style="text-align:center;margin:0">Toca el botón cuando la marca blanca esté en la zona verde.</p>
-  <div class="barra" id="barra"><div class="zona" id="barra-zona"></div><div class="marca" id="barra-marca"></div></div>
-  <div class="cuenta" id="barra-cuenta"></div>
-  <button id="btn-tap">¡AHORA!</button>
+<!-- Reto (minijuego) -->
+<div id="capa-reto" class="oculto">
+  <div class="reto-caja">
+    <div class="reto-icono" id="reto-icono"></div>
+    <div class="reto-titulo" id="reto-titulo"></div>
+    <p class="reto-ayuda" id="reto-ayuda"></p>
+    <div id="reto-visual"></div>
+    <div class="cuenta" id="reto-cuenta"></div>
+    <button id="btn-tap">¡AHORA!</button>
+    <div id="reto-resultado" class="oculto"></div>
+  </div>
 </div>
 
 <script>
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const COLORES_CASA = {
-    Gryffindor: ['#d3a625', '#7f0909'], Slytherin: ['#5d9b6b', '#1a472a'],
-    Ravenclaw: ['#6f8fd8', '#0e1a40'], Hufflepuff: ['#ffdb00', '#372e29'],
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const CASAS = {
+    Gryffindor: { emo: '🦁', c: '#c4242f', a: '#f0c43c', t: '#ffffff' },
+    Slytherin:  { emo: '🐍', c: '#23854c', a: '#d3d8de', t: '#ffffff' },
+    Ravenclaw:  { emo: '🦅', c: '#2f5cc0', a: '#d9a865', t: '#ffffff' },
+    Hufflepuff: { emo: '🦡', c: '#ecbb22', a: '#3a2f28', t: '#231a10' },
   };
+  const vars = (casa) => { const k = CASAS[casa]; return `--c:${k.c};--a:${k.a};--t:${k.t}`; };
   const POSICIONES = [
-    ['cazador1', 'Cazador 1'], ['cazador2', 'Cazador 2'], ['cazador3', 'Cazador 3'],
-    ['golpeador1', 'Golpeador 1'], ['golpeador2', 'Golpeador 2'], ['guardian', 'Guardián'], ['buscador', 'Buscador'],
+    ['cazador1', 'Cazador 1', 'cazador'], ['cazador2', 'Cazador 2', 'cazador'], ['cazador3', 'Cazador 3', 'cazador'],
+    ['golpeador1', 'Golpeador 1', 'golpeador'], ['golpeador2', 'Golpeador 2', 'golpeador'],
+    ['guardian', 'Guardián', 'guardian'], ['buscador', 'Buscador', 'buscador'],
   ];
-  const INVITADOS = { comentarista: 'Comentarista', prefecto: 'Prefecto', administracion: 'Administración' };
+  const TIPOS = { cazador: 'Cazador', golpeador: 'Golpeador', guardian: 'Guardián', buscador: 'Buscador' };
+  const INVITADOS = { comentarista: '🎙️ Comentarista', prefecto: '📋 Prefecto', administracion: '🔑 Administración' };
+
+  // Posiciones en el mapa del campo (equipo A a la izquierda; el B es simétrico).
+  const COORD = {
+    guardian: [50, 105], cazador1: [124, 60], cazador2: [134, 105], cazador3: [124, 150],
+    golpeador1: [74, 52], golpeador2: [74, 158], buscador: [160, 26],
+  };
+  const coord = (eq, id) => { const [x, y] = COORD[id]; return eq === 'A' ? [x, y] : [360 - x, 210 - y]; };
+
+  // Figura de cada posición: cazador = círculo, golpeador = rombo, guardián = escudo, buscador = estrella.
+  function forma(tipo, attrs) {
+    if (tipo === 'cazador') return `<circle class="forma" r="12" ${attrs}/>`;
+    if (tipo === 'golpeador') return `<rect class="forma" x="-9.5" y="-9.5" width="19" height="19" rx="3" transform="rotate(45)" ${attrs}/>`;
+    if (tipo === 'guardian') return `<path class="forma" d="M0,-13 L11,-8.5 L11,1 C11,8 6,12.5 0,14.5 C-6,12.5 -11,8 -11,1 L-11,-8.5 Z" ${attrs}/>`;
+    let d = '';
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 ? 6 : 14, ang = -Math.PI / 2 + i * Math.PI / 5;
+      d += (i ? 'L' : 'M') + (r * Math.cos(ang)).toFixed(1) + ',' + (r * Math.sin(ang)).toFixed(1);
+    }
+    return `<path class="forma" d="${d}Z" ${attrs}/>`;
+  }
+  const icono = (tipo, color, borde) => `<svg class="ico" viewBox="-16 -16 32 32">${forma(tipo, `fill="${color}" stroke="${borde}" stroke-width="2.5"`)}</svg>`;
 
   // ---------- Guardado del token (para reconectar). Si el navegador no deja guardar, sigue funcionando.
   let tokenMemoria = null;
@@ -192,8 +369,11 @@
   };
 
   let ws = null, yo = null, sala = null, reintento = 0, timerReintento = null;
-  let pendiente = null; // mensaje a enviar al conectar (entrar / crear sala)
-  let enPausa = false;  // true si esta pestaña cedió la sesión a otra
+  let pendiente = null;   // mensaje a enviar al conectar (entrar / crear sala)
+  let enPausa = false;    // true si esta pestaña cedió la sesión a otra
+  const elegidas = { entrar: '', A: 'Gryffindor', B: 'Slytherin' };
+  let bludgerListo = { A: 0, B: 0 };
+  let marcadorPrevio = null;
 
   // ---------- Conexión
   function conectar() {
@@ -210,7 +390,6 @@
     ws.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch { return; } recibir(m); };
     ws.onclose = () => {
       ponerRed(false);
-      // Solo reintenta si estábamos en una sala (o íbamos a entrar).
       if (!enPausa && (guardar.leer() || pendiente)) {
         reintento = Math.min(reintento + 1, 6);
         timerReintento = setTimeout(conectar, 600 * reintento);
@@ -243,11 +422,21 @@
       $('f-admin').classList.add('oculto');
       $('admin-ok').classList.remove('oculto');
       $('admin-codigo').textContent = m.codigo;
+      $('admin-equipos').textContent = `${CASAS[m.equipos.A].emo} ${m.equipos.A} contra ${m.equipos.B} ${CASAS[m.equipos.B].emo}`;
       return;
     }
     if (m.t === 'bienvenida') { yo = m.yo; guardar.poner(m.token); avisar(''); mostrar('p-sala'); return; }
-    if (m.t === 'estado') { sala = m.sala; pintar(); return; }
-    if (m.t === 'barra') return abrirBarra(m.accion);
+    if (m.t === 'estado') {
+      sala = m.sala;
+      const ahora = performance.now();
+      bludgerListo = { A: ahora + sala.bludgerEsperaMs.A, B: ahora + sala.bludgerEsperaMs.B };
+      pintar();
+      if (!sala.enJuego && reto && !reto.resultado) cerrarReto();
+      return;
+    }
+    if (m.t === 'reto') return abrirReto(m.reto);
+    if (m.t === 'resultado') return mostrarResultado(m.texto, m.bueno);
+    if (m.t === 'comentario') return mostrarComentario(m);
     if (m.t === 'fuera') { guardar.borrar(); yo = null; sala = null; mostrar('p-inicio'); }
   }
 
@@ -257,23 +446,37 @@
     el.textContent = texto;
     el.classList.toggle('oculto', !texto);
     clearTimeout(timerAviso);
-    if (texto) { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); timerAviso = setTimeout(() => avisar(''), 6000); }
+    if (texto) timerAviso = setTimeout(() => avisar(''), 5000);
   }
   function mostrar(id) {
     for (const s of ['p-inicio', 'p-admin', 'p-sala']) $(s).classList.toggle('oculto', s !== id);
-    if (id !== 'p-sala') cerrarBarra();
+    if (id !== 'p-sala') cerrarReto();
+    window.scrollTo(0, 0);
   }
+
+  // ---------- Selectores de casa
+  function pintarCasas() {
+    $('emblemas').innerHTML = Object.keys(CASAS).map((c) => `<div class="emblema" style="${vars(c)}" title="${c}">${CASAS[c].emo}</div>`).join('');
+    for (const el of document.querySelectorAll('.casas')) {
+      const g = el.dataset.grupo;
+      el.innerHTML = Object.keys(CASAS).map((c) =>
+        `<button type="button" class="casa-btn ${elegidas[g] === c ? 'elegida' : ''}" style="${vars(c)}" data-casa-pick="${c}" data-grupo="${g}"><span class="emo">${CASAS[c].emo}</span>${c}</button>`).join('');
+    }
+  }
+  pintarCasas();
 
   // ---------- Formularios
   $('f-entrar').addEventListener('submit', (e) => {
     e.preventDefault();
-    mandar({ t: 'entrar', nombre: $('i-nombre').value, casa: $('i-casa').value, codigo: $('i-codigo').value });
+    if (!elegidas.entrar) return avisar('Elige tu casa.');
+    mandar({ t: 'entrar', nombre: $('i-nombre').value, casa: elegidas.entrar, codigo: $('i-codigo').value });
   });
   $('ir-admin').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-admin'); });
   $('volver-inicio').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-inicio'); });
   $('f-admin').addEventListener('submit', (e) => {
     e.preventDefault();
-    mandar({ t: 'crear_sala', clave: $('i-clave').value, codigo: $('i-codigo-nuevo').value });
+    if (elegidas.A === elegidas.B) return avisar('Los dos equipos deben ser de casas distintas.');
+    mandar({ t: 'crear_sala', clave: $('i-clave').value, codigo: $('i-codigo-nuevo').value, equipoA: elegidas.A, equipoB: elegidas.B });
   });
   $('admin-entrar').addEventListener('click', () => {
     $('i-codigo').value = $('admin-codigo').textContent;
@@ -283,142 +486,342 @@
   $('btn-salir').addEventListener('click', () => {
     if (confirm('¿Seguro que quieres salir? Perderás tu plaza.')) mandar({ t: 'salir' });
   });
-  document.querySelectorAll('[data-invitado]').forEach((b) =>
-    b.addEventListener('click', () => mandar({ t: 'ser_invitado', tipo: b.dataset.invitado })));
+  $('i-comentario').addEventListener('input', () => { $('contador').textContent = `${$('i-comentario').value.length}/140`; });
+  $('f-comentar').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const texto = $('i-comentario').value.trim();
+    if (!texto) return;
+    mandar({ t: 'comentar', texto });
+    $('i-comentario').value = '';
+    $('contador').textContent = '0/140';
+  });
+
+  // Botones que se pintan dinámicamente
+  document.body.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-dejar],[data-tomar],[data-pasar],[data-tirar],[data-bludger],[data-invitado]');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.casaPick) { elegidas[d.grupo] = d.casaPick; pintarCasas(); }
+    else if (d.plaza) mandar({ t: 'elegir_plaza', plaza: d.plaza });
+    else if ('dejar' in d) mandar({ t: 'dejar_plaza' });
+    else if ('tomar' in d) mandar({ t: 'tomar_pelota' });
+    else if (d.pasar) mandar({ t: 'pasar', a: d.pasar });
+    else if ('tirar' in d) mandar({ t: 'tirar' });
+    else if ('bludger' in d) mandar({ t: 'bludger' });
+    else if (d.invitado) mandar({ t: 'ser_invitado', tipo: d.invitado });
+  });
 
   // ---------- Pintar la sala
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const persona = (id) => sala.participantes.find((p) => p.id === id);
-  const etiqueta = (p) => `<span class="punto" style="background:${COLORES_CASA[p.casa][0]}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}</span>`;
+  const etiqueta = (p) => `<span class="punto" style="background:${CASAS[p.casa].c}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}</span>`;
+  const miEquipo = (mi) => mi.plaza ? mi.plaza.split('-')[0] : null;
+  const miTipo = (mi) => mi.plaza ? POSICIONES.find((x) => x[0] === mi.plaza.split('-')[1])[2] : null;
 
   function pintar() {
     if (!sala || !yo) return;
     const mi = persona(yo);
     if (!mi) return;
-    const [c1, c2] = COLORES_CASA[mi.casa];
-    document.documentElement.style.setProperty('--casa1', c1);
-    document.documentElement.style.setProperty('--casa2', c2);
+    const casa = CASAS[mi.casa];
+    const raiz = document.documentElement.style;
+    raiz.setProperty('--casa', casa.c); raiz.setProperty('--casa-acento', casa.a); raiz.setProperty('--casa-texto', casa.t);
+    $('yo-emblema').setAttribute('style', vars(mi.casa));
+    $('yo-emblema').textContent = casa.emo;
     $('yo-nombre').textContent = mi.nombre;
-    $('yo-detalle').textContent = `${mi.casa} · ${miPapel(mi)}`;
+    $('yo-rol').innerHTML = miPapel(mi);
     $('sala-codigo').textContent = sala.codigo;
     $('sala-cuenta').textContent = `${sala.participantes.length}/${sala.max} participantes`;
 
-    for (const eq of ['A', 'B']) {
-      let html = `<h2><span class="marca">Equipo ${eq}</span><span class="suave">${POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length}/7</span></h2>`;
-      for (const [id, nombre] of POSICIONES) {
-        const plaza = `${eq}-${id}`;
-        const ocupa = sala.plazas[plaza];
-        let quien, boton = '';
-        if (ocupa && typeof ocupa === 'object') quien = `<span class="suave">🚫 Vacía (${esc(ocupa.nombre)} abandonó)</span>`;
-        else if (ocupa) {
-          quien = etiqueta(persona(ocupa));
-          if (ocupa === yo) boton = `<button class="sec peq" data-dejar>Dejar</button>`;
-        } else {
-          quien = '<span class="suave">Libre</span>';
-          if (sala.fase === 'lobby') boton = `<button class="peq" data-plaza="${plaza}">Ocupar</button>`;
-        }
-        html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${nombre}</span><span class="quien">${quien}</span>${boton}</div>`;
-      }
-      $('equipo-' + eq).innerHTML = html;
+    pintarMarcador();
+    pintarCampo(mi);
+    pintarJugada(mi);
+    $('panel-comentar').classList.toggle('oculto', mi.invitado !== 'comentarista');
+    $('panel-registro').classList.toggle('oculto', !sala.log);
+    if (sala.log) {
+      const extra = sala.accion ? `<div>⏳ ${esc(sala.accion.texto)}</div>` : '';
+      $('registro').innerHTML = extra + sala.log.slice().reverse().map((l) => `<div>${esc(l.texto)}</div>`).join('');
     }
+    for (const eq of ['A', 'B']) pintarEquipo(eq);
 
     const invitados = sala.participantes.filter((p) => p.invitado);
-    $('lista-invitados').innerHTML = invitados.map((p) => `<div class="plaza"><span class="pos">${INVITADOS[p.invitado]}</span><span class="quien">${etiqueta(p)}</span>${p.id === yo ? '<button class="sec peq" data-dejar>Dejar</button>' : ''}</div>`).join('');
+    $('lista-invitados').innerHTML = invitados.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="pos">${INVITADOS[p.invitado]}</span><span class="ocupa">${etiqueta(p)}</span>${p.id === yo ? '<button class="sec peq" data-dejar>Dejar</button>' : ''}</div>`).join('');
     const sinNada = sala.participantes.filter((p) => !p.plaza && !p.invitado);
     $('sin-plaza').innerHTML = sinNada.length ? `<p>Todavía eligiendo: ${sinNada.map((p) => esc(p.nombre)).join(', ')}</p>` : '';
-
-    pintarPelota(mi);
-    $('registro').innerHTML = sala.log.slice().reverse().map((l) => `<div>${esc(l.texto)}</div>`).join('');
-
-    // Si la jugada que tenía abierta ya terminó, se cierra la barra.
-    if (barra && (!sala.accion || sala.accion.id !== barra.id)) cerrarBarra();
   }
 
-  function miPapel(p) {
-    if (p.plaza) { const [eq, id] = p.plaza.split('-'); return `${POSICIONES.find((x) => x[0] === id)[1]} · Equipo ${eq}`; }
-    if (p.invitado) return INVITADOS[p.invitado];
-    return 'sin plaza todavía';
+  function miPapel(mi) {
+    if (mi.plaza) {
+      const eq = miEquipo(mi), k = CASAS[sala.equipos[eq]], tipo = miTipo(mi);
+      const nom = POSICIONES.find((x) => x[0] === mi.plaza.split('-')[1])[1];
+      return `${icono(tipo, k.c, k.a)} ${nom} · ${k.emo} ${esc(sala.equipos[eq])}`;
+    }
+    if (mi.invitado) return INVITADOS[mi.invitado];
+    return `${esc(mi.casa)} · elige tu posición`;
   }
 
-  function pintarPelota(mi) {
-    const pel = sala.pelota, acc = sala.accion;
-    let texto, botones = '';
-    const soyCazador = mi.plaza && mi.plaza.includes('cazador');
-    if (acc) texto = `⏳ ${esc(persona(acc.de).nombre)} está pasando a ${esc(persona(acc.a).nombre)}…`;
-    else if (!pel) {
-      texto = 'La pelota está suelta.';
-      if (soyCazador) botones = '<button data-tomar>Tomar la pelota</button>';
-      else texto += ' Un cazador puede tomarla para probar los pases.';
-    } else {
-      const port = persona(pel.portador);
-      texto = `La tiene <b>${esc(port.nombre)}</b> (Equipo ${pel.equipo}). Pases buenos seguidos: ${sala.pasesBuenos}/2.`;
-      if (pel.portador === yo) {
-        const comp = ['cazador1', 'cazador2', 'cazador3'].map((c) => sala.plazas[`${pel.equipo}-${c}`])
-          .filter((id) => typeof id === 'string' && id !== yo).map(persona);
-        botones = comp.length
-          ? comp.map((p) => `<button data-pasar="${p.id}" ${p.conectado ? '' : 'disabled'}>Pasar a ${esc(p.nombre)}</button>`).join('')
-          : '<span class="suave">Necesitas otro cazador en tu equipo para pasar.</span>';
+  function pintarMarcador() {
+    const m = sala.marcador;
+    const lado = (eq) => {
+      const casa = sala.equipos[eq], k = CASAS[casa];
+      const pulso = marcadorPrevio && marcadorPrevio[eq] !== m[eq] ? 'pulso' : '';
+      return `<div class="lado ${eq} ${pulso}" style="${vars(casa)}"><div class="nom">${eq === 'A' ? k.emo + ' ' : ''}${casa.toUpperCase()}${eq === 'B' ? ' ' + k.emo : ''}</div><div class="pts">${m[eq]}</div></div>`;
+    };
+    if (!marcadorPrevio || marcadorPrevio.A !== m.A || marcadorPrevio.B !== m.B || !$('marcador').innerHTML) {
+      $('marcador').innerHTML = lado('A') + '<div class="vs">VS</div>' + lado('B');
+    }
+    marcadorPrevio = { ...m };
+  }
+
+  function pintarCampo(mi) {
+    let s = `<svg viewBox="0 0 360 210" role="img" aria-label="Campo de juego con las posiciones">
+      <defs>
+        <linearGradient id="cesped" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b8a4f"/><stop offset="1" stop-color="#176337"/></linearGradient>
+        <pattern id="franjas" width="40" height="210" patternUnits="userSpaceOnUse"><rect width="20" height="210" fill="#fff" opacity=".045"/></pattern>
+        <clipPath id="ovalo"><ellipse cx="180" cy="105" rx="172" ry="97"/></clipPath>
+      </defs>
+      <ellipse cx="180" cy="105" rx="172" ry="97" fill="url(#cesped)"/>
+      <rect width="360" height="210" fill="url(#franjas)" clip-path="url(#ovalo)"/>
+      <ellipse cx="180" cy="105" rx="172" ry="97" fill="none" stroke="#ffffff" stroke-opacity=".5" stroke-width="2"/>
+      <line x1="180" y1="8" x2="180" y2="202" stroke="#fff" stroke-opacity=".35" stroke-dasharray="5 5"/>
+      <circle cx="180" cy="105" r="16" fill="none" stroke="#fff" stroke-opacity=".35"/>`;
+    // Mitades coloreadas con la casa de cada equipo
+    for (const eq of ['A', 'B']) {
+      const k = CASAS[sala.equipos[eq]];
+      s += `<rect x="${eq === 'A' ? 0 : 180}" width="180" height="210" fill="${k.c}" opacity=".22" clip-path="url(#ovalo)"/>`;
+      // Aros de gol
+      const x = eq === 'A' ? 22 : 338;
+      for (const y of [80, 105, 130]) s += `<line x1="${x}" y1="${y + 8}" x2="${x}" y2="${y + 15}" stroke="${k.a}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="7.5" fill="none" stroke="${k.a}" stroke-width="2.5"/>`;
+    }
+    for (const eq of ['A', 'B']) {
+      const k = CASAS[sala.equipos[eq]];
+      for (const [id, , tipo] of POSICIONES) {
+        const plaza = `${eq}-${id}`, ocupa = sala.plazas[plaza];
+        const [x, y] = coord(eq, id);
+        const ly = y > 160 ? y - 19 : y + 25;
+        if (ocupa && typeof ocupa === 'object') {
+          s += `<g transform="translate(${x},${y})" opacity=".55">${forma(tipo, 'fill="#555" stroke="#999" stroke-width="2"')}<text y="4" text-anchor="middle" font-size="12" fill="#fff">✕</text></g>`;
+        } else if (ocupa) {
+          const p = persona(ocupa);
+          const mia = ocupa === yo;
+          s += `<g transform="translate(${x},${y})" opacity="${p && p.conectado ? 1 : .45}">`;
+          if (mia) s += `<circle r="19" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="3 3"><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="6s" repeatCount="indefinite"/></circle>`;
+          s += forma(tipo, `fill="${k.c}" stroke="${k.a}" stroke-width="2.5"`);
+          s += `<text y="${ly - y}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" stroke="#0b1a10" stroke-width="3" paint-order="stroke">${esc(p ? p.nombre.slice(0, 9) : '')}</text></g>`;
+        } else {
+          const clic = sala.fase === 'lobby' ? `class="libre" data-plaza="${plaza}"` : '';
+          s += `<g transform="translate(${x},${y})" ${clic}><circle r="18" fill="transparent"/>${forma(tipo, 'fill="rgba(0,0,0,.15)" stroke="#fff" stroke-opacity=".7" stroke-width="1.8" stroke-dasharray="3 2.5"')}<text y="${ly - y}" text-anchor="middle" font-size="8.5" fill="#fff" fill-opacity=".7">libre</text></g>`;
+        }
       }
     }
-    $('pelota-texto').innerHTML = texto;
-    $('pelota-botones').innerHTML = botones;
+    // La quaffle junto a quien la tiene
+    if (sala.pelota && sala.plazas) {
+      const plaza = Object.keys(sala.plazas).find((pl) => sala.plazas[pl] === sala.pelota.portador);
+      if (plaza) {
+        const [eq, id] = plaza.split('-');
+        const [x, y] = coord(eq, id);
+        s += `<circle cx="${x + 12}" cy="${y - 12}" r="6" fill="#c0492f" stroke="#fff" stroke-width="1.5"><animate attributeName="r" values="6;7.5;6" dur="1.2s" repeatCount="indefinite"/></circle>`;
+      }
+    }
+    s += '</svg>';
+    $('campo').innerHTML = s;
+    if (!$('leyenda').innerHTML) {
+      $('leyenda').innerHTML = Object.entries(TIPOS).map(([t, n]) => `<span>${icono(t, '#cfc6ee', '#fff')}${n}</span>`).join('') +
+        '<span><svg class="ico" viewBox="-16 -16 32 32"><circle r="8" fill="#c0492f" stroke="#fff" stroke-width="2.5"/></svg>Quaffle</span>';
+    }
   }
 
-  // Botones que se pintan dinámicamente
-  document.body.addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    if (b.dataset.plaza) mandar({ t: 'elegir_plaza', plaza: b.dataset.plaza });
-    else if ('dejar' in b.dataset) mandar({ t: 'dejar_plaza' });
-    else if ('tomar' in b.dataset) mandar({ t: 'tomar_pelota' });
-    else if (b.dataset.pasar) mandar({ t: 'pasar', a: b.dataset.pasar });
-  });
+  function pintarEquipo(eq) {
+    const casa = sala.equipos[eq], k = CASAS[casa];
+    const llenas = POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
+    let html = `<div class="tit" style="${vars(casa)}"><span>${k.emo} ${esc(casa)}</span><span>${llenas}/7</span></div><div class="filas">`;
+    for (const [id, nombre, tipo] of POSICIONES) {
+      const plaza = `${eq}-${id}`, ocupa = sala.plazas[plaza];
+      let quien, boton = '';
+      if (ocupa && typeof ocupa === 'object') quien = `<span class="suave">🚫 Vacía (${esc(ocupa.nombre)} abandonó)</span>`;
+      else if (ocupa) {
+        const p = persona(ocupa);
+        quien = p ? etiqueta(p) : '';
+        if (ocupa === yo) boton = '<button class="sec peq" data-dejar>Dejar</button>';
+      } else {
+        quien = '<span class="suave">Libre</span>';
+        if (sala.fase === 'lobby') boton = `<button class="peq" data-plaza="${plaza}">Ocupar</button>`;
+      }
+      html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${icono(tipo, k.c, k.a)}${nombre}</span><span class="ocupa">${quien}</span>${boton}</div>`;
+    }
+    $('equipo-' + eq).innerHTML = html + '</div>';
+  }
 
-  // ---------- Barra de pase
-  // La marca va y vuelve. El celular mide cuánto tardas en tocar y el servidor comprueba si fue en el verde.
-  let barra = null;
-  function abrirBarra(a) {
-    barra = { ...a, t0: performance.now() - a.desde, enviado: false };
-    $('barra-titulo').textContent = `Pasa a ${a.a}`;
-    $('barra-zona').style.left = (a.zonaIni * 100) + '%';
-    $('barra-zona').style.width = ((a.zonaFin - a.zonaIni) * 100) + '%';
-    $('btn-tap').textContent = '¡AHORA!';
-    $('btn-tap').classList.remove('enviado');
-    $('capa-barra').classList.remove('oculto');
-    if (navigator.vibrate) try { navigator.vibrate(80); } catch {}
+  // Panel "Tu jugada": solo muestra lo que TÚ puedes hacer ahora.
+  function pintarJugada(mi) {
+    const el = $('panel-jugada');
+    if (mi.invitado) { el.classList.add('oculto'); return; }
+    el.classList.remove('oculto');
+    const eq = miEquipo(mi), tipo = miTipo(mi), pel = sala.pelota, ocupado = sala.enJuego;
+    let h = '<h2>🧹 Tu jugada</h2>';
+    if (!mi.plaza) h += '<p>Elige tu posición tocando una figura libre del campo o el botón <b>Ocupar</b> de las listas.</p>';
+    else if (tipo === 'cazador') {
+      if (pel && pel.portador === yo) {
+        const faltan = Math.max(0, sala.pasesNecesarios - sala.pasesBuenos);
+        h += '<p><b>🏐 ¡Tienes la quaffle!</b></p>';
+        if (faltan === 0) {
+          h += `<button class="btn-lanzar" data-tirar ${ocupado ? 'disabled' : ''}>🥅 ¡LANZAR A LA META!</button>`;
+          h += '<p class="suave">También puedes seguir pasando.</p>';
+        } else {
+          h += `<div class="progreso">${'<i class="ok"></i>'.repeat(sala.pasesBuenos)}${'<i></i>'.repeat(faltan)}<span>Pases buenos: te falta${faltan > 1 ? 'n' : ''} ${faltan} para poder lanzar</span></div>`;
+        }
+        const comp = ['cazador1', 'cazador2', 'cazador3'].map((c) => sala.plazas[`${eq}-${c}`])
+          .filter((id) => typeof id === 'string' && id !== yo).map(persona).filter(Boolean);
+        h += '<div class="botones">' + (comp.length
+          ? comp.map((p) => `<button data-pasar="${p.id}" ${p.conectado && !ocupado ? '' : 'disabled'}>Pasar a ${esc(p.nombre)}</button>`).join('')
+          : '<span class="suave">No tienes compañeros cazadores: lanza directo a la meta.</span>') + '</div>';
+      } else if (!pel) {
+        h += '<p>La quaffle está suelta.</p><div class="botones"><button data-tomar>🏐 Tomar la quaffle (prueba)</button></div>';
+      } else if (pel.equipo === eq) h += '<p>Tu equipo tiene la quaffle. Atento: te pueden pasar.</p>';
+      else h += '<p>El rival tiene la quaffle. Espera a recuperarla.</p>';
+    } else if (tipo === 'golpeador') {
+      if (pel && pel.equipo !== eq) {
+        const objetivo = persona(pel.portador);
+        const espera = Math.ceil((bludgerListo[eq] - performance.now()) / 1000);
+        h += espera > 0
+          ? `<button class="btn-bludger" disabled>💥 Bludger lista en ${espera} s</button>`
+          : `<button class="btn-bludger" data-bludger ${ocupado ? 'disabled' : ''}>💥 Batear bludger contra ${esc(objetivo ? objetivo.nombre : '')}</button>`;
+        h += '<p class="suave">Si aciertas, sus golpeadores tendrán unos segundos para repelerla. Si no lo logran, pierde la quaffle.</p>';
+      } else h += '<p>Cuando el rival tenga la quaffle podrás batearle una bludger. Si le lanzan una a tu equipo, aparecerá tu reto para repelerla.</p>';
+    } else if (tipo === 'guardian') h += '<p>🧤 Defiendes los aros. Cuando el rival lance a la meta, aparecerá tu reto para atajar.</p>';
+    else if (tipo === 'buscador') h += '<p>✨ La snitch dorada aparecerá en la segunda mitad del partido (llega en el siguiente paso).</p>';
+    // Solo se redibuja si cambió algo (así no se pierde un toque a medias).
+    if (el.dataset.html !== h) { el.innerHTML = h; el.dataset.html = h; }
+  }
+  // La cuenta atrás de la bludger se actualiza sola.
+  setInterval(() => {
+    if (!sala || !yo) return;
+    const mi = persona(yo);
+    if (mi && miTipo(mi) === 'golpeador') pintarJugada(mi);
+  }, 500);
+
+  // ---------- Comentarios (banners arriba que no tapan la pantalla)
+  function mostrarComentario(c) {
+    const cont = $('banners');
+    const b = document.createElement('div');
+    b.className = 'banner';
+    b.setAttribute('style', `--c:${CASAS[c.casa] ? CASAS[c.casa].c : '#f2c14e'}`);
+    b.innerHTML = `<div class="de">🎙️ ${esc(c.nombre)}</div><div>${esc(c.texto)}</div>`;
+    const quitar = () => { b.classList.add('sale'); setTimeout(() => b.remove(), 350); };
+    b.addEventListener('click', quitar);
+    cont.appendChild(b);
+    while (cont.children.length > 3) cont.firstElementChild.remove();
+    setTimeout(quitar, 7000);
+  }
+
+  // ---------- Avisos personales
+  let timerFlash = null;
+  function mostrarResultado(texto, bueno) {
+    if (reto) {
+      reto.resultado = true;
+      const r = $('reto-resultado');
+      r.textContent = texto;
+      r.classList.toggle('malo', !bueno);
+      r.classList.remove('oculto');
+      $('btn-tap').classList.add('oculto');
+      setTimeout(cerrarReto, 1800);
+      return;
+    }
+    const f = $('flash');
+    f.textContent = texto;
+    f.classList.toggle('malo', !bueno);
+    f.classList.remove('oculto');
+    clearTimeout(timerFlash);
+    timerFlash = setTimeout(() => f.classList.add('oculto'), 2600);
+    if (navigator.vibrate) try { navigator.vibrate(bueno ? 60 : [60, 60, 60]); } catch {}
+  }
+
+  // ---------- Retos: la marca va y vuelve; el celular mide cuándo tocas y el servidor decide.
+  const ICONOS = { pase: '🏐', tiro: '🥅', atajar: '🧤', bateo: '🏏', repeler: '🛡️' };
+  const AYUDAS = {
+    pase: 'Toca cuando la marca blanca esté en la zona verde.',
+    tiro: 'Toca en la zona verde. ¡Cuanto más al centro, mejor el tiro!',
+    atajar: 'Toca cuando la aguja esté en la zona verde. Cuanto más al centro, mejor atajas.',
+    bateo: 'Toca cuando el círculo naranja encaje en el círculo punteado.',
+    repeler: '¡Rápido! Toca cuando el círculo naranja encaje en el punteado.',
+  };
+  let reto = null;
+
+  function construirVisual(r) {
+    const v = $('reto-visual');
+    if (r.visual === 'barra') {
+      v.innerHTML = `<div class="barra" id="vis-toque"><div class="zona" style="left:${r.zonaIni * 100}%;width:${(r.zonaFin - r.zonaIni) * 100}%"></div><div class="marca" id="vis-marca"></div></div>`;
+      const marca = $('vis-marca'), barra = $('vis-toque');
+      return (pos) => { marca.style.transform = `translateX(${pos * barra.clientWidth}px)`; };
+    }
+    if (r.visual === 'circulo') {
+      const R = (p) => 22 + p * 94;
+      const rc = R((r.zonaIni + r.zonaFin) / 2);
+      v.innerHTML = `<svg class="vis-svg" id="vis-toque" viewBox="0 0 240 240">
+        <circle cx="120" cy="120" r="118" fill="rgba(255,255,255,.05)"/>
+        <circle cx="120" cy="120" r="${rc}" fill="none" stroke="#38d476" stroke-opacity=".22" stroke-width="${R(r.zonaFin) - R(r.zonaIni)}"/>
+        <circle cx="120" cy="120" r="${rc}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>
+        <circle id="vis-mov" cx="120" cy="120" r="30" fill="rgba(255,140,60,.15)" stroke="#ff9a4d" stroke-width="5"/>
+        <circle cx="120" cy="120" r="13" fill="#2a2a2a" stroke="#777" stroke-width="2"/><circle cx="116" cy="116" r="4" fill="#666"/>
+      </svg>`;
+      const mov = $('vis-mov');
+      return (pos) => { mov.setAttribute('r', R(pos)); };
+    }
+    // aguja (guardián): oscila sobre un semicírculo
+    const cx = 130, cy = 138, RA = 112;
+    const punto = (p, rad) => { const a = Math.PI * (1 - p); return [cx + rad * Math.cos(a), cy - rad * Math.sin(a)]; };
+    const [x1, y1] = punto(r.zonaIni, RA), [x2, y2] = punto(r.zonaFin, RA);
+    v.innerHTML = `<svg class="vis-svg" id="vis-toque" viewBox="0 0 260 150">
+      <path d="M${cx - RA},${cy} A${RA},${RA} 0 0 1 ${cx + RA},${cy} Z" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+      <path d="M${cx},${cy} L${x1},${y1} A${RA},${RA} 0 0 1 ${x2},${y2} Z" fill="#38d476"/>
+      <line id="vis-aguja" x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - RA}" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="${cx}" cy="${cy}" r="9" fill="#fff"/>
+    </svg>`;
+    const aguja = $('vis-aguja');
+    return (pos) => { const [x, y] = punto(pos, RA + 4); aguja.setAttribute('x2', x); aguja.setAttribute('y2', y); };
+  }
+
+  function abrirReto(r) {
+    reto = { ...r, t0: performance.now() - r.desde, enviado: false, resultado: false };
+    $('reto-icono').textContent = ICONOS[r.clase] || '✨';
+    $('reto-titulo').textContent = r.titulo;
+    $('reto-ayuda').textContent = AYUDAS[r.clase] || '';
+    reto.dibujar = construirVisual(r);
+    $('vis-toque').addEventListener('pointerdown', tocar);
+    const btn = $('btn-tap');
+    btn.textContent = r.boton;
+    btn.classList.remove('enviado', 'oculto');
+    $('reto-resultado').classList.add('oculto');
+    $('capa-reto').classList.remove('oculto');
+    if (navigator.vibrate) try { navigator.vibrate(100); } catch {}
     requestAnimationFrame(animar);
   }
   function animar() {
-    if (!barra) return;
-    const ms = performance.now() - barra.t0;
-    const ancho = $('barra').clientWidth;
-    if (!barra.enviado) {
-      const f = (ms % barra.periodo) / barra.periodo;
-      const pos = f < 0.5 ? f * 2 : 2 - f * 2;
-      $('barra-marca').style.transform = `translateX(${pos * ancho}px)`;
+    if (!reto) return;
+    const ms = performance.now() - reto.t0;
+    if (!reto.enviado) {
+      const f = (ms % reto.periodo) / reto.periodo;
+      reto.dibujar(f < 0.5 ? f * 2 : 2 - f * 2);
     }
-    const resta = Math.max(0, barra.limite - ms) / 1000;
-    $('barra-cuenta').textContent = barra.enviado ? 'Enviado, esperando resultado…' : `Te quedan ${resta.toFixed(1)} s`;
-    $('barra-cuenta').classList.toggle('urgente', !barra.enviado && resta < 2);
-    if (ms > barra.limite + 3000) return cerrarBarra(); // por si se perdió la respuesta
+    const resta = Math.max(0, reto.limite - ms) / 1000;
+    const cuenta = $('reto-cuenta');
+    cuenta.textContent = reto.resultado ? '' : reto.enviado ? 'Enviado, esperando resultado…' : `Te quedan ${resta.toFixed(1)} s`;
+    cuenta.classList.toggle('urgente', !reto.enviado && resta < 2);
+    if (ms > reto.limite + 4000) return cerrarReto(); // por si se perdió la respuesta
     requestAnimationFrame(animar);
   }
   function tocar(e) {
     e.preventDefault();
-    if (!barra || barra.enviado) return;
-    barra.enviado = true;
-    const ms = Math.round(performance.now() - barra.t0);
-    mandar({ t: 'tap', accion: barra.id, ms });
+    if (!reto || reto.enviado) return;
+    reto.enviado = true;
+    mandar({ t: 'tap', reto: reto.id, ms: Math.round(performance.now() - reto.t0) });
     $('btn-tap').textContent = 'Enviado';
     $('btn-tap').classList.add('enviado');
   }
-  function cerrarBarra() {
-    barra = null;
-    $('capa-barra').classList.add('oculto');
+  function cerrarReto() {
+    reto = null;
+    $('capa-reto').classList.add('oculto');
   }
   // pointerdown responde antes que click en el celular
   $('btn-tap').addEventListener('pointerdown', tocar);
-  $('barra').addEventListener('pointerdown', tocar);
 
   // ---------- Arranque
   if (guardar.leer()) conectar();
