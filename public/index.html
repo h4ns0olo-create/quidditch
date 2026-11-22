@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#120d26">
-<title>Quidditch entre amigos</title>
+<title>Quidditch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
@@ -65,6 +65,7 @@
   button:disabled { opacity: .45; pointer-events: none; }
   button.ancho { width: 100%; margin-top: 16px; }
   a { color: var(--oro); }
+  .aviso-fijo { font-size: .85rem; color: #ffd9a0; background: rgba(242,193,78,.1); border: 1px solid rgba(242,193,78,.3); border-radius: 10px; padding: 8px 10px; margin-top: 10px; }
 
   /* ---------- Portada */
   .portada { text-align: center; padding: 18px 0 4px; }
@@ -73,11 +74,10 @@
   @keyframes flotar { 50% { transform: translateY(-8px); } }
   @keyframes aletear { to { transform: scaleY(.55); } }
   .portada h1 {
-    font-size: 2.6rem; font-weight: 900; margin: 6px 0 0; line-height: 1;
+    font-size: 2.8rem; font-weight: 900; margin: 6px 0 0; line-height: 1;
     background: linear-gradient(180deg, var(--oro2), var(--oro) 55%, #b47b14); -webkit-background-clip: text; background-clip: text; color: transparent;
     text-shadow: 0 0 30px rgba(242,193,78,.25);
   }
-  .portada .sub { font-family: var(--titulo); color: var(--suave); letter-spacing: .3em; font-size: .8rem; margin-top: 6px; }
   .emblemas { display: flex; justify-content: center; gap: 10px; margin: 16px 0 4px; }
   .emblema { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-size: 24px;
     border: 2px solid var(--a); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); box-shadow: 0 4px 12px rgba(0,0,0,.4); }
@@ -89,6 +89,7 @@
     box-shadow: none; border: 2px solid transparent; opacity: .75; text-align: left;
   }
   .casa-btn .emo { font-size: 1.5rem; }
+  .casa-btn.invitado { grid-column: span 2; justify-content: center; }
   .casa-btn.elegida { opacity: 1; border-color: var(--a); box-shadow: 0 0 0 3px rgba(255,255,255,.15), 0 6px 16px rgba(0,0,0,.4); transform: scale(1.02); }
   .casa-btn:active { transform: scale(.98); }
 
@@ -104,6 +105,15 @@
   .estado-red.mal { background: #7a2b2b; }
   .linea-sala { display: flex; justify-content: space-between; margin: 8px 2px 0; }
 
+  /* ---------- Reloj */
+  .reloj { margin: 12px 0 0; padding: 10px 14px; border-radius: 16px; background: rgba(10,7,25,.65); border: 1px solid var(--borde); }
+  .reloj .fila { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .reloj .tiempo { font-family: var(--titulo); font-weight: 900; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .reloj .estado { font-size: .9rem; color: var(--suave); text-align: right; }
+  .pista { position: relative; height: 8px; border-radius: 99px; background: rgba(255,255,255,.12); margin: 8px 0 2px; }
+  .pista .lleno { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, var(--oro), #ffe9a3); }
+  .pista .hito { position: absolute; top: -9px; font-size: 13px; transform: translateX(-50%); }
+
   /* ---------- Marcador */
   .marcador { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 0; border-radius: 18px; overflow: hidden;
     margin: 12px 0; box-shadow: 0 8px 24px rgba(0,0,0,.35); border: 1px solid var(--borde); }
@@ -115,15 +125,28 @@
   @keyframes pulso { 50% { transform: scale(1.25); text-shadow: 0 0 18px #fff; } }
   .vs { display: grid; place-items: center; padding: 0 8px; background: #0d0a1c; font-family: var(--titulo); color: var(--oro); font-weight: 900; }
 
+  /* ---------- Final */
+  .final { text-align: center; border: 2px solid var(--oro); background: radial-gradient(ellipse at top, rgba(242,193,78,.18), rgba(255,255,255,.03)); }
+  .final .grande { font-size: 3rem; line-height: 1.1; }
+  .final .gana { font-family: var(--titulo); font-weight: 900; font-size: 1.5rem; margin: 6px 0; }
+  .final .motivo { color: var(--suave); }
+  .stats { text-align: left; margin-top: 14px; }
+  .stats h3 { font-family: var(--titulo); font-size: .95rem; margin: 12px 0 6px; padding: 6px 10px; border-radius: 10px; color: var(--t);
+    background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 45%, #000)); }
+  .stat { padding: 6px 2px; border-bottom: 1px solid rgba(255,255,255,.07); font-size: .9rem; }
+  .stat b { display: inline-flex; align-items: center; gap: 5px; }
+  .stat .chips2 { color: var(--suave); font-size: .82rem; margin-top: 2px; }
+
   /* ---------- Campo */
   #campo svg { width: 100%; height: auto; display: block; }
   .campo .libre { cursor: pointer; }
-  .campo .libre:hover .forma, .campo .libre:active .forma { stroke: var(--oro); }
+  .campo .libre .forma { animation: latir 1.6s ease-in-out infinite; }
+  @keyframes latir { 50% { stroke: #f2c14e; stroke-opacity: 1; } }
   .leyenda { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: center; font-size: .8rem; color: var(--suave); margin-top: 6px; }
   .leyenda span { display: inline-flex; align-items: center; gap: 4px; }
   svg.ico { width: 18px; height: 18px; vertical-align: middle; flex: none; }
 
-  /* ---------- Tu jugada */
+  /* ---------- Tu jugada / administración */
   .jugada { border-left: 5px solid var(--casa); }
   .jugada .botones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
   .btn-lanzar {
@@ -133,8 +156,14 @@
   @keyframes brillo { 50% { box-shadow: 0 3px 0 #a8730f, 0 0 26px rgba(255,214,107,.85); } }
   .btn-bludger { width: 100%; background: linear-gradient(180deg, #ff9a4d, #d9531e); color: #fff; box-shadow: 0 3px 0 #8a2e0b; font-size: 1.05rem; padding: 14px; }
   .progreso { display: flex; gap: 6px; align-items: center; margin-top: 6px; font-size: .9rem; color: var(--suave); }
-  .progreso i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--oro); display: inline-block; }
+  .progreso i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--oro); display: inline-block; flex: none; }
   .progreso i.ok { background: var(--oro); }
+  .cronito { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 99px; background: rgba(255,255,255,.1); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .cronito.urgente { background: #7a2b2b; }
+  .admin { border-left: 5px solid var(--oro); }
+  .duraciones { display: flex; gap: 8px; margin: 8px 0; }
+  .duraciones button { flex: 1; }
+  .duraciones button.elegida { outline: 3px solid #fff; }
 
   /* ---------- Equipos */
   .equipo { padding: 0; overflow: hidden; }
@@ -144,6 +173,7 @@
   .plaza { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,.07); min-height: 46px; }
   .plaza:first-child { border-top: 0; }
   .plaza .pos { color: var(--suave); font-size: .82rem; width: 106px; flex: none; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .plaza .pos.ancha { width: auto; min-width: 106px; }
   .plaza .ocupa { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .plaza.mia { background: rgba(255,255,255,.08); margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 10px; }
   .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; border: 1px solid rgba(255,255,255,.5); }
@@ -173,11 +203,11 @@
   #flash.malo { border-color: var(--rojo); }
   @keyframes aparecer { from { transform: scale(.8); opacity: 0; } }
 
-  /* ---------- Retos (minijuegos) */
-  #capa-reto { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 20px 16px;
+  /* ---------- Capas a pantalla completa (retos, moneda, snitch) */
+  .capa { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 20px 16px;
     background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--casa) 40%, #120d26), #0b0818 75%);
     user-select: none; -webkit-user-select: none; }
-  .reto-caja { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 14px; text-align: center; }
+  .caja { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 14px; text-align: center; }
   .reto-icono { font-size: 2.6rem; line-height: 1; }
   .reto-titulo { font-family: var(--titulo); font-weight: 900; font-size: 1.45rem; }
   .reto-ayuda { color: var(--suave); margin: 0; font-size: .95rem; }
@@ -190,8 +220,35 @@
   #btn-tap.enviado { background: rgba(255,255,255,.12); color: var(--texto); box-shadow: none; }
   .cuenta { color: var(--suave); font-size: 1.05rem; }
   .cuenta.urgente { color: var(--rojo); font-weight: 800; }
-  #reto-resultado { font-size: 1.5rem; font-weight: 900; padding: 20px; border-radius: 18px; background: rgba(56,212,118,.15); border: 2px solid var(--verde); }
-  #reto-resultado.malo { background: rgba(255,107,107,.15); border-color: var(--rojo); }
+  .resultado-reto { font-size: 1.5rem; font-weight: 900; padding: 20px; border-radius: 18px; background: rgba(56,212,118,.15); border: 2px solid var(--verde); }
+  .resultado-reto.malo { background: rgba(255,107,107,.15); border-color: var(--rojo); }
+
+  #capa-moneda { background: radial-gradient(ellipse at 50% 30%, #3b2a72, #0b0818 75%); z-index: 22; }
+  .moneda-salto { perspective: 800px; height: 200px; display: grid; place-items: center; }
+  .moneda-salto.saltando { animation: saltar 1.25s ease-in-out infinite; }
+  @keyframes saltar { 50% { transform: translateY(-60px); } }
+  .moneda { width: 170px; height: 170px; position: relative; transform-style: preserve-3d; transition: transform .9s cubic-bezier(.2,.8,.3,1.2); }
+  .moneda.girando { animation: girar .42s linear infinite; transition: none; }
+  @keyframes girar { to { transform: rotateY(360deg); } }
+  .moneda.ladoB { transform: rotateY(180deg); }
+  .cara { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: grid; place-items: center;
+    font-size: 84px; border: 9px solid #e4b23c; box-shadow: inset 0 0 0 4px #8a5d0a, 0 12px 30px rgba(0,0,0,.5);
+    background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 65%, #fff), var(--c)); }
+  .cara.dorso { transform: rotateY(180deg); }
+  .moneda-texto { font-family: var(--titulo); font-weight: 900; font-size: 1.5rem; min-height: 2.2em; }
+  .cuenta-grande { font-family: var(--titulo); font-weight: 900; font-size: 5rem; line-height: 1; color: var(--oro); text-shadow: 0 0 30px rgba(242,193,78,.6); min-height: 1em; }
+
+  #capa-snitch { background: radial-gradient(ellipse at 50% 30%, #2a2140, #08060f 75%); z-index: 21; }
+  #capa-snitch.senal { background: radial-gradient(ellipse at 50% 40%, #fff1b8, #f2c14e 35%, #6b4a08 80%); color: #2a1a00; }
+  .sn-rondas { display: flex; justify-content: center; gap: 18px; font-weight: 800; }
+  .sn-rondas .dots i { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; margin: 0 2px; vertical-align: middle; }
+  .sn-rondas .dots i.ok { background: currentColor; }
+  .sn-zona { min-height: 260px; display: grid; place-items: center; border-radius: 24px; border: 2px dashed rgba(255,255,255,.2); }
+  #capa-snitch.senal .sn-zona { border-color: rgba(0,0,0,.25); }
+  .sn-zona .grande { font-family: var(--titulo); font-weight: 900; font-size: 1.8rem; }
+  .sn-zona .snitch { width: 220px; height: 110px; }
+  .esperando { animation: tenue 1.2s ease-in-out infinite; }
+  @keyframes tenue { 50% { opacity: .45; } }
 </style>
 </head>
 <body>
@@ -209,7 +266,6 @@
       <path d="M48 28 Q60 22 72 28 M48 34 Q60 40 72 34" stroke="#8a5d0a" stroke-width="1" fill="none" opacity=".6"/>
     </svg>
     <h1>QUIDDITCH</h1>
-    <div class="sub">ENTRE AMIGOS</div>
     <div class="emblemas" id="emblemas"></div>
   </div>
   <div class="panel">
@@ -218,6 +274,7 @@
       <input id="i-nombre" maxlength="20" required placeholder="Ej.: Ana">
       <label>Tu casa</label>
       <div class="casas" id="casas-entrar" data-grupo="entrar"></div>
+      <p class="suave" id="ayuda-casa">Si tu casa juega, entrarás en su equipo. Si solo vienes a mirar, elige <b>Invitado</b>.</p>
       <label for="i-codigo">Código de la sala</label>
       <input id="i-codigo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
       <button class="ancho" type="submit">🧹 Entrar al estadio</button>
@@ -226,7 +283,7 @@
   <p class="suave" style="text-align:center"><a href="#" id="ir-admin">Soy el administrador</a></p>
 </section>
 
-<!-- Administración -->
+<!-- Administración: crear sala -->
 <section id="p-admin" class="oculto">
   <div class="portada"><h1 style="font-size:1.8rem">ADMINISTRACIÓN</h1></div>
   <div class="panel">
@@ -243,8 +300,8 @@
     </form>
     <div id="admin-ok" class="oculto">
       <p>✅ Sala <b id="admin-codigo"></b> lista: <span id="admin-equipos"></span>.</p>
-      <p class="suave">Comparte el código con los invitados.</p>
-      <button class="ancho" id="admin-entrar">Entrar yo también a la sala</button>
+      <p class="suave">Comparte el código con los demás. Entra tú como <b>Invitado</b> y elige <b>Administración</b> para poder empezar el partido.</p>
+      <button class="ancho" id="admin-entrar">Entrar a la sala como administrador</button>
     </div>
   </div>
   <p class="suave"><a href="#" id="volver-inicio">← Volver</a></p>
@@ -259,18 +316,16 @@
   </div>
   <div class="linea-sala suave"><span>Sala <b id="sala-codigo"></b></span><span id="sala-cuenta"></span></div>
 
+  <div class="reloj" id="reloj"></div>
   <div class="marcador" id="marcador"></div>
+  <div class="panel final oculto" id="panel-final"></div>
 
-  <div class="panel campo">
-    <div id="campo"></div>
-    <div class="leyenda" id="leyenda"></div>
-  </div>
-
+  <div class="panel admin oculto" id="panel-admin"></div>
   <div class="panel jugada" id="panel-jugada"></div>
 
   <div class="panel oculto" id="panel-comentar">
     <h2>🎙️ Comentar</h2>
-    <p class="suave">Lo que escribas aparecerá en la pantalla de todos.</p>
+    <p class="suave">Lo que escribas aparecerá arriba en la pantalla de todos.</p>
     <form id="f-comentar" autocomplete="off">
       <textarea id="i-comentario" rows="2" maxlength="140" placeholder="¡Qué atajada increíble!"></textarea>
       <div class="contador" id="contador">0/140</div>
@@ -284,20 +339,15 @@
     <div class="registro" id="registro"></div>
   </div>
 
+  <div class="panel campo">
+    <div id="campo"></div>
+    <div class="leyenda" id="leyenda"></div>
+  </div>
+
   <div class="panel equipo" id="equipo-A"></div>
   <div class="panel equipo" id="equipo-B"></div>
 
-  <div class="panel">
-    <h2>👀 Invitados</h2>
-    <p class="suave">Miran el partido. Los comentaristas escriben lo que pasa para todos.</p>
-    <div id="lista-invitados"></div>
-    <div class="chips">
-      <button class="sec peq" data-invitado="comentarista">🎙️ Comentarista</button>
-      <button class="sec peq" data-invitado="prefecto">📋 Prefecto</button>
-      <button class="sec peq" data-invitado="administracion">🔑 Administración</button>
-    </div>
-    <div id="sin-plaza" class="suave"></div>
-  </div>
+  <div class="panel" id="panel-invitados"></div>
 
   <button class="sec ancho" id="btn-salir">Salir de la sala</button>
 </section>
@@ -306,15 +356,35 @@
 <div id="flash" class="oculto"></div>
 
 <!-- Reto (minijuego) -->
-<div id="capa-reto" class="oculto">
-  <div class="reto-caja">
+<div id="capa-reto" class="capa oculto">
+  <div class="caja">
     <div class="reto-icono" id="reto-icono"></div>
     <div class="reto-titulo" id="reto-titulo"></div>
     <p class="reto-ayuda" id="reto-ayuda"></p>
     <div id="reto-visual"></div>
     <div class="cuenta" id="reto-cuenta"></div>
     <button id="btn-tap">¡AHORA!</button>
-    <div id="reto-resultado" class="oculto"></div>
+    <div id="reto-resultado" class="resultado-reto oculto"></div>
+  </div>
+</div>
+
+<!-- Moneda del inicio -->
+<div id="capa-moneda" class="capa oculto">
+  <div class="caja">
+    <div class="reto-titulo">🪙 Lanzamiento de moneda</div>
+    <div class="moneda-salto" id="moneda-salto"><div class="moneda" id="moneda"><div class="cara" id="cara-A"></div><div class="cara dorso" id="cara-B"></div></div></div>
+    <div class="moneda-texto" id="moneda-texto"></div>
+    <div class="cuenta-grande" id="cuenta-grande"></div>
+  </div>
+</div>
+
+<!-- Snitch (solo buscadores) -->
+<div id="capa-snitch" class="capa oculto">
+  <div class="caja">
+    <div class="reto-titulo" id="sn-titulo">✨ ¡La snitch dorada!</div>
+    <div class="sn-rondas" id="sn-rondas"></div>
+    <div class="sn-zona" id="sn-zona"></div>
+    <div class="cuenta" id="sn-texto"></div>
   </div>
 </div>
 
@@ -330,14 +400,18 @@
     Ravenclaw:  { emo: '🦅', c: '#2f5cc0', a: '#d9a865', t: '#ffffff' },
     Hufflepuff: { emo: '🦡', c: '#ecbb22', a: '#3a2f28', t: '#231a10' },
   };
-  const vars = (casa) => { const k = CASAS[casa]; return `--c:${k.c};--a:${k.a};--t:${k.t}`; };
+  const INVITADO = { emo: '👀', c: '#5b4a8f', a: '#cfc6ee', t: '#ffffff' };
+  const k = (casa) => CASAS[casa] || INVITADO;
+  const vars = (casa) => { const x = k(casa); return `--c:${x.c};--a:${x.a};--t:${x.t}`; };
   const POSICIONES = [
     ['cazador1', 'Cazador 1', 'cazador'], ['cazador2', 'Cazador 2', 'cazador'], ['cazador3', 'Cazador 3', 'cazador'],
     ['golpeador1', 'Golpeador 1', 'golpeador'], ['golpeador2', 'Golpeador 2', 'golpeador'],
     ['guardian', 'Guardián', 'guardian'], ['buscador', 'Buscador', 'buscador'],
   ];
   const TIPOS = { cazador: 'Cazador', golpeador: 'Golpeador', guardian: 'Guardián', buscador: 'Buscador' };
-  const INVITADOS = { comentarista: '🎙️ Comentarista', prefecto: '📋 Prefecto', administracion: '🔑 Administración' };
+  const ICONO_PAPEL = { comentaristaA: '🎙️', comentaristaB: '🎙️', prefecto: '📋', administracion: '🔑' };
+  const nombrePapel = (papel) => papel === 'comentaristaA' ? `Comentarista de ${sala.equipos.A}`
+    : papel === 'comentaristaB' ? `Comentarista de ${sala.equipos.B}` : papel === 'prefecto' ? 'Prefecto' : 'Administración';
 
   // Posiciones en el mapa del campo (equipo A a la izquierda; el B es simétrico).
   const COORD = {
@@ -359,6 +433,7 @@
     return `<path class="forma" d="${d}Z" ${attrs}/>`;
   }
   const icono = (tipo, color, borde) => `<svg class="ico" viewBox="-16 -16 32 32">${forma(tipo, `fill="${color}" stroke="${borde}" stroke-width="2.5"`)}</svg>`;
+  const SNITCH_SVG = $('p-inicio').querySelector('.snitch').outerHTML.replace('id="oro"', 'id="oro2"').replace('url(#oro)', 'url(#oro2)');
 
   // ---------- Guardado del token (para reconectar). Si el navegador no deja guardar, sigue funcionando.
   let tokenMemoria = null;
@@ -372,7 +447,11 @@
   let pendiente = null;   // mensaje a enviar al conectar (entrar / crear sala)
   let enPausa = false;    // true si esta pestaña cedió la sesión a otra
   const elegidas = { entrar: '', A: 'Gryffindor', B: 'Slytherin' };
+  let claveAdmin = '';    // se recuerda al crear la sala, para no pedirla dos veces
+  let duracionElegida = 20;
   let bludgerListo = { A: 0, B: 0 };
+  let posesionHasta = 0;
+  let reloj = { recibido: 0, transcurrido: 0 };
   let marcadorPrevio = null;
 
   // ---------- Conexión
@@ -416,13 +495,14 @@
     if (m.t === 'error') {
       if (m.codigo === 'token_invalido') { guardar.borrar(); yo = null; mostrar('p-inicio'); }
       if (m.codigo === 'otra_pestana') { enPausa = true; yo = null; mostrar('p-inicio'); }
+      if (m.codigo === 'clave_mala') claveAdmin = '';
       return avisar(m.msg);
     }
     if (m.t === 'sala_creada') {
       $('f-admin').classList.add('oculto');
       $('admin-ok').classList.remove('oculto');
       $('admin-codigo').textContent = m.codigo;
-      $('admin-equipos').textContent = `${CASAS[m.equipos.A].emo} ${m.equipos.A} contra ${m.equipos.B} ${CASAS[m.equipos.B].emo}`;
+      $('admin-equipos').textContent = `${k(m.equipos.A).emo} ${m.equipos.A} contra ${m.equipos.B} ${k(m.equipos.B).emo}`;
       return;
     }
     if (m.t === 'bienvenida') { yo = m.yo; guardar.poner(m.token); avisar(''); mostrar('p-sala'); return; }
@@ -430,12 +510,16 @@
       sala = m.sala;
       const ahora = performance.now();
       bludgerListo = { A: ahora + sala.bludgerEsperaMs.A, B: ahora + sala.bludgerEsperaMs.B };
+      posesionHasta = sala.pelota ? ahora + sala.pelota.restaMs : 0;
+      if (sala.partido) reloj = { recibido: ahora, transcurrido: sala.partido.transcurridoMs };
       pintar();
       if (!sala.enJuego && reto && !reto.resultado) cerrarReto();
+      if (!['partido', 'muerte'].includes(sala.fase) && sn && !sn.cerrando) cerrarSnitch();
       return;
     }
     if (m.t === 'reto') return abrirReto(m.reto);
     if (m.t === 'resultado') return mostrarResultado(m.texto, m.bueno);
+    if (m.t === 'snitch') return snitchMensaje(m);
     if (m.t === 'comentario') return mostrarComentario(m);
     if (m.t === 'fuera') { guardar.borrar(); yo = null; sala = null; mostrar('p-inicio'); }
   }
@@ -450,7 +534,7 @@
   }
   function mostrar(id) {
     for (const s of ['p-inicio', 'p-admin', 'p-sala']) $(s).classList.toggle('oculto', s !== id);
-    if (id !== 'p-sala') cerrarReto();
+    if (id !== 'p-sala') { cerrarReto(); cerrarSnitch(); $('capa-moneda').classList.add('oculto'); }
     window.scrollTo(0, 0);
   }
 
@@ -459,8 +543,9 @@
     $('emblemas').innerHTML = Object.keys(CASAS).map((c) => `<div class="emblema" style="${vars(c)}" title="${c}">${CASAS[c].emo}</div>`).join('');
     for (const el of document.querySelectorAll('.casas')) {
       const g = el.dataset.grupo;
-      el.innerHTML = Object.keys(CASAS).map((c) =>
-        `<button type="button" class="casa-btn ${elegidas[g] === c ? 'elegida' : ''}" style="${vars(c)}" data-casa-pick="${c}" data-grupo="${g}"><span class="emo">${CASAS[c].emo}</span>${c}</button>`).join('');
+      const lista = Object.keys(CASAS).concat(g === 'entrar' ? ['Invitado'] : []);
+      el.innerHTML = lista.map((c) =>
+        `<button type="button" class="casa-btn ${c === 'Invitado' ? 'invitado' : ''} ${elegidas[g] === c ? 'elegida' : ''}" style="${vars(c)}" data-casa-pick="${c}" data-grupo="${g}"><span class="emo">${k(c).emo}</span>${c === 'Invitado' ? 'Invitado (solo mirar)' : c}</button>`).join('');
     }
   }
   pintarCasas();
@@ -468,7 +553,7 @@
   // ---------- Formularios
   $('f-entrar').addEventListener('submit', (e) => {
     e.preventDefault();
-    if (!elegidas.entrar) return avisar('Elige tu casa.');
+    if (!elegidas.entrar) return avisar('Elige tu casa o "Invitado".');
     mandar({ t: 'entrar', nombre: $('i-nombre').value, casa: elegidas.entrar, codigo: $('i-codigo').value });
   });
   $('ir-admin').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-admin'); });
@@ -476,15 +561,22 @@
   $('f-admin').addEventListener('submit', (e) => {
     e.preventDefault();
     if (elegidas.A === elegidas.B) return avisar('Los dos equipos deben ser de casas distintas.');
-    mandar({ t: 'crear_sala', clave: $('i-clave').value, codigo: $('i-codigo-nuevo').value, equipoA: elegidas.A, equipoB: elegidas.B });
+    claveAdmin = $('i-clave').value;
+    mandar({ t: 'crear_sala', clave: claveAdmin, codigo: $('i-codigo-nuevo').value, equipoA: elegidas.A, equipoB: elegidas.B });
   });
   $('admin-entrar').addEventListener('click', () => {
     $('i-codigo').value = $('admin-codigo').textContent;
+    elegidas.entrar = 'Invitado';
+    pintarCasas();
     mostrar('p-inicio');
     $('i-nombre').focus();
   });
   $('btn-salir').addEventListener('click', () => {
-    if (confirm('¿Seguro que quieres salir? Perderás tu plaza.')) mandar({ t: 'salir' });
+    const mi = sala && persona(yo);
+    const texto = mi && mi.plaza && ['inicio', 'partido', 'muerte'].includes(sala.fase)
+      ? 'El partido está en curso: si sales, tu plaza quedará vacía hasta el final y no podrás volver a ella. ¿Salir de todos modos?'
+      : '¿Seguro que quieres salir? Perderás tu plaza (si te equivocaste de función, luego puedes volver a entrar).';
+    if (confirm(texto)) mandar({ t: 'salir' });
   });
   $('i-comentario').addEventListener('input', () => { $('contador').textContent = `${$('i-comentario').value.length}/140`; });
   $('f-comentar').addEventListener('submit', (e) => {
@@ -498,30 +590,55 @@
 
   // Botones que se pintan dinámicamente
   document.body.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-dejar],[data-tomar],[data-pasar],[data-tirar],[data-bludger],[data-invitado]');
+    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-pasar],[data-tirar],[data-bludger],[data-invitado],[data-duracion],[data-empezar],[data-terminar],[data-nueva]');
     if (!b) return;
     const d = b.dataset;
     if (d.casaPick) { elegidas[d.grupo] = d.casaPick; pintarCasas(); }
-    else if (d.plaza) mandar({ t: 'elegir_plaza', plaza: d.plaza });
-    else if ('dejar' in d) mandar({ t: 'dejar_plaza' });
-    else if ('tomar' in d) mandar({ t: 'tomar_pelota' });
+    else if (d.plaza) {
+      const nombre = POSICIONES.find((x) => x[0] === d.plaza.split('-')[1])[1];
+      if (confirm(`¿Ser ${nombre}? Después no podrás cambiar de posición.`)) mandar({ t: 'elegir_plaza', plaza: d.plaza });
+    }
     else if (d.pasar) mandar({ t: 'pasar', a: d.pasar });
     else if ('tirar' in d) mandar({ t: 'tirar' });
     else if ('bludger' in d) mandar({ t: 'bludger' });
-    else if (d.invitado) mandar({ t: 'ser_invitado', tipo: d.invitado });
+    else if (d.invitado) elegirPapel(d.invitado);
+    else if (d.duracion) { duracionElegida = Number(d.duracion); pintarAdmin(persona(yo)); }
+    else if ('empezar' in d) empezar();
+    else if ('terminar' in d) { if (confirm('¿Terminar el partido ahora? Ganará quien tenga más puntos.')) mandar({ t: 'terminar' }); }
+    else if ('nueva' in d) mandar({ t: 'nueva_partida' });
   });
+
+  function elegirPapel(papel) {
+    if (papel === 'administracion') {
+      const clave = claveAdmin || prompt('Contraseña de administración:');
+      if (!clave) return;
+      claveAdmin = clave;
+      return mandar({ t: 'ser_invitado', tipo: papel, clave });
+    }
+    if (confirm(`¿Ser ${nombrePapel(papel)}? Después no podrás cambiar.`)) mandar({ t: 'ser_invitado', tipo: papel });
+  }
+
+  function empezar() {
+    const faltan = ['A', 'B'].map((eq) => 7 - POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length);
+    const total = faltan[0] + faltan[1];
+    const texto = total
+      ? `Faltan ${total} plaza${total > 1 ? 's' : ''} por ocupar (${sala.equipos.A}: ${faltan[0]}, ${sala.equipos.B}: ${faltan[1]}). ¿Empezar igual el partido de ${duracionElegida} minutos?`
+      : `¿Lanzar la moneda y empezar el partido de ${duracionElegida} minutos?`;
+    if (confirm(texto)) mandar({ t: 'empezar', duracion: duracionElegida });
+  }
 
   // ---------- Pintar la sala
   const persona = (id) => sala.participantes.find((p) => p.id === id);
-  const etiqueta = (p) => `<span class="punto" style="background:${CASAS[p.casa].c}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}</span>`;
-  const miEquipo = (mi) => mi.plaza ? mi.plaza.split('-')[0] : null;
+  const etiqueta = (p) => `<span class="punto" style="background:${k(p.casa).c}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}</span>`;
   const miTipo = (mi) => mi.plaza ? POSICIONES.find((x) => x[0] === mi.plaza.split('-')[1])[2] : null;
+  const jugando = () => ['inicio', 'partido', 'muerte'].includes(sala.fase);
+  const mmss = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
 
   function pintar() {
     if (!sala || !yo) return;
     const mi = persona(yo);
     if (!mi) return;
-    const casa = CASAS[mi.casa];
+    const casa = mi.casa ? CASAS[mi.casa] : INVITADO;
     const raiz = document.documentElement.style;
     raiz.setProperty('--casa', casa.c); raiz.setProperty('--casa-acento', casa.a); raiz.setProperty('--casa-texto', casa.t);
     $('yo-emblema').setAttribute('style', vars(mi.casa));
@@ -531,39 +648,56 @@
     $('sala-codigo').textContent = sala.codigo;
     $('sala-cuenta').textContent = `${sala.participantes.length}/${sala.max} participantes`;
 
+    pintarReloj();
     pintarMarcador();
-    pintarCampo(mi);
+    pintarFinal();
+    pintarAdmin(mi);
     pintarJugada(mi);
-    $('panel-comentar').classList.toggle('oculto', mi.invitado !== 'comentarista');
+    pintarCampo(mi);
+    $('panel-comentar').classList.toggle('oculto', !(mi.invitado && mi.invitado.startsWith('comentarista')));
     $('panel-registro').classList.toggle('oculto', !sala.log);
     if (sala.log) {
-      const extra = sala.accion ? `<div>⏳ ${esc(sala.accion.texto)}</div>` : '';
+      let extra = sala.accion ? `<div>⏳ ${esc(sala.accion.texto)}</div>` : '';
+      if (sala.snitch) extra = `<div>✨ Snitch en juego: ronda ${sala.snitch.ronda} (${esc(sala.equipos.A)} ${sala.snitch.victorias.A} - ${sala.snitch.victorias.B} ${esc(sala.equipos.B)})</div>` + extra;
       $('registro').innerHTML = extra + sala.log.slice().reverse().map((l) => `<div>${esc(l.texto)}</div>`).join('');
     }
-    for (const eq of ['A', 'B']) pintarEquipo(eq);
-
-    const invitados = sala.participantes.filter((p) => p.invitado);
-    $('lista-invitados').innerHTML = invitados.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="pos">${INVITADOS[p.invitado]}</span><span class="ocupa">${etiqueta(p)}</span>${p.id === yo ? '<button class="sec peq" data-dejar>Dejar</button>' : ''}</div>`).join('');
-    const sinNada = sala.participantes.filter((p) => !p.plaza && !p.invitado);
-    $('sin-plaza').innerHTML = sinNada.length ? `<p>Todavía eligiendo: ${sinNada.map((p) => esc(p.nombre)).join(', ')}</p>` : '';
+    for (const eq of ['A', 'B']) pintarEquipo(eq, mi);
+    pintarInvitados(mi);
+    pintarMoneda();
   }
 
   function miPapel(mi) {
     if (mi.plaza) {
-      const eq = miEquipo(mi), k = CASAS[sala.equipos[eq]], tipo = miTipo(mi);
-      const nom = POSICIONES.find((x) => x[0] === mi.plaza.split('-')[1])[1];
-      return `${icono(tipo, k.c, k.a)} ${nom} · ${k.emo} ${esc(sala.equipos[eq])}`;
+      const eq = mi.equipo, x = k(sala.equipos[eq]);
+      const nom = POSICIONES.find((p) => p[0] === mi.plaza.split('-')[1])[1];
+      return `${icono(miTipo(mi), x.c, x.a)} ${nom} · ${x.emo} ${esc(sala.equipos[eq])}`;
     }
-    if (mi.invitado) return INVITADOS[mi.invitado];
-    return `${esc(mi.casa)} · elige tu posición`;
+    if (mi.invitado) return `${ICONO_PAPEL[mi.invitado]} ${esc(nombrePapel(mi.invitado))}`;
+    if (mi.equipo) return `${esc(sala.equipos[mi.equipo])} · elige tu posición`;
+    return 'Invitado · elige tu papel';
+  }
+
+  function pintarReloj() {
+    const pt = sala.partido;
+    let html;
+    if (sala.fase === 'lobby') html = '<div class="fila"><span class="estado" style="text-align:left">⏳ Esperando a que la administración empiece el partido.</span></div>';
+    else if (sala.fase === 'inicio') html = '<div class="fila"><span class="tiempo">00:00</span><span class="estado">🪙 Lanzando la moneda…</span></div>';
+    else {
+      const trans = sala.fase === 'partido' ? reloj.transcurrido + (performance.now() - reloj.recibido) : Math.min(reloj.transcurrido, pt.duracionMs);
+      const t = Math.min(trans, pt.duracionMs);
+      const estado = sala.fase === 'muerte' ? '⚡ Muerte súbita: ¡a por la snitch!' : sala.fase === 'final' ? '🏁 Partido terminado' : `✨ Snitch: min ${pt.snitchMs.map((ms) => Math.round(ms / pt.minutoMs)).join(' y ')}`;
+      html = `<div class="fila"><span class="tiempo">⏱ ${mmss(t)} <span class="suave" style="font-size:.9rem">/ ${mmss(pt.duracionMs)}</span></span><span class="estado">${estado}</span></div>
+        <div class="pista"><div class="lleno" style="width:${(t / pt.duracionMs) * 100}%"></div>${pt.snitchMs.map((ms) => `<span class="hito" style="left:${(ms / pt.duracionMs) * 100}%">✨</span>`).join('')}</div>`;
+    }
+    if ($('reloj').dataset.html !== html) { $('reloj').innerHTML = html; $('reloj').dataset.html = html; }
   }
 
   function pintarMarcador() {
     const m = sala.marcador;
     const lado = (eq) => {
-      const casa = sala.equipos[eq], k = CASAS[casa];
+      const casa = sala.equipos[eq], x = k(casa);
       const pulso = marcadorPrevio && marcadorPrevio[eq] !== m[eq] ? 'pulso' : '';
-      return `<div class="lado ${eq} ${pulso}" style="${vars(casa)}"><div class="nom">${eq === 'A' ? k.emo + ' ' : ''}${casa.toUpperCase()}${eq === 'B' ? ' ' + k.emo : ''}</div><div class="pts">${m[eq]}</div></div>`;
+      return `<div class="lado ${eq} ${pulso}" style="${vars(casa)}"><div class="nom">${eq === 'A' ? x.emo + ' ' : ''}${casa.toUpperCase()}${eq === 'B' ? ' ' + x.emo : ''}</div><div class="pts">${m[eq]}</div></div>`;
     };
     if (!marcadorPrevio || marcadorPrevio.A !== m.A || marcadorPrevio.B !== m.B || !$('marcador').innerHTML) {
       $('marcador').innerHTML = lado('A') + '<div class="vs">VS</div>' + lado('B');
@@ -571,7 +705,62 @@
     marcadorPrevio = { ...m };
   }
 
+  function pintarFinal() {
+    const el = $('panel-final');
+    const r = sala.resultado;
+    if (sala.fase !== 'final' || !r) { el.classList.add('oculto'); return; }
+    el.classList.remove('oculto');
+    const motivo = r.motivo === 'snitch' ? `✨ ${esc(r.snitch.nombre)} atrapó la snitch dorada para ${esc(sala.equipos[r.snitch.equipo])}.`
+      : r.motivo === 'tiempo' ? '⏰ Se acabó el tiempo.' : r.motivo === 'admin' ? 'La administración terminó el partido.' : '⚡ La snitch no apareció para nadie en la muerte súbita.';
+    let html = '<h2 style="justify-content:center">🏁 Fin del partido</h2>';
+    if (r.ganador) {
+      const casa = sala.equipos[r.ganador];
+      html += `<div class="grande">🏆 ${k(casa).emo}</div><div class="gana">¡Gana ${esc(casa)}!</div>`;
+    } else html += '<div class="grande">🤝</div><div class="gana">¡Empate!</div>';
+    html += `<p><b>${esc(sala.equipos.A)} ${r.marcador.A} - ${r.marcador.B} ${esc(sala.equipos.B)}</b></p><p class="motivo">${motivo}</p>`;
+    if (sala.stats && sala.stats.length) {
+      html += '<div class="stats">';
+      for (const eq of ['A', 'B']) {
+        const casa = sala.equipos[eq], x = k(casa);
+        html += `<h3 style="${vars(casa)}">${x.emo} ${esc(casa)}</h3>`;
+        const orden = POSICIONES.map((p) => `${eq}-${p[0]}`);
+        const lista = sala.stats.filter((s) => s.equipo === eq).sort((a, b) => orden.indexOf(a.plaza) - orden.indexOf(b.plaza));
+        for (const s of lista) {
+          const tipo = POSICIONES.find((p) => p[0] === s.plaza.split('-')[1])[2];
+          const partes = [];
+          if (s.goles || s.tiros) partes.push(`🥅 ${s.goles} gol${s.goles === 1 ? '' : 'es'} de ${s.tiros} tiro${s.tiros === 1 ? '' : 's'}`);
+          if (s.pases) partes.push(`🏐 ${s.pasesBuenos}/${s.pases} pases`);
+          if (s.atajadas) partes.push(`🧤 ${s.atajadas} atajada${s.atajadas === 1 ? '' : 's'}`);
+          if (s.bludgers) partes.push(`💥 ${s.impactos}/${s.bludgers} bludgers`);
+          if (s.repelidas) partes.push(`🛡️ ${s.repelidas} repelida${s.repelidas === 1 ? '' : 's'}`);
+          if (s.rondasSnitch) partes.push(`✨ ${s.rondasSnitch} ronda${s.rondasSnitch === 1 ? '' : 's'} de snitch`);
+          if (s.snitch) partes.push('🏆 ¡atrapó la snitch!');
+          html += `<div class="stat"><b>${icono(tipo, x.c, x.a)} ${esc(s.nombre)}</b><div class="chips2">${partes.join(' · ') || 'sin jugadas'}</div></div>`;
+        }
+      }
+      html += '</div>';
+    }
+    if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
+  }
+
+  function pintarAdmin(mi) {
+    const el = $('panel-admin');
+    if (!mi || mi.invitado !== 'administracion') { el.classList.add('oculto'); return; }
+    el.classList.remove('oculto');
+    let h = '<h2>🔑 Administración</h2>';
+    if (sala.fase === 'lobby') {
+      const llenas = (eq) => POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
+      h += `<p>${k(sala.equipos.A).emo} ${esc(sala.equipos.A)}: <b>${llenas('A')}/7</b> · ${k(sala.equipos.B).emo} ${esc(sala.equipos.B)}: <b>${llenas('B')}/7</b></p>`;
+      h += '<p class="suave">Duración del partido:</p><div class="duraciones">' +
+        sala.duraciones.map((d) => `<button class="sec ${d === duracionElegida ? 'elegida' : ''}" data-duracion="${d}">${d} min</button>`).join('') + '</div>';
+      h += '<button class="ancho btn-lanzar" data-empezar>🪙 Lanzar moneda y empezar</button>';
+    } else if (jugando()) h += '<p class="suave">El partido sigue aunque cierres el navegador.</p><button class="sec ancho" data-terminar>⏹ Terminar el partido ahora</button>';
+    else h += '<button class="ancho" data-nueva>🔄 Nueva partida (volver al lobby)</button>';
+    if (el.dataset.html !== h) { el.innerHTML = h; el.dataset.html = h; }
+  }
+
   function pintarCampo(mi) {
+    const puedoElegir = sala.fase === 'lobby' && mi.equipo && !mi.plaza;
     let s = `<svg viewBox="0 0 360 210" role="img" aria-label="Campo de juego con las posiciones">
       <defs>
         <linearGradient id="cesped" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b8a4f"/><stop offset="1" stop-color="#176337"/></linearGradient>
@@ -583,16 +772,14 @@
       <ellipse cx="180" cy="105" rx="172" ry="97" fill="none" stroke="#ffffff" stroke-opacity=".5" stroke-width="2"/>
       <line x1="180" y1="8" x2="180" y2="202" stroke="#fff" stroke-opacity=".35" stroke-dasharray="5 5"/>
       <circle cx="180" cy="105" r="16" fill="none" stroke="#fff" stroke-opacity=".35"/>`;
-    // Mitades coloreadas con la casa de cada equipo
     for (const eq of ['A', 'B']) {
-      const k = CASAS[sala.equipos[eq]];
-      s += `<rect x="${eq === 'A' ? 0 : 180}" width="180" height="210" fill="${k.c}" opacity=".22" clip-path="url(#ovalo)"/>`;
-      // Aros de gol
+      const x0 = k(sala.equipos[eq]);
+      s += `<rect x="${eq === 'A' ? 0 : 180}" width="180" height="210" fill="${x0.c}" opacity=".22" clip-path="url(#ovalo)"/>`;
       const x = eq === 'A' ? 22 : 338;
-      for (const y of [80, 105, 130]) s += `<line x1="${x}" y1="${y + 8}" x2="${x}" y2="${y + 15}" stroke="${k.a}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="7.5" fill="none" stroke="${k.a}" stroke-width="2.5"/>`;
+      for (const y of [80, 105, 130]) s += `<line x1="${x}" y1="${y + 8}" x2="${x}" y2="${y + 15}" stroke="${x0.a}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="7.5" fill="none" stroke="${x0.a}" stroke-width="2.5"/>`;
     }
     for (const eq of ['A', 'B']) {
-      const k = CASAS[sala.equipos[eq]];
+      const x0 = k(sala.equipos[eq]);
       for (const [id, , tipo] of POSICIONES) {
         const plaza = `${eq}-${id}`, ocupa = sala.plazas[plaza];
         const [x, y] = coord(eq, id);
@@ -601,19 +788,17 @@
           s += `<g transform="translate(${x},${y})" opacity=".55">${forma(tipo, 'fill="#555" stroke="#999" stroke-width="2"')}<text y="4" text-anchor="middle" font-size="12" fill="#fff">✕</text></g>`;
         } else if (ocupa) {
           const p = persona(ocupa);
-          const mia = ocupa === yo;
           s += `<g transform="translate(${x},${y})" opacity="${p && p.conectado ? 1 : .45}">`;
-          if (mia) s += `<circle r="19" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="3 3"><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="6s" repeatCount="indefinite"/></circle>`;
-          s += forma(tipo, `fill="${k.c}" stroke="${k.a}" stroke-width="2.5"`);
+          if (ocupa === yo) s += `<circle r="19" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="3 3"><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="6s" repeatCount="indefinite"/></circle>`;
+          s += forma(tipo, `fill="${x0.c}" stroke="${x0.a}" stroke-width="2.5"`);
           s += `<text y="${ly - y}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" stroke="#0b1a10" stroke-width="3" paint-order="stroke">${esc(p ? p.nombre.slice(0, 9) : '')}</text></g>`;
         } else {
-          const clic = sala.fase === 'lobby' ? `class="libre" data-plaza="${plaza}"` : '';
-          s += `<g transform="translate(${x},${y})" ${clic}><circle r="18" fill="transparent"/>${forma(tipo, 'fill="rgba(0,0,0,.15)" stroke="#fff" stroke-opacity=".7" stroke-width="1.8" stroke-dasharray="3 2.5"')}<text y="${ly - y}" text-anchor="middle" font-size="8.5" fill="#fff" fill-opacity=".7">libre</text></g>`;
+          const mio = puedoElegir && mi.equipo === eq;
+          s += `<g transform="translate(${x},${y})" ${mio ? `class="libre" data-plaza="${plaza}"` : `opacity="${puedoElegir ? .35 : .8}"`}><circle r="18" fill="transparent"/>${forma(tipo, 'fill="rgba(0,0,0,.15)" stroke="#fff" stroke-opacity=".7" stroke-width="1.8" stroke-dasharray="3 2.5"')}<text y="${ly - y}" text-anchor="middle" font-size="8.5" fill="#fff" fill-opacity=".7">${mio ? 'elegir' : 'libre'}</text></g>`;
         }
       }
     }
-    // La quaffle junto a quien la tiene
-    if (sala.pelota && sala.plazas) {
+    if (sala.pelota) {
       const plaza = Object.keys(sala.plazas).find((pl) => sala.plazas[pl] === sala.pelota.portador);
       if (plaza) {
         const [eq, id] = plaza.split('-');
@@ -629,54 +814,79 @@
     }
   }
 
-  function pintarEquipo(eq) {
-    const casa = sala.equipos[eq], k = CASAS[casa];
+  function pintarEquipo(eq, mi) {
+    const casa = sala.equipos[eq], x = k(casa);
     const llenas = POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
-    let html = `<div class="tit" style="${vars(casa)}"><span>${k.emo} ${esc(casa)}</span><span>${llenas}/7</span></div><div class="filas">`;
+    const puedoElegir = sala.fase === 'lobby' && mi.equipo === eq && !mi.plaza;
+    let html = `<div class="tit" style="${vars(casa)}"><span>${x.emo} ${esc(casa)}</span><span>${llenas}/7</span></div><div class="filas">`;
     for (const [id, nombre, tipo] of POSICIONES) {
       const plaza = `${eq}-${id}`, ocupa = sala.plazas[plaza];
       let quien, boton = '';
       if (ocupa && typeof ocupa === 'object') quien = `<span class="suave">🚫 Vacía (${esc(ocupa.nombre)} abandonó)</span>`;
-      else if (ocupa) {
-        const p = persona(ocupa);
-        quien = p ? etiqueta(p) : '';
-        if (ocupa === yo) boton = '<button class="sec peq" data-dejar>Dejar</button>';
-      } else {
+      else if (ocupa) { const p = persona(ocupa); quien = p ? etiqueta(p) : ''; }
+      else {
         quien = '<span class="suave">Libre</span>';
-        if (sala.fase === 'lobby') boton = `<button class="peq" data-plaza="${plaza}">Ocupar</button>`;
+        if (puedoElegir) boton = `<button class="peq" data-plaza="${plaza}">Ocupar</button>`;
       }
-      html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${icono(tipo, k.c, k.a)}${nombre}</span><span class="ocupa">${quien}</span>${boton}</div>`;
+      html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${icono(tipo, x.c, x.a)}${nombre}</span><span class="ocupa">${quien}</span>${boton}</div>`;
     }
     $('equipo-' + eq).innerHTML = html + '</div>';
+  }
+
+  function pintarInvitados(mi) {
+    const invitados = sala.participantes.filter((p) => p.invitado);
+    const ocupado = (papel) => invitados.find((p) => p.invitado === papel);
+    let h = '<h2>👀 Invitados</h2><p class="suave">Miran el partido. Los dos comentaristas (uno por equipo) escriben lo que pasa para todos.</p>';
+    h += invitados.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="pos ancha">${ICONO_PAPEL[p.invitado]} ${esc(nombrePapel(p.invitado))}</span><span class="ocupa">${etiqueta(p)}</span></div>`).join('');
+    if (!mi.equipo && !mi.invitado) {
+      h += '<p style="margin-top:10px"><b>Elige tu papel:</b></p><div class="chips">';
+      for (const papel of ['comentaristaA', 'comentaristaB']) {
+        const q = ocupado(papel);
+        h += `<button class="sec peq" data-invitado="${papel}" ${q ? 'disabled' : ''}>🎙️ ${esc(nombrePapel(papel))}${q ? ' (ocupado)' : ''}</button>`;
+      }
+      h += '<button class="sec peq" data-invitado="prefecto">📋 Prefecto</button><button class="sec peq" data-invitado="administracion">🔑 Administración</button></div>';
+      h += '<div class="aviso-fijo">⚠️ Después de elegir no podrás cambiar. Si te equivocas, sal de la sala y vuelve a entrar.</div>';
+    }
+    const sinNada = sala.participantes.filter((p) => !p.plaza && !p.invitado);
+    if (sinNada.length) h += `<p class="suave" style="margin-top:8px">Todavía eligiendo: ${sinNada.map((p) => esc(p.nombre)).join(', ')}</p>`;
+    $('panel-invitados').innerHTML = h;
   }
 
   // Panel "Tu jugada": solo muestra lo que TÚ puedes hacer ahora.
   function pintarJugada(mi) {
     const el = $('panel-jugada');
-    if (mi.invitado) { el.classList.add('oculto'); return; }
+    if (mi.invitado || (!mi.equipo && !mi.invitado) || sala.fase === 'final') { el.classList.add('oculto'); el.dataset.html = ''; return; }
     el.classList.remove('oculto');
-    const eq = miEquipo(mi), tipo = miTipo(mi), pel = sala.pelota, ocupado = sala.enJuego;
+    const eq = mi.equipo, tipo = miTipo(mi), pel = sala.pelota, ocupado = sala.enJuego;
+    const casa = sala.equipos[eq];
     let h = '<h2>🧹 Tu jugada</h2>';
-    if (!mi.plaza) h += '<p>Elige tu posición tocando una figura libre del campo o el botón <b>Ocupar</b> de las listas.</p>';
-    else if (tipo === 'cazador') {
+    if (!mi.plaza) {
+      h += `<p>Elige tu posición en <b>${k(casa).emo} ${esc(casa)}</b>: toca una figura que diga <b>elegir</b> en el campo, o <b>Ocupar</b> en la lista.</p>`;
+      h += '<div class="aviso-fijo">⚠️ Después no podrás cambiar de posición. Si te equivocas, sal de la sala y vuelve a entrar.</div>';
+    } else if (sala.fase === 'lobby') {
+      h += '<p>¡Listo! El partido empezará cuando la administración lance la moneda.</p>';
+      h += '<p class="suave">Si te equivocaste de posición: sal de la sala y vuelve a entrar.</p>';
+    } else if (sala.fase === 'inicio') h += '<p>🪙 ¡Moneda al aire! Prepárate…</p>';
+    else if (sala.fase === 'muerte') {
+      h += tipo === 'buscador' ? '<p>⚡ ¡Muerte súbita! Todo depende de ti: atento a la snitch.</p>' : '<p>⚡ Muerte súbita: ahora solo juegan los buscadores.</p>';
+    } else if (tipo === 'cazador') {
       if (pel && pel.portador === yo) {
         const faltan = Math.max(0, sala.pasesNecesarios - sala.pasesBuenos);
-        h += '<p><b>🏐 ¡Tienes la quaffle!</b></p>';
+        const resta = Math.ceil((posesionHasta - performance.now()) / 1000);
+        h += `<p><b>🏐 ¡Tienes la quaffle!</b> ${!ocupado && resta > 0 ? `<span class="cronito ${resta <= 3 ? 'urgente' : ''}">⏰ ${resta} s</span>` : ''}</p>`;
         if (faltan === 0) {
           h += `<button class="btn-lanzar" data-tirar ${ocupado ? 'disabled' : ''}>🥅 ¡LANZAR A LA META!</button>`;
           h += '<p class="suave">También puedes seguir pasando.</p>';
         } else {
-          h += `<div class="progreso">${'<i class="ok"></i>'.repeat(sala.pasesBuenos)}${'<i></i>'.repeat(faltan)}<span>Pases buenos: te falta${faltan > 1 ? 'n' : ''} ${faltan} para poder lanzar</span></div>`;
+          h += `<div class="progreso">${'<i class="ok"></i>'.repeat(sala.pasesBuenos)}${'<i></i>'.repeat(faltan)}<span>Te falta${faltan > 1 ? 'n' : ''} ${faltan} pase${faltan > 1 ? 's' : ''} bueno${faltan > 1 ? 's' : ''} para poder lanzar</span></div>`;
         }
         const comp = ['cazador1', 'cazador2', 'cazador3'].map((c) => sala.plazas[`${eq}-${c}`])
           .filter((id) => typeof id === 'string' && id !== yo).map(persona).filter(Boolean);
         h += '<div class="botones">' + (comp.length
           ? comp.map((p) => `<button data-pasar="${p.id}" ${p.conectado && !ocupado ? '' : 'disabled'}>Pasar a ${esc(p.nombre)}</button>`).join('')
           : '<span class="suave">No tienes compañeros cazadores: lanza directo a la meta.</span>') + '</div>';
-      } else if (!pel) {
-        h += '<p>La quaffle está suelta.</p><div class="botones"><button data-tomar>🏐 Tomar la quaffle (prueba)</button></div>';
-      } else if (pel.equipo === eq) h += '<p>Tu equipo tiene la quaffle. Atento: te pueden pasar.</p>';
-      else h += '<p>El rival tiene la quaffle. Espera a recuperarla.</p>';
+      } else if (pel && pel.equipo === eq) h += '<p>Tu equipo tiene la quaffle. Atento: te pueden pasar.</p>';
+      else h += '<p>El rival tiene la quaffle. Si la pierde, puede llegarte a ti.</p>';
     } else if (tipo === 'golpeador') {
       if (pel && pel.equipo !== eq) {
         const objetivo = persona(pel.portador);
@@ -686,24 +896,61 @@
           : `<button class="btn-bludger" data-bludger ${ocupado ? 'disabled' : ''}>💥 Batear bludger contra ${esc(objetivo ? objetivo.nombre : '')}</button>`;
         h += '<p class="suave">Si aciertas, sus golpeadores tendrán unos segundos para repelerla. Si no lo logran, pierde la quaffle.</p>';
       } else h += '<p>Cuando el rival tenga la quaffle podrás batearle una bludger. Si le lanzan una a tu equipo, aparecerá tu reto para repelerla.</p>';
-    } else if (tipo === 'guardian') h += '<p>🧤 Defiendes los aros. Cuando el rival lance a la meta, aparecerá tu reto para atajar.</p>';
-    else if (tipo === 'buscador') h += '<p>✨ La snitch dorada aparecerá en la segunda mitad del partido (llega en el siguiente paso).</p>';
-    // Solo se redibuja si cambió algo (así no se pierde un toque a medias).
+    } else if (tipo === 'guardian') h += '<p>🧤 Defiendes los aros. Cuando el rival lance, aparecerá tu reto: ¡ataja antes de que lance!</p>';
+    else if (tipo === 'buscador') {
+      const pt = sala.partido;
+      h += `<p>✨ La snitch dorada aparecerá en el minuto ${pt.snitchMs.map((ms) => Math.round(ms / pt.minutoMs)).join(' y ')}. Cuando aparezca, se abrirá tu pantalla de snitch: ¡atrápala antes que el otro buscador!</p>`;
+    }
     if (el.dataset.html !== h) { el.innerHTML = h; el.dataset.html = h; }
   }
-  // La cuenta atrás de la bludger se actualiza sola.
+  // Reloj, cuenta atrás de la quaffle y de la bludger se actualizan solos.
   setInterval(() => {
-    if (!sala || !yo) return;
+    if (!sala || !yo || $('p-sala').classList.contains('oculto')) return;
     const mi = persona(yo);
-    if (mi && miTipo(mi) === 'golpeador') pintarJugada(mi);
-  }, 500);
+    if (!mi) return;
+    pintarReloj();
+    pintarJugada(mi);
+  }, 250);
+
+  // ---------- Moneda del inicio
+  let monedaFin = 0;
+  function pintarMoneda() {
+    const capa = $('capa-moneda');
+    if (sala.fase !== 'inicio') { capa.classList.add('oculto'); monedaFin = 0; return; }
+    if (!capa.classList.contains('oculto')) return;
+    monedaFin = performance.now() - sala.partido.transcurridoMs;
+    for (const eq of ['A', 'B']) {
+      const cara = $('cara-' + eq);
+      cara.setAttribute('style', vars(sala.equipos[eq]));
+      cara.textContent = k(sala.equipos[eq]).emo;
+    }
+    $('moneda').className = 'moneda girando';
+    $('moneda-salto').className = 'moneda-salto saltando';
+    $('moneda-texto').textContent = `${sala.equipos.A} o ${sala.equipos.B}…`;
+    $('cuenta-grande').textContent = '';
+    capa.classList.remove('oculto');
+    requestAnimationFrame(animarMoneda);
+  }
+  function animarMoneda() {
+    if (!monedaFin || !sala || sala.fase !== 'inicio') return;
+    const queda = monedaFin - performance.now();
+    if (queda <= 4500 && $('moneda').classList.contains('girando')) {
+      const g = sala.partido.moneda;
+      $('moneda').className = 'moneda' + (g === 'B' ? ' ladoB' : '');
+      $('moneda-salto').className = 'moneda-salto';
+      $('moneda-texto').textContent = `¡${k(sala.equipos[g]).emo} Empieza ${sala.equipos[g]} con la quaffle!`;
+      if (navigator.vibrate) try { navigator.vibrate(80); } catch {}
+    }
+    $('cuenta-grande').textContent = queda <= 3000 ? (queda > 0 ? Math.ceil(queda / 1000) : '¡YA!') : '';
+    requestAnimationFrame(animarMoneda);
+  }
 
   // ---------- Comentarios (banners arriba que no tapan la pantalla)
   function mostrarComentario(c) {
     const cont = $('banners');
     const b = document.createElement('div');
     b.className = 'banner';
-    b.setAttribute('style', `--c:${CASAS[c.casa] ? CASAS[c.casa].c : '#f2c14e'}`);
+    b.setAttribute('style', `--c:${k(c.casa).c}`);
     b.innerHTML = `<div class="de">🎙️ ${esc(c.nombre)}</div><div>${esc(c.texto)}</div>`;
     const quitar = () => { b.classList.add('sale'); setTimeout(() => b.remove(), 350); };
     b.addEventListener('click', quitar);
@@ -738,8 +985,8 @@
   const ICONOS = { pase: '🏐', tiro: '🥅', atajar: '🧤', bateo: '🏏', repeler: '🛡️' };
   const AYUDAS = {
     pase: 'Toca cuando la marca blanca esté en la zona verde.',
-    tiro: 'Toca en la zona verde. ¡Cuanto más al centro, mejor el tiro!',
-    atajar: 'Toca cuando la aguja esté en la zona verde. Cuanto más al centro, mejor atajas.',
+    tiro: '¡Rápido! Toca en la zona verde antes de que el guardián ataje.',
+    atajar: '¡Rápido! Toca cuando la aguja esté en la zona verde, antes de que el cazador lance.',
     bateo: 'Toca cuando el círculo naranja encaje en el círculo punteado.',
     repeler: '¡Rápido! Toca cuando el círculo naranja encaje en el punteado.',
   };
@@ -822,6 +1069,67 @@
   }
   // pointerdown responde antes que click en el celular
   $('btn-tap').addEventListener('pointerdown', tocar);
+
+  // ---------- Snitch (solo para buscadores)
+  let sn = null;
+  function snitchMensaje(m) {
+    const capa = $('capa-snitch');
+    if (!sn) sn = {};
+    if (m.fase === 'espera') { clearTimeout(sn.timerCierre); sn.cerrando = false; }
+    Object.assign(sn, { rondaId: m.rondaId, yo: m.yo, victorias: m.victorias, rival: m.rival, muerte: m.muerte, ronda: m.ronda });
+    capa.classList.remove('oculto');
+    $('sn-titulo').textContent = m.muerte ? '⚡ ¡Muerte súbita! La snitch' : '✨ ¡La snitch dorada!';
+    const dots = (n) => [0, 1].map((i) => `<i class="${i < n ? 'ok' : ''}"></i>`).join('');
+    const otro = m.yo === 'A' ? 'B' : 'A';
+    $('sn-rondas').innerHTML = `<span>Tú <span class="dots">${dots(m.victorias[m.yo])}</span></span><span>${esc(m.rival || 'sin rival')} <span class="dots">${dots(m.victorias[otro])}</span></span>`;
+    const zona = $('sn-zona');
+    capa.classList.remove('senal');
+    if (m.fase === 'espera') {
+      sn.fase = 'espera'; sn.enviado = false;
+      zona.innerHTML = '<div class="grande esperando">Espera…<br>¡no toques todavía!</div>';
+      $('sn-texto').textContent = `Ronda ${m.ronda} de 3 · gana quien toque primero cuando aparezca la snitch. Si tocas antes, pierdes la ronda.`;
+    } else if (m.fase === 'senal') {
+      sn.fase = 'senal';
+      sn.tSenal = performance.now() - (m.desdeSenal || 0);
+      capa.classList.add('senal');
+      zona.innerHTML = `<div>${SNITCH_SVG}<div class="grande">¡ATRÁPALA!</div></div>`;
+      $('sn-texto').textContent = '';
+      if (navigator.vibrate) try { navigator.vibrate(150); } catch {}
+    } else if (m.fase === 'ronda' || m.fase === 'pausa') {
+      sn.fase = 'pausa';
+      if (m.fase === 'ronda') {
+        const gane = m.ganador === m.yo;
+        zona.innerHTML = `<div class="grande">${m.ganador ? (gane ? '🏆 ¡Ganaste la ronda!' : '😣 Perdiste la ronda') : '🤷 Nadie gana la ronda'}</div>`;
+        $('sn-texto').textContent = `${m.motivo || ''}. Siguiente ronda en un momento…`;
+      } else {
+        zona.innerHTML = '<div class="grande esperando">Siguiente ronda…</div>';
+      }
+    } else if (m.fase === 'fin') {
+      sn.fase = 'fin'; sn.cerrando = true;
+      zona.innerHTML = `<div class="grande">${m.atrapada ? (m.ganador === m.yo ? '🏆 ¡ATRAPASTE LA SNITCH!<br>+150' : '😣 El otro buscador atrapó la snitch') : '✨ La snitch se escapó…'}</div>`;
+      $('sn-texto').textContent = m.atrapada ? '' : 'Volverá a aparecer.';
+      sn.timerCierre = setTimeout(cerrarSnitch, 3500);
+    }
+  }
+  $('capa-snitch').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (!sn || sn.enviado) return;
+    if (sn.fase === 'espera') {
+      sn.enviado = true;
+      mandar({ t: 'snitch_tap', rondaId: sn.rondaId, antes: true });
+      $('sn-zona').innerHTML = '<div class="grande">❌ ¡Tocaste antes de tiempo!</div>';
+    } else if (sn.fase === 'senal') {
+      sn.enviado = true;
+      mandar({ t: 'snitch_tap', rondaId: sn.rondaId, ms: Math.round(performance.now() - sn.tSenal) });
+      $('sn-zona').innerHTML = '<div class="grande">✋ ¡Enviado!</div>';
+    }
+  });
+  function cerrarSnitch() {
+    if (sn) clearTimeout(sn.timerCierre);
+    sn = null;
+    $('capa-snitch').classList.add('oculto');
+    $('capa-snitch').classList.remove('senal');
+  }
 
   // ---------- Arranque
   if (guardar.leer()) conectar();
