@@ -68,23 +68,30 @@ const POSICIONES = [
 ];
 const PAPELES_INVITADO = ['comentaristaA', 'comentaristaB', 'prefecto', 'administracion'];
 // Partido oficial: 7 por lado. Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador).
+// Entrenamiento: 3 contra 3, 4 contra 4 (con buscador o con golpeador) o 5 contra 5.
 const POSICIONES_DE = {
   oficial: POSICIONES.map((p) => p.id),
-  entrenamiento: ['cazador1', 'cazador2', 'golpeador1', 'guardian', 'buscador'],
+  e3: ['cazador1', 'cazador2', 'guardian'],
+  e4b: ['cazador1', 'cazador2', 'guardian', 'buscador'],
+  e4g: ['cazador1', 'cazador2', 'golpeador1', 'guardian'],
+  e5: ['cazador1', 'cazador2', 'golpeador1', 'guardian', 'buscador'],
 };
+const FORMATOS = ['e3', 'e4b', 'e4g', 'e5'];
+const conSnitch = (sala) => POSICIONES_DE[sala.formato].includes('buscador');
 
 // ---------------------------------------------------------------- Estado
 const salas = new Map();   // codigo -> sala
 const tokens = new Map();  // token  -> { codigo, id }
 
-function nuevaSala(codigo, equipos, tipo) {
+function nuevaSala(codigo, equipos, tipo, formato) {
   const plazas = {};
-  for (const e of EQUIPOS) for (const id of POSICIONES_DE[tipo]) plazas[`${e}-${id}`] = null; // null = libre, id, o {bloqueada, nombre}
+  for (const e of EQUIPOS) for (const id of POSICIONES_DE[formato]) plazas[`${e}-${id}`] = null; // null = libre, id, o {bloqueada, nombre}
   // Si en un entrenamiento los dos lados son de la misma casa, se llaman "Slytherin 1" y "Slytherin 2".
   const nombres = equipos.A === equipos.B ? { A: `${equipos.A} 1`, B: `${equipos.B} 2` } : { ...equipos };
   return {
     codigo,
     tipo,          // 'oficial' | 'entrenamiento'
+    formato,       // 'oficial' | 'e3' | 'e4b' | 'e4g' | 'e5'
     nombres,
     creada: Date.now(),
     fase: 'lobby', // 'lobby' | 'inicio' (moneda) | 'partido' | 'muerte' (muerte súbita) | 'final'
@@ -158,6 +165,19 @@ function programar(sala, fn, ms) {
   return t;
 }
 
+// Animaciones en el campo: se mandan a todos (jugadores incluidos). No llevan texto, solo lo que se dibuja.
+function animar(sala, ev) {
+  const msg = JSON.stringify({ t: 'anim', ...ev });
+  for (const p of sala.participantes.values()) if (p.ws && p.ws.readyState === 1) p.ws.send(msg);
+}
+// Jugadores que están resolviendo un reto ahora mismo (se dibujan con un brillo en el campo).
+function actuando(sala) {
+  const ids = [];
+  if (sala.accion) for (const r of sala.accion.retos.values()) if (r.precision === undefined) ids.push(r.pid);
+  if (sala.snitch) for (const e of EQUIPOS) if (sala.snitch.busc[e]) ids.push(sala.snitch.busc[e]);
+  return ids;
+}
+
 // Ids de los jugadores de un tipo en un equipo (conectados o todos).
 function jugadoresDe(sala, equipo, tipo, soloConectados = true) {
   return POSICIONES.filter((x) => x.tipo === tipo)
@@ -183,7 +203,10 @@ function estadoPublico(sala, esInvitado) {
     max: MAX_PARTICIPANTES,
     equipos: sala.equipos,
     nombres: sala.nombres,
-    posiciones: POSICIONES_DE[sala.tipo],
+    posiciones: POSICIONES_DE[sala.formato],
+    formato: sala.formato,
+    snitchActiva: !!sala.snitch,
+    actuando: actuando(sala),
     participantes: [...sala.participantes.values()].map((p) => ({
       id: p.id, nombre: p.nombre, casa: p.casa, equipo: p.equipo, lados: p.lados, conectado: p.conectado, plaza: p.plaza, invitado: p.invitado, admin: p.admin,
     })),
@@ -201,7 +224,7 @@ function estadoPublico(sala, esInvitado) {
       duracionMs: pt.duracionMin * MINUTO_MS,
       transcurridoMs: Math.min(ahora, sala.resultado ? sala.resultado.fin : ahora) - pt.inicio, // negativo durante la moneda
       moneda: pt.moneda,
-      snitchMs: MOMENTOS_SNITCH.map((f) => f * pt.duracionMin * MINUTO_MS),
+      snitchMs: conSnitch(sala) ? MOMENTOS_SNITCH.map((f) => f * pt.duracionMin * MINUTO_MS) : [],
       minutoMs: MINUTO_MS,
     },
     duraciones: DURACIONES,
@@ -237,10 +260,11 @@ function crearSala(ws, m) {
   if (salas.has(codigo)) return enviar(ws, { t: 'sala_creada', codigo, equipos: salas.get(codigo).equipos, nombres: salas.get(codigo).nombres, tipo: salas.get(codigo).tipo, yaExistia: true });
   if (!CASAS.includes(m.equipoA) || !CASAS.includes(m.equipoB)) return error(ws, 'Elige la casa de cada equipo.');
   if (m.equipoA === m.equipoB && tipo === 'oficial') return error(ws, 'En un partido oficial los dos equipos deben ser de casas distintas.');
-  const sala = nuevaSala(codigo, { A: m.equipoA, B: m.equipoB }, tipo);
+  const formato = tipo === 'oficial' ? 'oficial' : FORMATOS.includes(m.formato) ? m.formato : 'e5';
+  const sala = nuevaSala(codigo, { A: m.equipoA, B: m.equipoB }, tipo, formato);
   salas.set(codigo, sala);
   registrar(sala, `${tipo === 'entrenamiento' ? 'Entrenamiento' : 'Partido'} ${codigo} creado: ${sala.nombres.A} contra ${sala.nombres.B}.`);
-  enviar(ws, { t: 'sala_creada', codigo, equipos: sala.equipos, nombres: sala.nombres, tipo });
+  enviar(ws, { t: 'sala_creada', codigo, equipos: sala.equipos, nombres: sala.nombres, tipo, formato });
 }
 
 // Se entra con una casa (solo si esa casa juega: luego solo puede elegir posiciones de su equipo)
@@ -488,9 +512,10 @@ function arrancarPartido(sala) {
   const animal = sala.equipos.A === sala.equipos.B ? `el ${pt.moneda === 'A' ? '1' : '2'}`
     : { Gryffindor: 'el león', Slytherin: 'la serpiente', Ravenclaw: 'el águila', Hufflepuff: 'el tejón' }[sala.equipos[pt.moneda]];
   registrar(sala, `🪙 Salió ${animal}: ¡empieza ${sala.nombres[pt.moneda]} con la quaffle! ⏱ Comienza el partido.`);
+  animar(sala, { tipo: 'silbato' });
   darPelotaA(sala, pt.moneda);
   const dur = pt.duracionMin * MINUTO_MS;
-  for (const f of MOMENTOS_SNITCH) programar(sala, () => aparecerSnitch(sala, false), f * dur);
+  if (conSnitch(sala)) for (const f of MOMENTOS_SNITCH) programar(sala, () => aparecerSnitch(sala, false), f * dur);
   programar(sala, () => finTiempo(sala), dur);
   difundir(sala);
 }
@@ -556,6 +581,7 @@ function finalizar(sala, motivo, equipoSnitch) {
   registrar(sala, ganador
     ? `🏁 ¡Fin del partido! Gana ${sala.nombres[ganador]} ${sala.marcador[ganador]} a ${sala.marcador[rival(ganador)]}.`
     : `🏁 ¡Fin del partido! Empate ${A} a ${B}.`);
+  animar(sala, { tipo: 'final', ganador });
   difundir(sala);
 }
 
@@ -663,6 +689,7 @@ function armarPosesion(sala) {
     const id = sala.pelota.portador;
     registrar(sala, `${nombreDe(sala, id)} tardó demasiado con la quaffle y la pierde.`);
     avisarA(sala, id, '⏰ Tardaste demasiado: pierdes la quaffle.', false);
+    animar(sala, { tipo: 'perdida', de: id });
     darPelotaA(sala, rival(sala.pelota.equipo));
     difundir(sala);
   }, POSESION_MS);
@@ -724,6 +751,7 @@ function avanzarPase(sala, a, final) {
   const equipo = sala.pelota.equipo;
   const receptorSigue = jugadoresDe(sala, equipo, 'cazador').includes(receptor);
   if (r.precision > 0 && receptorSigue) {
+    animar(sala, { tipo: 'pase', de, a: receptor, ok: true });
     sala.pelota.portador = receptor;
     sala.pasesBuenos++;
     stat(sala, de, 'pasesBuenos');
@@ -736,6 +764,7 @@ function avanzarPase(sala, a, final) {
     const motivo = !receptorSigue ? 'el receptor ya no está' : r.motivo;
     registrar(sala, `${nDe} pasa a ${nA}… ¡pase fallido! (${motivo})`);
     avisarA(sala, de, `❌ Pase fallido (${motivo}). Pierdes la quaffle.`, false);
+    animar(sala, { tipo: 'pase', de, a: receptor, ok: false });
     darPelotaA(sala, rival(equipo));
   }
   difundir(sala);
@@ -786,6 +815,7 @@ function resolverTiro(sala, a, res, rT, rG) {
   const { de, guardian, equipo, nDe, nG } = a.datos;
   const tiempos = [rT.ms ? `lanzó a los ${seg(rT.ms)}` : null, rG && rG.ms ? `atajó a los ${seg(rG.ms)}` : null].filter(Boolean).join(', ');
   const det = tiempos ? ` (${tiempos})` : '';
+  animar(sala, { tipo: 'tiro', de, guardian, equipo, res });
   if (res === 'gol') {
     sala.marcador[equipo] += PUNTOS_GOL;
     stat(sala, de, 'goles');
@@ -835,6 +865,7 @@ function avanzarBludger(sala, a, final) {
     if (r.precision === 0) {
       terminarAccion(sala);
       registrar(sala, `La bludger de ${d.nDe} se desvía (${r.motivo}).`);
+      animar(sala, { tipo: 'bludger', de: d.de, objetivo: d.objetivo, res: 'desvio' });
       avisarA(sala, d.de, `❌ La bludger se desvió (${r.motivo}).`, false);
       return difundir(sala);
     }
@@ -861,6 +892,7 @@ function avanzarBludger(sala, a, final) {
     const nR = nombreDe(sala, bueno.pid);
     stat(sala, bueno.pid, 'repelidas');
     registrar(sala, `¡${nR} repele la bludger! ${d.nO} conserva la quaffle.`);
+    animar(sala, { tipo: 'bludger', de: d.de, objetivo: d.objetivo, res: 'repelida', por: bueno.pid });
     avisarA(sala, bueno.pid, '💪 ¡Bludger repelida!', true);
     for (const r of intentos) if (r !== bueno) avisarA(sala, r.pid, `💪 ${nR} repelió la bludger.`, true);
     avisarA(sala, d.de, `🛡️ ${nR} repelió tu bludger.`, false);
@@ -877,6 +909,7 @@ function impactoBludger(sala, d, motivo) {
   }
   stat(sala, d.de, 'impactos');
   registrar(sala, `¡La bludger golpea a ${d.nO} (${motivo})! Suelta la quaffle.`);
+  animar(sala, { tipo: 'bludger', de: d.de, objetivo: d.objetivo, res: 'golpe' });
   avisarA(sala, d.objetivo, '💥 ¡Te golpeó una bludger! Pierdes la quaffle.', false);
   avisarA(sala, d.de, `💥 ¡Tu bludger golpeó a ${d.nO}!`, true);
   darPelotaA(sala, d.equipo);
@@ -895,6 +928,7 @@ function aparecerSnitch(sala, muerte) {
     return difundir(sala);
   }
   sala.snitch = { muerte, ronda: 0, victorias: { A: 0, B: 0 }, busc, estado: 'pausa', rondaId: null, taps: { A: null, B: null }, senalEn: 0, timer: null, revisar: null };
+  animar(sala, { tipo: 'snitch', fase: 'aparece' });
   registrar(sala, muerte ? '⚡ ¡La snitch aparece en la muerte súbita! (al mejor de 3)' : '✨ ¡Apareció la snitch dorada! Los buscadores se lanzan a por ella (al mejor de 3).');
   nuevaRonda(sala);
   difundir(sala);
@@ -997,6 +1031,7 @@ function terminarRonda(sala, ganador, motivo) {
 function escaparSnitch(sala) {
   const s = sala.snitch;
   registrar(sala, '✨ La snitch se escapa… volverá a aparecer.');
+  animar(sala, { tipo: 'snitch', fase: 'escapa' });
   enviarSnitch(sala, null, { fase: 'fin', atrapada: false });
   sala.snitch = null;
   if (s.muerte) {
@@ -1016,6 +1051,7 @@ function atraparSnitch(sala, eq) {
   sala.marcador[eq] += PUNTOS_SNITCH;
   stat(sala, id, 'snitch');
   registrar(sala, `🏆✨ ¡${nombreDe(sala, id)} atrapa la snitch dorada! +${PUNTOS_SNITCH} para ${sala.nombres[eq]}.`);
+  animar(sala, { tipo: 'snitch', fase: 'atrapada', equipo: eq, por: id });
   enviarSnitch(sala, null, { fase: 'fin', atrapada: true, ganador: eq });
   sala.snitch = null;
   finalizar(sala, 'snitch', eq);

@@ -248,6 +248,30 @@
   .sn-zona .grande { font-family: var(--titulo); font-weight: 900; font-size: 1.8rem; }
   .sn-zona .snitch { width: 220px; height: 110px; }
   .esperando { animation: tenue 1.2s ease-in-out infinite; }
+
+  /* ---------- Gráficos: jugadores que flotan, celebraciones, escenas de los retos, podio */
+  .flota { animation: flotaJ 1.6s ease-in-out infinite; transform-box: fill-box; }
+  @keyframes flotaJ { 50% { transform: translateY(-2.2px); } }
+  svg.ico.jin { width: 27px; height: 22px; }
+  #gol { position: fixed; left: 0; right: 0; top: 15%; z-index: 24; text-align: center; pointer-events: none; font-family: var(--titulo); font-weight: 900;
+    font-size: 4.4rem; line-height: 1; color: var(--c); -webkit-text-stroke: 2px var(--a); text-shadow: 0 6px 0 rgba(0,0,0,.35), 0 0 40px rgba(0,0,0,.6); animation: golin 1.8s ease forwards; }
+  #gol .emo { display: block; font-size: 3rem; -webkit-text-stroke: 0; margin-bottom: 4px; }
+  #gol small { display: block; font-size: 1.1rem; color: #fff; -webkit-text-stroke: 0; margin-top: 6px; letter-spacing: .1em; }
+  @keyframes golin { 0% { transform: scale(.3); opacity: 0; } 15% { transform: scale(1.15); opacity: 1; } 25% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: scale(1.08); } }
+  #confeti { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 23; pointer-events: none; }
+  #reto-escena svg { width: 100%; max-width: 320px; height: auto; display: block; margin: 0 auto; }
+  .barra .marca { width: 30px; height: 30px; top: 50%; bottom: auto; margin: -15px 0 0 -15px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f08a6e, #c0492f 55%, #8a2a17); border: 2px solid #fff; box-shadow: 0 0 14px rgba(255,255,255,.7); }
+  .barra .marca::after { content: ""; position: absolute; left: 50%; top: -20px; bottom: -20px; width: 2px; margin-left: -1px; background: rgba(255,255,255,.9); }
+  .podio { display: flex; justify-content: center; align-items: flex-end; gap: 8px; margin: 14px 0 4px; }
+  .podio .col { flex: 1; max-width: 110px; text-align: center; }
+  .podio .nom { font-weight: 800; font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .podio .base { border-radius: 10px 10px 4px 4px; display: grid; place-items: center; font-family: var(--titulo); font-weight: 900; font-size: 1.6rem; color: var(--t);
+    background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 45%, #000)); border: 1px solid var(--a); }
+  .formatos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .formatos button { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .formatos button small { font-weight: 600; font-size: .75rem; color: var(--suave); }
+  .formatos button.elegida { outline: 3px solid #fff; }
   @keyframes tenue { 50% { opacity: .45; } }
 </style>
 </head>
@@ -296,6 +320,15 @@
         <button type="button" class="sec" data-tipo="entrenamiento">🧹 Entrenamiento</button>
       </div>
       <p class="suave" id="ayuda-tipo"></p>
+      <div id="formatos-caja" class="oculto">
+        <label>¿Cuántos por lado?</label>
+        <div class="formatos">
+          <button type="button" class="sec" data-formato="e3">3 contra 3<small>2 cazadores + guardián</small></button>
+          <button type="button" class="sec" data-formato="e4b">4 contra 4 ✨<small>+ buscador</small></button>
+          <button type="button" class="sec" data-formato="e4g">4 contra 4 💥<small>+ golpeador</small></button>
+          <button type="button" class="sec" data-formato="e5">5 contra 5<small>+ buscador y golpeador</small></button>
+        </div>
+      </div>
       <label for="i-codigo-nuevo">Código para la nueva sala</label>
       <input id="i-codigo-nuevo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
       <label>Equipo 1</label>
@@ -318,6 +351,7 @@
   <div class="cabecera">
     <div class="emblema" id="yo-emblema"></div>
     <div class="quien"><b id="yo-nombre"></b><span class="rol" id="yo-rol"></span></div>
+    <button class="sec peq" id="btn-sonido" aria-label="Activar o apagar el sonido">🔊</button>
     <span class="estado-red" id="estado-red">Conectado</span>
   </div>
   <div class="linea-sala suave"><span>Sala <b id="sala-codigo"></b></span><span id="sala-cuenta"></span></div>
@@ -360,12 +394,15 @@
 
 <div id="aviso" class="error oculto" role="alert"></div>
 <div id="flash" class="oculto"></div>
+<div id="gol" class="oculto"></div>
+<canvas id="confeti" class="oculto"></canvas>
 
 <!-- Reto (minijuego) -->
 <div id="capa-reto" class="capa oculto">
   <div class="caja">
     <div class="reto-icono" id="reto-icono"></div>
     <div class="reto-titulo" id="reto-titulo"></div>
+    <div id="reto-escena"></div>
     <p class="reto-ayuda" id="reto-ayuda"></p>
     <div id="reto-visual"></div>
     <div class="cuenta" id="reto-cuenta"></div>
@@ -468,6 +505,8 @@
   let claveAdmin = '';    // se recuerda al crear la sala, para no pedirla dos veces
   let autoAdmin = false;  // al entrar a la sala recién creada, se activa la administración sola
   let tipoSala = 'oficial';
+  let formatoSala = 'e4b';
+  const NOMBRE_FORMATO = { e3: '3 contra 3', e4b: '4 contra 4 (con buscador)', e4g: '4 contra 4 (con golpeador)', e5: '5 contra 5' };
   let duracionElegida = 20;
   let bludgerListo = { A: 0, B: 0 };
   let posesionHasta = 0;
@@ -522,7 +561,7 @@
       $('f-admin').classList.add('oculto');
       $('admin-ok').classList.remove('oculto');
       $('admin-codigo').textContent = m.codigo;
-      $('admin-equipos').textContent = `${m.tipo === 'entrenamiento' ? 'entrenamiento' : 'partido oficial'} ${k(m.equipos.A).emo} ${m.nombres.A} contra ${m.nombres.B} ${k(m.equipos.B).emo}`;
+      $('admin-equipos').textContent = `${m.tipo === 'entrenamiento' ? `entrenamiento ${NOMBRE_FORMATO[m.formato] || ''}` : 'partido oficial'} · ${k(m.equipos.A).emo} ${m.nombres.A} contra ${m.nombres.B} ${k(m.equipos.B).emo}`;
       return;
     }
     if (m.t === 'bienvenida') {
@@ -545,6 +584,7 @@
     if (m.t === 'resultado') return mostrarResultado(m.texto, m.bueno);
     if (m.t === 'snitch') return snitchMensaje(m);
     if (m.t === 'comentario') return mostrarComentario(m);
+    if (m.t === 'anim') return alAnim(m);
     if (m.t === 'fuera') { guardar.borrar(); yo = null; sala = null; mostrar('p-inicio'); }
   }
 
@@ -577,11 +617,20 @@
     for (const b of document.querySelectorAll('[data-tipo]')) b.classList.toggle('elegida', b.dataset.tipo === tipoSala);
     $('ayuda-tipo').textContent = tipoSala === 'oficial'
       ? 'Partido oficial: 7 por equipo, dos casas distintas y comentaristas.'
-      : 'Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador). Elige la misma casa dos veces para dividir un equipo en dos, o dos casas distintas. Sirve la clave de capitanes.';
+      : 'Entrenamiento: con menos gente y sin comentaristas. Elige la misma casa dos veces para dividir un equipo en dos, o dos casas distintas. Sirve la clave de capitanes.';
+    $('formatos-caja').classList.toggle('oculto', tipoSala !== 'entrenamiento');
+    for (const b of document.querySelectorAll('[data-formato]')) b.classList.toggle('elegida', b.dataset.formato === formatoSala);
     $('l-clave').textContent = tipoSala === 'oficial' ? 'Contraseña de administración' : 'Contraseña (de administración o de capitanes)';
   }
   pintarTipo();
   for (const b of document.querySelectorAll('[data-tipo]')) b.addEventListener('click', () => { tipoSala = b.dataset.tipo; pintarTipo(); });
+  for (const b of document.querySelectorAll('[data-formato]')) b.addEventListener('click', () => { formatoSala = b.dataset.formato; pintarTipo(); });
+  $('btn-sonido').addEventListener('click', () => {
+    sonidoOn = !sonidoOn;
+    try { localStorage.setItem('quidditch_sonido', sonidoOn ? 'si' : 'no'); } catch {}
+    pintarBotonSonido();
+    if (sonidoOn) sonar('bien');
+  });
 
   // ---------- Formularios
   $('f-entrar').addEventListener('submit', (e) => {
@@ -595,7 +644,7 @@
     e.preventDefault();
     if (elegidas.A === elegidas.B && tipoSala === 'oficial') return avisar('En un partido oficial los dos equipos deben ser de casas distintas.');
     claveAdmin = $('i-clave').value;
-    mandar({ t: 'crear_sala', tipo: tipoSala, clave: claveAdmin, codigo: $('i-codigo-nuevo').value, equipoA: elegidas.A, equipoB: elegidas.B });
+    mandar({ t: 'crear_sala', tipo: tipoSala, formato: formatoSala, clave: claveAdmin, codigo: $('i-codigo-nuevo').value, equipoA: elegidas.A, equipoB: elegidas.B });
   });
   $('admin-entrar').addEventListener('click', () => {
     $('i-codigo').value = $('admin-codigo').textContent;
@@ -709,7 +758,7 @@
     if (mi.plaza) {
       const eq = mi.equipo, x = L(eq);
       const nom = POSICIONES.find((p) => p[0] === mi.plaza.split('-')[1])[1];
-      return `${icono(miTipo(mi), x.c, x.a)} ${nom} · ${x.emo} ${esc(N(eq))}${mi.admin ? ' · 🔑' : ''}`;
+      return `${mini(miTipo(mi), x.c, x.a)} ${nom} · ${x.emo} ${esc(N(eq))}${mi.admin ? ' · 🔑' : ''}`;
     }
     const llave = mi.admin ? ' · 🔑' : '';
     if (mi.invitado) return `${ICONO_PAPEL[mi.invitado]} ${esc(nombrePapel(mi.invitado))}${llave}`;
@@ -725,7 +774,8 @@
     else {
       const trans = sala.fase === 'partido' ? reloj.transcurrido + (performance.now() - reloj.recibido) : Math.min(reloj.transcurrido, pt.duracionMs);
       const t = Math.min(trans, pt.duracionMs);
-      const estado = sala.fase === 'muerte' ? '⚡ Muerte súbita: ¡a por la snitch!' : sala.fase === 'final' ? '🏁 Partido terminado' : `✨ Snitch: min ${pt.snitchMs.map((ms) => Math.round(ms / pt.minutoMs)).join(' y ')}`;
+      const estado = sala.fase === 'muerte' ? '⚡ Muerte súbita: ¡a por la snitch!' : sala.fase === 'final' ? '🏁 Terminado'
+        : pt.snitchMs.length ? `✨ Snitch: min ${pt.snitchMs.map((ms) => Math.round(ms / pt.minutoMs)).join(' y ')}` : '🏆 Sin snitch: gana quien tenga más puntos';
       html = `<div class="fila"><span class="tiempo">⏱ ${mmss(t)} <span class="suave" style="font-size:.9rem">/ ${mmss(pt.duracionMs)}</span></span><span class="estado">${estado}</span></div>
         <div class="pista"><div class="lleno" style="width:${(t / pt.duracionMs) * 100}%"></div>${pt.snitchMs.map((ms) => `<span class="hito" style="left:${(ms / pt.duracionMs) * 100}%">✨</span>`).join('')}</div>`;
     }
@@ -758,6 +808,17 @@
       html += `<div class="grande">🏆 ${L(r.ganador).emo}</div><div class="gana">¡Gana ${esc(N(r.ganador))}!</div>`;
     } else html += '<div class="grande">🤝</div><div class="gana">¡Empate!</div>';
     html += `<p><b>${esc(N('A'))} ${r.marcador.A} - ${r.marcador.B} ${esc(N('B'))}</b></p><p class="motivo">${motivo}</p>`;
+    // Podio: los 3 jugadores con más aporte (goles, pases, atajadas, bludgers, snitch)
+    const aporte = (x) => x.goles * 10 + x.pasesBuenos * 2 + x.atajadas * 6 + x.impactos * 4 + x.repelidas * 4 + x.rondasSnitch * 5 + x.snitch * 30;
+    const top = (sala.stats || []).map((x) => ({ ...x, pts: aporte(x) })).filter((x) => x.pts > 0).sort((a, b) => b.pts - a.pts).slice(0, 3);
+    if (top.length) {
+      const alto = [96, 70, 52], medalla = ['🥇', '🥈', '🥉'];
+      html += '<div class="podio">' + [1, 0, 2].filter((i) => top[i]).map((i) => {
+        const x = top[i], tipo = POSICIONES.find((p) => p[0] === x.plaza.split('-')[1])[2], col = L(x.equipo);
+        return `<div class="col"><div style="font-size:1.6rem">${medalla[i]}</div>${mini(tipo, col.c, col.a)}<div class="nom">${esc(x.nombre)}</div><div class="base" style="height:${alto[i]}px;${VL(x.equipo)}">${i + 1}</div></div>`;
+      }).join('') + '</div>';
+      html += `<p>⭐ Jugador destacado: <b>${esc(top[0].nombre)}</b></p>`;
+    }
     if (sala.stats && sala.stats.length) {
       html += '<div class="stats">';
       for (const eq of ['A', 'B']) {
@@ -775,7 +836,7 @@
           if (s.repelidas) partes.push(`🛡️ ${s.repelidas} repelida${s.repelidas === 1 ? '' : 's'}`);
           if (s.rondasSnitch) partes.push(`✨ ${s.rondasSnitch} ronda${s.rondasSnitch === 1 ? '' : 's'} de snitch`);
           if (s.snitch) partes.push('🏆 ¡atrapó la snitch!');
-          html += `<div class="stat"><b>${icono(tipo, x.c, x.a)} ${esc(s.nombre)}</b><div class="chips2">${partes.join(' · ') || 'sin jugadas'}</div></div>`;
+          html += `<div class="stat"><b>${mini(tipo, x.c, x.a)} ${esc(s.nombre)}</b><div class="chips2">${partes.join(' · ') || 'sin jugadas'}</div></div>`;
         }
       }
       html += '</div>';
@@ -791,7 +852,7 @@
     if (sala.fase === 'lobby') {
       const llenas = (eq) => posSala().filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
       const tot = posSala().length;
-      h += `<p class="suave">${entreno() ? '🧹 Entrenamiento' : '🏆 Partido oficial'}</p>`;
+      h += `<p class="suave">${entreno() ? `🧹 Entrenamiento · ${NOMBRE_FORMATO[sala.formato]}` : '🏆 Partido oficial'}</p>`;
       h += `<p>${L('A').emo} ${esc(N('A'))}: <b>${llenas('A')}/${tot}</b> · ${L('B').emo} ${esc(N('B'))}: <b>${llenas('B')}/${tot}</b></p>`;
       h += '<p class="suave">Duración del partido:</p><div class="duraciones">' +
         sala.duraciones.map((d) => `<button class="sec ${d === duracionElegida ? 'elegida' : ''}" data-duracion="${d}">${d} min</button>`).join('') + '</div>';
@@ -801,38 +862,101 @@
     if (el.dataset.html !== h) { el.innerHTML = h; el.dataset.html = h; }
   }
 
-  function pintarCampo(mi) {
-    const puedoElegir = sala.fase === 'lobby' && mi.lados.length && !mi.plaza;
-    let s = `<svg viewBox="0 0 360 210" role="img" aria-label="Campo de juego con las posiciones">
+  // ---------- Jugador sobre escoba (dibujo). El equipo A mira a la derecha y el B a la izquierda.
+  function jinete(tipo, c, a, haciaIzq) {
+    const alas = tipo === 'buscador'
+      ? '<ellipse cx="-5" cy="-10" rx="7" ry="2.6" transform="rotate(-28 -5 -10)" fill="#fff6d8" stroke="#d9a520" stroke-width=".8"/><ellipse cx="-5" cy="-6" rx="5.5" ry="2.2" transform="rotate(12 -5 -6)" fill="#fff6d8" stroke="#d9a520" stroke-width=".8"/>' : '';
+    let acc = '';
+    if (tipo === 'cazador') acc = '<circle cx="10" cy="-5" r="4.2" fill="#c0492f" stroke="#fff" stroke-width="1"/>';
+    if (tipo === 'golpeador') acc = '<line x1="5" y1="-3" x2="13" y2="-15" stroke="#7a5230" stroke-width="3.4" stroke-linecap="round"/><line x1="11.5" y1="-12.5" x2="14" y2="-16.5" stroke="#5a3a1e" stroke-width="4.5" stroke-linecap="round"/>';
+    if (tipo === 'guardian') acc = '<circle cx="9" cy="-9" r="3.6" fill="#ead7ad" stroke="#7a5230" stroke-width="1"/><circle cx="9.5" cy="-1.5" r="3.6" fill="#ead7ad" stroke="#7a5230" stroke-width="1"/>';
+    return `<g${haciaIzq ? ' transform="scale(-1,1)"' : ''}>
+      ${alas}
+      <path d="M-13,9 L-22,4.5 L-23.5,14.5 Z" fill="#d8b25a" stroke="#8a6420" stroke-width=".8"/>
+      <line x1="-14" y1="9" x2="15" y2="3" stroke="#7a5230" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M-3,-4 Q-15,-2 -17,8 L-5,4 Z" fill="${c}" opacity=".75"/>
+      <path d="M-6,7 Q-8,-3 0,-6 Q7,-4 6,6 Z" fill="${c}" stroke="${a}" stroke-width="1.6"/>
+      <circle cx="1" cy="-10.5" r="4.6" fill="#f3d4b5" stroke="${a}" stroke-width="1"/>
+      ${acc}
+    </g>`;
+  }
+  const mini = (tipo, c, a) => `<svg class="ico jin" viewBox="-25 -19 44 36">${jinete(tipo, c, a, false)}</svg>`;
+
+  // ---------- Campo: estadio fijo + capas que se actualizan (jugadores, quaffle y animaciones)
+  let campoClave = '';
+  function construirCampo() {
+    const clave = sala.equipos.A + sala.equipos.B + sala.posiciones.join();
+    if (campoClave === clave && $('g-jug')) return;
+    campoClave = clave;
+    snitchMapa = null;
+    const A = L('A'), B = L('B');
+    let s = `<svg viewBox="0 0 380 230" role="img" aria-label="Estadio con las posiciones de los jugadores">
       <defs>
-        <linearGradient id="cesped" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b8a4f"/><stop offset="1" stop-color="#176337"/></linearGradient>
+        <linearGradient id="cesped" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f9655"/><stop offset="1" stop-color="#176337"/></linearGradient>
+        <radialGradient id="foco" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
         <pattern id="franjas" width="40" height="210" patternUnits="userSpaceOnUse"><rect width="20" height="210" fill="#fff" opacity=".045"/></pattern>
+        <pattern id="publicoA" width="7" height="6" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="${A.c}"/><circle cx="5.5" cy="4.5" r="1.4" fill="${A.a}" opacity=".8"/></pattern>
+        <pattern id="publicoB" width="7" height="6" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="${B.c}"/><circle cx="5.5" cy="4.5" r="1.4" fill="${B.a}" opacity=".8"/></pattern>
         <clipPath id="ovalo"><ellipse cx="180" cy="105" rx="172" ry="97"/></clipPath>
+        <clipPath id="izq"><rect width="190" height="230"/></clipPath><clipPath id="der"><rect x="190" width="190" height="230"/></clipPath>
       </defs>
+      <!-- Gradas con el público de cada casa -->
+      <ellipse cx="190" cy="115" rx="189" ry="113" fill="#1c1533"/>
+      <ellipse cx="190" cy="115" rx="187" ry="111" fill="url(#publicoA)" clip-path="url(#izq)" opacity=".55"/>
+      <ellipse cx="190" cy="115" rx="187" ry="111" fill="url(#publicoB)" clip-path="url(#der)" opacity=".55"/>`;
+    // Torres en las esquinas y banderines arriba
+    for (const [x, y, eq] of [[26, 24, 'A'], [26, 206, 'A'], [354, 24, 'B'], [354, 206, 'B']]) {
+      const k0 = L(eq);
+      s += `<g transform="translate(${x},${y})"><rect x="-8" y="-10" width="16" height="22" rx="2" fill="${k0.c}" stroke="${k0.a}" stroke-width="1.2"/>
+        <path d="M-10,-10 L0,-22 L10,-10 Z" fill="${k0.a}"/><line x1="0" y1="-22" x2="0" y2="-30" stroke="#ddd" stroke-width="1"/>
+        <path d="M0,-30 L9,-27 L0,-24 Z" fill="${k0.c}"><animate attributeName="d" values="M0,-30 L9,-27 L0,-24 Z;M0,-30 L8,-26 L0,-24 Z;M0,-30 L9,-27 L0,-24 Z" dur="1.4s" repeatCount="indefinite"/></path>
+        <rect x="-4" y="-5" width="8" height="6" rx="1" fill="#ffe7a3" opacity=".8"/></g>`;
+    }
+    for (let i = 0; i < 9; i++) {
+      const x = 70 + i * 30, eq = x < 190 ? 'A' : 'B', k0 = L(eq);
+      s += `<g transform="translate(${x},${i % 2 ? 7 : 5})"><line y1="0" y2="9" stroke="#ccc" stroke-width=".8"/><path d="M0,0 L${eq === 'A' ? 8 : -8},2.5 L0,5 Z" fill="${k0.c}" stroke="${k0.a}" stroke-width=".5"/></g>`;
+    }
+    s += `<g transform="translate(10,10)">
       <ellipse cx="180" cy="105" rx="172" ry="97" fill="url(#cesped)"/>
-      <rect width="360" height="210" fill="url(#franjas)" clip-path="url(#ovalo)"/>
-      <ellipse cx="180" cy="105" rx="172" ry="97" fill="none" stroke="#ffffff" stroke-opacity=".5" stroke-width="2"/>
+      <rect width="360" height="210" fill="url(#franjas)" clip-path="url(#ovalo)"/>`;
+    for (const eq of ['A', 'B']) s += `<rect x="${eq === 'A' ? 0 : 180}" width="180" height="210" fill="${L(eq).c}" opacity=".2" clip-path="url(#ovalo)"/>`;
+    s += `<ellipse cx="180" cy="105" rx="172" ry="97" fill="url(#foco)"/>
+      <ellipse cx="180" cy="105" rx="172" ry="97" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
       <line x1="180" y1="8" x2="180" y2="202" stroke="#fff" stroke-opacity=".35" stroke-dasharray="5 5"/>
       <circle cx="180" cy="105" r="16" fill="none" stroke="#fff" stroke-opacity=".35"/>`;
+    // Aros de gol altos (con sombra en el suelo)
     for (const eq of ['A', 'B']) {
-      const x0 = L(eq);
-      s += `<rect x="${eq === 'A' ? 0 : 180}" width="180" height="210" fill="${x0.c}" opacity=".22" clip-path="url(#ovalo)"/>`;
-      const x = eq === 'A' ? 22 : 338;
-      for (const y of [80, 105, 130]) s += `<line x1="${x}" y1="${y + 8}" x2="${x}" y2="${y + 15}" stroke="${x0.a}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="7.5" fill="none" stroke="${x0.a}" stroke-width="2.5"/>`;
+      const k0 = L(eq), x = eq === 'A' ? 22 : 338;
+      for (const [y, alto] of [[78, 16], [105, 24], [132, 16]]) {
+        s += `<ellipse cx="${x}" cy="${y + alto + 9}" rx="5" ry="1.6" fill="#000" opacity=".3"/><line x1="${x}" y1="${y + 8}" x2="${x}" y2="${y + alto + 9}" stroke="#e8c45a" stroke-width="2"/>
+          <circle cx="${x}" cy="${y}" r="8" fill="none" stroke="#f2c14e" stroke-width="3"/><circle cx="${x}" cy="${y}" r="8" fill="none" stroke="${k0.c}" stroke-width="1" opacity=".8"/>`;
+      }
     }
+    s += '<g id="g-jug"></g><g id="g-pel"></g><g id="g-anim"></g></g></svg>';
+    $('campo').innerHTML = s;
+    $('leyenda').innerHTML = Object.entries(TIPOS).map(([t, n]) => `<span>${mini(t, '#9d8fd6', '#fff')}${n}</span>`).join('') +
+      '<span><svg class="ico" viewBox="-16 -16 32 32"><circle r="8" fill="#c0492f" stroke="#fff" stroke-width="2.5"/></svg>Quaffle</span>';
+  }
+
+  function pintarCampo(mi) {
+    construirCampo();
+    const puedoElegir = sala.fase === 'lobby' && mi.lados.length && !mi.plaza;
+    const brillan = new Set(sala.actuando || []);
+    let s = '';
     for (const eq of ['A', 'B']) {
       const x0 = L(eq);
       for (const [id, , tipo] of posSala()) {
         const plaza = `${eq}-${id}`, ocupa = sala.plazas[plaza];
         const [x, y] = coord(eq, id);
-        const ly = y > 160 ? y - 19 : y + 25;
+        const ly = y > 160 ? y - 20 : y + 26;
         if (ocupa && typeof ocupa === 'object') {
-          s += `<g transform="translate(${x},${y})" opacity=".55">${forma(tipo, 'fill="#555" stroke="#999" stroke-width="2"')}<text y="4" text-anchor="middle" font-size="12" fill="#fff">✕</text></g>`;
+          s += `<g transform="translate(${x},${y})" opacity=".5">${forma(tipo, 'fill="#555" stroke="#999" stroke-width="2"')}<text y="4" text-anchor="middle" font-size="12" fill="#fff">✕</text></g>`;
         } else if (ocupa) {
           const p = persona(ocupa);
           s += `<g transform="translate(${x},${y})" opacity="${p && p.conectado ? 1 : .45}">`;
-          if (ocupa === yo) s += `<circle r="19" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="3 3"><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="6s" repeatCount="indefinite"/></circle>`;
-          s += forma(tipo, `fill="${x0.c}" stroke="${x0.a}" stroke-width="2.5"`);
+          if (brillan.has(ocupa)) s += '<circle r="20" fill="#f2c14e" opacity=".35"><animate attributeName="r" values="16;23;16" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values=".5;.15;.5" dur="1s" repeatCount="indefinite"/></circle>';
+          if (ocupa === yo) s += `<circle r="20" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="3 3"><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="6s" repeatCount="indefinite"/></circle>`;
+          s += `<ellipse cy="15" rx="10" ry="2.4" fill="#000" opacity=".28"/><g class="flota" style="animation-delay:-${(x * 7 + y) % 1600}ms">${jinete(tipo, x0.c, x0.a, eq === 'B')}</g>`;
           s += `<text y="${ly - y}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" stroke="#0b1a10" stroke-width="3" paint-order="stroke">${esc(p ? p.nombre.slice(0, 9) : '')}</text></g>`;
         } else {
           const mio = puedoElegir && mi.lados.includes(eq);
@@ -840,21 +964,258 @@
         }
       }
     }
-    if (sala.pelota) {
-      const plaza = Object.keys(sala.plazas).find((pl) => sala.plazas[pl] === sala.pelota.portador);
-      if (plaza) {
-        const [eq, id] = plaza.split('-');
-        const [x, y] = coord(eq, id);
-        s += `<circle cx="${x + 12}" cy="${y - 12}" r="6" fill="#c0492f" stroke="#fff" stroke-width="1.5"><animate attributeName="r" values="6;7.5;6" dur="1.2s" repeatCount="indefinite"/></circle>`;
-      }
-    }
-    s += '</svg>';
-    $('campo').innerHTML = s;
-    if (!$('leyenda').innerHTML) {
-      $('leyenda').innerHTML = Object.entries(TIPOS).map(([t, n]) => `<span>${icono(t, '#cfc6ee', '#fff')}${n}</span>`).join('') +
-        '<span><svg class="ico" viewBox="-16 -16 32 32"><circle r="8" fill="#c0492f" stroke="#fff" stroke-width="2.5"/></svg>Quaffle</span>';
+    $('g-jug').innerHTML = s;
+    pintarPelota();
+    snitchEnMapa(sala.snitchActiva && ['partido', 'muerte'].includes(sala.fase));
+  }
+
+  // La quaffle junto a quien la tiene (se esconde mientras vuela en una animación).
+  let pelotaOcultaHasta = 0;
+  function pintarPelota() {
+    const g = $('g-pel');
+    if (!g) return;
+    let s = '';
+    const p = sala.pelota && performance.now() > pelotaOcultaHasta ? posDe(sala.pelota.portador) : null;
+    if (p) s = `<circle cx="${p[0] + 12}" cy="${p[1] - 13}" r="5.5" fill="#c0492f" stroke="#fff" stroke-width="1.5"><animate attributeName="r" values="5.5;7;5.5" dur="1.2s" repeatCount="indefinite"/></circle>`;
+    g.innerHTML = s;
+  }
+  function posDe(id) {
+    const plaza = Object.keys(sala.plazas).find((pl) => sala.plazas[pl] === id);
+    if (!plaza) return null;
+    const [eq, pid] = plaza.split('-');
+    return coord(eq, pid);
+  }
+  const arosDe = (eq) => (eq === 'A' ? [22, 105] : [338, 105]);
+
+  // ---------- Animaciones en el campo
+  const NS = 'http://www.w3.org/2000/svg';
+  function nuevo(html) {
+    const capa = $('g-anim');
+    if (!capa) return null;
+    const g = document.createElementNS(NS, 'g');
+    g.innerHTML = html;
+    capa.appendChild(g);
+    return g;
+  }
+  function tween(ms, paso, fin) {
+    const t0 = performance.now();
+    const f = (ahora) => { const t = Math.min(1, (ahora - t0) / ms); paso(t); if (t < 1) requestAnimationFrame(f); else if (fin) fin(); };
+    requestAnimationFrame(f);
+  }
+  function volar(el, [x1, y1], [x2, y2], ms, arco, fin) {
+    if (!el) return;
+    tween(ms, (t) => {
+      const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      el.setAttribute('transform', `translate(${x1 + (x2 - x1) * e},${y1 + (y2 - y1) * e + arco * 4 * e * (1 - e)})`);
+    }, fin);
+  }
+  const QUAFFLE = '<circle r="5.5" fill="#c0492f" stroke="#fff" stroke-width="1.5"/>';
+  const BLUDGER = '<circle r="6" fill="#2b2b2b" stroke="#888" stroke-width="1.5"/><circle cx="-2" cy="-2" r="1.6" fill="#777"/>';
+  function desvanecer(el, ms = 400) { if (!el) return; tween(ms, (t) => el.setAttribute('opacity', 1 - t), () => el.remove()); }
+  function estallido([x, y], colores, n = 14) {
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * Math.PI * 2, d = 18 + (i % 3) * 8;
+      const el = nuevo(`<circle r="${2 + (i % 2)}" fill="${colores[i % colores.length]}"/>`);
+      volar(el, [x, y], [x + Math.cos(ang) * d, y + Math.sin(ang) * d], 650, 0, () => desvanecer(el, 250));
     }
   }
+  function textoFlotante([x, y], texto, color = '#fff', tam = 14) {
+    const el = nuevo(`<text text-anchor="middle" font-size="${tam}" font-weight="900" fill="${color}" stroke="#000" stroke-width="2.5" paint-order="stroke">${texto}</text>`);
+    volar(el, [x, y - 8], [x, y - 34], 1100, 0, () => el.remove());
+    tween(1100, (t) => el && el.setAttribute('opacity', t < .7 ? 1 : 1 - (t - .7) / .3));
+  }
+  function destello([x, y], color) {
+    const el = nuevo(`<circle r="8" fill="none" stroke="${color}" stroke-width="3"/>`);
+    el.setAttribute('transform', `translate(${x},${y})`);
+    const c = el.firstChild;
+    tween(700, (t) => { c.setAttribute('r', 8 + t * 22); c.setAttribute('opacity', 1 - t); }, () => el.remove());
+  }
+  function esconderPelota(ms) { pelotaOcultaHasta = performance.now() + ms; pintarPelota(); setTimeout(pintarPelota, ms + 20); }
+
+  // La snitch revoloteando por el campo mientras está en juego
+  let snitchMapa = null;
+  function snitchEnMapa(activa) {
+    if (activa && !snitchMapa && $('g-anim')) {
+      const el = nuevo(`<g><ellipse cx="-6" cy="-1" rx="6" ry="2" fill="#fff6d8"><animate attributeName="ry" values="2;.6;2" dur=".18s" repeatCount="indefinite"/></ellipse>
+        <ellipse cx="6" cy="-1" rx="6" ry="2" fill="#fff6d8"><animate attributeName="ry" values="2;.6;2" dur=".18s" repeatCount="indefinite"/></ellipse>
+        <circle r="3.6" fill="#f2c14e" stroke="#a8730f" stroke-width=".8"/><circle r="9" fill="#f2c14e" opacity=".18"/></g>`);
+      snitchMapa = { el, t0: performance.now() };
+      const mover = (ahora) => {
+        if (!snitchMapa || snitchMapa.el !== el || !el.isConnected) return;
+        const t = (ahora - snitchMapa.t0) / 1000;
+        const x = 180 + 120 * Math.sin(t * 1.3) + 28 * Math.sin(t * 3.7);
+        const y = 105 + 55 * Math.sin(t * 1.9 + 1) + 14 * Math.cos(t * 4.3);
+        el.setAttribute('transform', `translate(${x},${y})`);
+        snitchMapa.pos = [x, y];
+        requestAnimationFrame(mover);
+      };
+      requestAnimationFrame(mover);
+    } else if (!activa && snitchMapa && !snitchMapa.saliendo) {
+      snitchMapa.el.remove();
+      snitchMapa = null;
+    }
+  }
+
+  function alAnim(m) {
+    if (!sala || !$('g-anim')) return;
+    const coloresDe = (eq) => [L(eq).c, L(eq).a, '#fff', '#f2c14e'];
+    const eqDe = (id) => { const pl = Object.keys(sala.plazas).find((k2) => sala.plazas[k2] === id); return pl ? pl[0] : null; };
+    if (m.tipo === 'silbato') return sonar('silbato');
+    if (m.tipo === 'final') {
+      sonar('final');
+      if (m.ganador) confeti([L(m.ganador).c, L(m.ganador).a, '#f2c14e', '#fff'], 4500);
+      return;
+    }
+    if (m.tipo === 'pase') {
+      const p1 = posDe(m.de), p2 = posDe(m.a);
+      if (!p1 || !p2) return;
+      esconderPelota(900);
+      sonar('pase');
+      const b = nuevo(QUAFFLE);
+      if (m.ok) volar(b, p1, p2, 650, -28, () => { b.remove(); pintarPelota(); });
+      else {
+        const caida = [p1[0] + (p2[0] - p1[0]) * .55, p1[1] + (p2[1] - p1[1]) * .55 + 22];
+        volar(b, p1, caida, 600, -18, () => { textoFlotante(caida, '✖', '#ff6b6b'); desvanecer(b); });
+      }
+      return;
+    }
+    if (m.tipo === 'tiro') {
+      const p1 = posDe(m.de);
+      if (!p1) return;
+      const rivalEq = m.equipo === 'A' ? 'B' : 'A';
+      const aro = arosDe(rivalEq);
+      esconderPelota(1100);
+      const b = nuevo(QUAFFLE);
+      if (m.res === 'gol') {
+        volar(b, p1, aro, 750, -35, () => {
+          b.remove(); destello(aro, '#f2c14e'); estallido(aro, coloresDe(m.equipo), 18); textoFlotante(aro, '+10', '#f2c14e', 16);
+          sonar('gol'); celebrarGol(m.equipo);
+        });
+      } else if (m.res === 'atajada') {
+        const g = (m.guardian && posDe(m.guardian)) || aro;
+        volar(b, p1, g, 700, -30, () => { b.remove(); textoFlotante(g, '🧤', '#fff', 16); sonar('atajada'); });
+      } else {
+        const fuera = [aro[0], aro[1] + (p1[1] < 105 ? -62 : 62)];
+        volar(b, p1, fuera, 750, -30, () => { desvanecer(b); sonar('fallo'); });
+      }
+      return;
+    }
+    if (m.tipo === 'bludger') {
+      const p1 = posDe(m.de), p2 = posDe(m.objetivo);
+      if (!p1 || !p2) return;
+      const b = nuevo(BLUDGER);
+      sonar('bate');
+      if (m.res === 'golpe') {
+        volar(b, p1, p2, 600, -20, () => { b.remove(); estallido(p2, ['#444', '#999', '#ff9a4d'], 12); textoFlotante(p2, '💥', '#fff', 18); sonar('golpe'); });
+      } else if (m.res === 'repelida') {
+        const casi = [p1[0] + (p2[0] - p1[0]) * .8, p1[1] + (p2[1] - p1[1]) * .8];
+        const desde = posDe(m.por) || casi;
+        volar(b, p1, casi, 450, -18, () => { textoFlotante(casi, '🛡️', '#fff', 15); sonar('repelida'); volar(b, casi, [desde[0] + (p1[0] - desde[0]) * .7, desde[1] - 20], 450, -25, () => desvanecer(b)); });
+      } else {
+        const lejos = [p2[0] + (p2[0] - p1[0]) * .3, p2[1] + (p2[1] < 105 ? -55 : 55)];
+        volar(b, p1, lejos, 750, -40, () => desvanecer(b));
+      }
+      return;
+    }
+    if (m.tipo === 'perdida') {
+      const p = posDe(m.de);
+      if (p) { textoFlotante(p, '⏰', '#fff', 15); sonar('fallo'); }
+      return;
+    }
+    if (m.tipo === 'snitch') {
+      if (m.fase === 'aparece') { sonar('snitch'); return snitchEnMapa(true); }
+      if (!snitchMapa) return;
+      const sm = snitchMapa;
+      sm.saliendo = true;
+      snitchMapa = null;
+      const desde = sm.pos || [180, 105];
+      if (m.fase === 'atrapada') {
+        const b = posDe(m.por) || desde;
+        volar(sm.el, desde, b, 600, -20, () => { estallido(b, ['#f2c14e', '#fff6d8', '#fff', coloresDe(m.equipo)[0]], 22); textoFlotante(b, '+150', '#f2c14e', 16); sm.el.remove(); });
+      } else volar(sm.el, desde, [400, desde[1] - 40], 900, -30, () => sm.el.remove());
+    }
+  }
+
+  // ---------- Celebraciones
+  let timerGol = null;
+  function celebrarGol(eq) {
+    const el = $('gol');
+    el.setAttribute('style', VL(eq));
+    el.innerHTML = `<span class="emo">${L(eq).emo}</span>¡GOL!<small>${esc(N(eq))}</small>`;
+    el.classList.remove('oculto');
+    el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    confeti([L(eq).c, L(eq).a, '#f2c14e', '#fff'], 1800);
+    clearTimeout(timerGol);
+    timerGol = setTimeout(() => el.classList.add('oculto'), 1800);
+  }
+  function confeti(colores, ms) {
+    const cv = $('confeti');
+    const ctx = cv.getContext('2d');
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+    cv.classList.remove('oculto');
+    const piezas = Array.from({ length: 140 }, (_, i) => ({
+      x: Math.random() * cv.width, y: -Math.random() * cv.height * .5, w: (5 + Math.random() * 6) * dpr, h: (8 + Math.random() * 8) * dpr,
+      vy: (2 + Math.random() * 3) * dpr, vx: (Math.random() - .5) * 2 * dpr, rot: Math.random() * 6, vr: (Math.random() - .5) * .3, c: colores[i % colores.length],
+    }));
+    const t0 = performance.now();
+    const dibujar = (ahora) => {
+      const t = ahora - t0;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.globalAlpha = t > ms - 600 ? Math.max(0, (ms - t) / 600) : 1;
+      for (const p of piezas) {
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+      }
+      if (t < ms) requestAnimationFrame(dibujar); else { ctx.clearRect(0, 0, cv.width, cv.height); cv.classList.add('oculto'); }
+    };
+    requestAnimationFrame(dibujar);
+  }
+
+  // ---------- Sonidos (hechos con el navegador, sin archivos). Se pueden apagar con el botón 🔊.
+  let sonidoOn = true;
+  try { sonidoOn = localStorage.getItem('quidditch_sonido') !== 'no'; } catch {}
+  let actx = null;
+  function audio() {
+    if (!sonidoOn) return null;
+    try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch { return null; }
+    return actx;
+  }
+  document.addEventListener('pointerdown', () => { if (sonidoOn) audio(); }, { passive: true });
+  function tono(f, dur, tipo = 'sine', vol = .12, cuando = 0, hasta = 0) {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime + cuando, o = a.createOscillator(), g = a.createGain();
+    o.type = tipo; o.frequency.setValueAtTime(f, t);
+    if (hasta) o.frequency.exponentialRampToValueAtTime(hasta, t + dur);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .05);
+  }
+  function ruido(dur, vol = .12, frec = 1000, cuando = 0) {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime + cuando, n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    s.buffer = buf; f.type = 'bandpass'; f.frequency.value = frec;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    s.connect(f).connect(g).connect(a.destination); s.start(t);
+  }
+  const SONIDOS = {
+    silbato: () => { tono(2200, .16, 'square', .05); tono(2350, .4, 'square', .05, .2); },
+    final: () => { tono(2200, .18, 'square', .05); tono(2200, .18, 'square', .05, .28); tono(2350, .6, 'square', .05, .56); },
+    pase: () => ruido(.25, .1, 1400),
+    gol: () => { ruido(1.3, .16, 800); [523, 659, 784, 1047].forEach((f, i) => tono(f, .3, 'triangle', .1, i * .09)); },
+    atajada: () => { tono(150, .2, 'sine', .25); ruido(.12, .1, 500); },
+    bate: () => { tono(320, .08, 'square', .06); ruido(.1, .12, 2000); },
+    golpe: () => { tono(110, .4, 'sine', .3, 0, 45); ruido(.25, .15, 300); },
+    repelida: () => { tono(600, .08, 'square', .07); tono(950, .14, 'square', .07, .08); },
+    snitch: () => [1568, 1976, 2349, 2637].forEach((f, i) => tono(f, .2, 'sine', .07, i * .07)),
+    fallo: () => tono(320, .3, 'sawtooth', .05, 0, 140),
+    bien: () => { tono(880, .12, 'triangle', .08); tono(1320, .18, 'triangle', .08, .1); },
+    reto: () => tono(660, .09, 'square', .05),
+  };
+  function sonar(n) { if (sonidoOn && SONIDOS[n]) try { SONIDOS[n](); } catch {} }
+  function pintarBotonSonido() { $('btn-sonido').textContent = sonidoOn ? '🔊' : '🔇'; }
+
 
   function pintarEquipo(eq, mi) {
     const x = L(eq);
@@ -870,7 +1231,7 @@
         quien = '<span class="suave">Libre</span>';
         if (puedoElegir) boton = `<button class="peq" data-plaza="${plaza}">Ocupar</button>`;
       }
-      html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${icono(tipo, x.c, x.a)}${nombre}</span><span class="ocupa">${quien}</span>${boton}</div>`;
+      html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${mini(tipo, x.c, x.a)}${nombre}</span><span class="ocupa">${quien}</span>${boton}</div>`;
     }
     $('equipo-' + eq).innerHTML = html + '</div>';
   }
@@ -1006,6 +1367,7 @@
   // ---------- Avisos personales
   let timerFlash = null;
   function mostrarResultado(texto, bueno) {
+    sonar(bueno ? 'bien' : 'fallo');
     if (reto) {
       reto.resultado = true;
       const r = $('reto-resultado');
@@ -1065,9 +1427,37 @@
       <path d="M${cx},${cy} L${x1},${y1} A${RA},${RA} 0 0 1 ${x2},${y2} Z" fill="#38d476"/>
       <line id="vis-aguja" x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - RA}" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
       <circle cx="${cx}" cy="${cy}" r="9" fill="#fff"/>
+      <g id="vis-guante"><circle r="10" fill="#ead7ad" stroke="#7a5230" stroke-width="2"/><path d="M-5,-3 v-7 M0,-4 v-8 M5,-3 v-7" stroke="#7a5230" stroke-width="2" stroke-linecap="round"/></g>
     </svg>`;
-    const aguja = $('vis-aguja');
-    return (pos) => { const [x, y] = punto(pos, RA + 4); aguja.setAttribute('x2', x); aguja.setAttribute('y2', y); };
+    const aguja = $('vis-aguja'), guante = $('vis-guante');
+    return (pos) => {
+      const [x, y] = punto(pos, RA + 4); aguja.setAttribute('x2', x); aguja.setAttribute('y2', y);
+      const [gx, gy] = punto(pos, RA - 8); guante.setAttribute('transform', `translate(${gx},${gy})`);
+    };
+  }
+
+  // Dibujito de la jugada encima de cada reto
+  function escena(r) {
+    const mi = persona(yo);
+    const eq = mi && mi.equipo;
+    const yoC = eq ? L(eq) : INVITADO, otroC = eq ? L(eq === 'A' ? 'B' : 'A') : INVITADO;
+    const aros = (x) => [0, 1, 2].map((i) => `<line x1="${x + i * 22}" y1="${i === 1 ? 26 : 34}" x2="${x + i * 22}" y2="78" stroke="#e8c45a" stroke-width="2.5"/><circle cx="${x + i * 22}" cy="${i === 1 ? 18 : 26}" r="9" fill="none" stroke="#f2c14e" stroke-width="3.5"/>`).join('');
+    const j = (tipo, c, x, y, izq, esc2 = 1.5) => `<g transform="translate(${x},${y}) scale(${esc2})">${jinete(tipo, c.c, c.a, izq)}</g>`;
+    let s = '';
+    if (r.clase === 'pase') {
+      s = j('cazador', yoC, 55, 50, false) + '<path d="M78,40 Q150,0 222,40" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 6" opacity=".8"/>' +
+        `<circle cx="150" cy="20" r="6" fill="#c0492f" stroke="#fff" stroke-width="1.5"><animate attributeName="cx" values="85;215;85" dur="1.6s" repeatCount="indefinite"/><animate attributeName="cy" values="36;12;36" dur="0.8s" repeatCount="indefinite"/></circle>` +
+        j('cazador', yoC, 245, 50, true);
+    } else if (r.clase === 'tiro') {
+      s = j('cazador', yoC, 60, 52, false) + `<circle cx="100" cy="40" r="6" fill="#c0492f" stroke="#fff" stroke-width="1.5"><animate attributeName="cx" values="95;215;95" dur="1.5s" repeatCount="indefinite"/></circle>` + aros(205) + j('guardian', otroC, 195, 56, true, 1.2);
+    } else if (r.clase === 'atajar') {
+      s = j('cazador', otroC, 60, 52, false, 1.2) + `<circle cx="100" cy="40" r="6" fill="#c0492f" stroke="#fff" stroke-width="1.5"><animate attributeName="cx" values="95;185;95" dur="1.5s" repeatCount="indefinite"/></circle>` + aros(215) + j('guardian', yoC, 205, 56, true);
+    } else if (r.clase === 'bateo') {
+      s = j('golpeador', yoC, 60, 52, false) + `<g><circle cx="110" cy="40" r="7" fill="#2b2b2b" stroke="#888" stroke-width="1.5"><animate attributeName="cx" values="100;215;100" dur="1.4s" repeatCount="indefinite"/></circle></g>` + j('cazador', otroC, 245, 50, true, 1.2);
+    } else if (r.clase === 'repeler') {
+      s = j('golpeador', otroC, 50, 50, false, 1.1) + `<circle cx="150" cy="44" r="8" fill="#2b2b2b" stroke="#888" stroke-width="1.5"><animate attributeName="cx" values="80;205;80" dur="1s" repeatCount="indefinite"/></circle>` + j('golpeador', yoC, 240, 52, true);
+    }
+    return s ? `<svg viewBox="0 0 300 90">${s}</svg>` : '';
   }
 
   function abrirReto(r) {
@@ -1076,6 +1466,8 @@
     $('reto-titulo').textContent = r.titulo;
     $('reto-ayuda').textContent = AYUDAS[r.clase] || '';
     reto.dibujar = construirVisual(r);
+    $('reto-escena').innerHTML = escena(r);
+    sonar('reto');
     $('vis-toque').addEventListener('pointerdown', tocar);
     const btn = $('btn-tap');
     btn.textContent = r.boton;
@@ -1137,6 +1529,7 @@
       sn.tSenal = performance.now() - (m.desdeSenal || 0);
       capa.classList.add('senal');
       zona.innerHTML = `<div>${SNITCH_SVG}<div class="grande">¡ATRÁPALA!</div></div>`;
+      sonar('snitch');
       $('sn-texto').textContent = '';
       if (navigator.vibrate) try { navigator.vibrate(150); } catch {}
     } else if (m.fase === 'ronda' || m.fase === 'pausa') {
@@ -1176,6 +1569,7 @@
   }
 
   // ---------- Arranque
+  pintarBotonSonido();
   if (guardar.leer()) conectar();
 })();
 </script>

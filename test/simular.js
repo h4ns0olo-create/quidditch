@@ -364,6 +364,26 @@ async function main() {
     await e1.recibir((m) => m.t === 'estado' && m.sala.fase === 'partido', 3000);
     comprobar(e1.estado.fase === 'partido' && !!e1.estado.pelota, 'un capitán que juega activa la administración con su clave y empieza el entrenamiento');
 
+    console.log('\n15b) Tamaños de entrenamiento: 3 contra 3 y 4 contra 4');
+    for (const [codigo, formato, n, tiene] of [['TRES', 'e3', 3, null], ['CUATROB', 'e4b', 4, 'buscador'], ['CUATROG', 'e4g', 4, 'golpeador1']]) {
+      capi.mandar({ t: 'crear_sala', tipo: 'entrenamiento', formato, clave: CAPI, codigo, equipoA: 'Ravenclaw', equipoB: 'Hufflepuff' });
+      const rr = await capi.recibir((m) => m.t === 'sala_creada' && m.codigo === codigo);
+      const x = await nuevo(`x${codigo}`);
+      await x.entrar(codigo, 'Ravenclaw');
+      await esperar(100);
+      const pos = x.estado.posiciones;
+      comprobar(rr.formato === formato && pos.length === n && (!tiene || pos.includes(tiene)) && !pos.includes('cazador3'),
+        `${codigo}: ${n} por lado (${pos.join(', ')})`);
+    }
+    const t3 = await nuevo('t3adm'); await t3.entrar('TRES', 'Invitado');
+    t3.mandar({ t: 'ser_invitado', tipo: 'administracion', clave: CAPI });
+    const h3 = await nuevo('h3'); await h3.entrar('TRES', 'Hufflepuff'); h3.mandar({ t: 'elegir_plaza', plaza: 'B-cazador1' });
+    const r3 = todos.find((c) => c.nombre === 'xTRES'); r3.mandar({ t: 'elegir_plaza', plaza: 'A-cazador1' });
+    await esperar(150);
+    t3.mandar({ t: 'empezar', duracion: 10 });
+    await t3.recibir((m) => m.t === 'estado' && m.sala.fase === 'partido', 3000);
+    comprobar(t3.estado.partido.snitchMs.length === 0, 'en 3 contra 3 no hay snitch: se gana por puntos');
+
     console.log('\n16) Fin por tiempo, empate y muerte súbita (otro servidor: 1 minuto = 0,4 s)');
     servidor2 = await arrancarServidor(3998, 400);
     URL = 'ws://127.0.0.1:3998';

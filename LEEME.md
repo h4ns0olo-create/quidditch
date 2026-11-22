@@ -26,12 +26,17 @@ Cómo funciona (paso 3):
 
 **Entrenamientos** (paso 4):
 - Al crear la sala se elige **Partido oficial** o **Entrenamiento**.
-- Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador), sin comentaristas, y todos ven
-  las jugadas. Se puede elegir la misma casa dos veces ("Slytherin 1" contra "Slytherin 2") o dos casas distintas.
+- Entrenamiento: se elige el tamaño: 3 contra 3 (2 cazadores + guardián, sin snitch), 4 contra 4 con buscador,
+  4 contra 4 con golpeador o 5 contra 5. Sin comentaristas, y todos ven las jugadas. Se puede elegir la misma casa dos veces ("Slytherin 1" contra "Slytherin 2") o dos casas distintas.
 - **Clave de capitanes** (`CAPITAN_PASSWORD` en Render): sirve solo para crear y dirigir entrenamientos.
   La contraseña de administración sirve para todo.
 - **Administrar y jugar a la vez:** cualquiera con la contraseña toca "🔑 Activar administración" (abajo, en
   Invitados) sin perder su posición. Quien crea la sala ya entra con la administración activada.
+
+**Gráficos** (paso 5): estadio con gradas, torres y banderines de las casas; jugadores dibujados sobre escoba
+(cada posición con su detalle: quaffle, bate, guantes o alas); animaciones en el campo para todos (la quaffle vuela
+en los pases y tiros, las bludgers, la snitch revoloteando); brillo en quien está jugando un reto; "¡GOL!" con
+confeti; escenas en cada minijuego; podio con el jugador destacado al final; y sonidos (botón 🔊 para apagarlos).
 
 Todavía NO incluye: corrección del marcador por la administración.
 
