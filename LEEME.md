@@ -10,15 +10,16 @@ Cómo funciona (paso 3):
   y volver a entrar. Si se desconecta sin querer, su plaza le espera 1 minuto. Durante el partido, si alguien se va,
   su plaza queda vacía hasta el final.
 - **Inicio:** moneda al azar con los animales de las dos casas; empieza con la quaffle la que sale. Cuenta atrás 3-2-1.
-- **Reloj** visible para todos. La snitch aparece a la mitad y a los 3/4 (en 20 min: minuto 10 y 15).
+- **Reloj** visible para todos. Desde la mitad del partido (en 20 min: desde el minuto 10) la snitch aparece de vez en cuando.
 - **Quaffle** (cazadores, barra): 10 s para pasar o lanzar o se pierde. 2 pases buenos para lanzar (con 1 solo
   cazador, tiro directo). Al perderla (pase fallido, gol, atajada, bludger o tardar) pasa al otro equipo.
 - **Tiro:** cazador (barra) contra guardián (aguja), misma zona y velocidad. Gana quien acierta primero:
   si el guardián ataja antes de que el cazador lance, es atajada; si el cazador lanza antes, es gol (10 puntos).
 - **Bludgers** (golpeadores, círculo): una cada 20 s por equipo contra quien lleva la quaffle; los golpeadores
   rivales tienen 3 s para repelerla.
-- **Snitch** (buscadores): al mejor de 3 rondas. "Espera…", aparece la snitch y gana quien toca primero; tocar antes
-  pierde la ronda. Quien la atrapa suma 150 y termina el partido (gana quien tenga más puntos).
+- **Snitch** (buscadores): aparece **solo un instante** (1 s al principio, 0,6 s al final) y se va volando. El primero
+  que la toca a tiempo la atrapa: +150 y termina el partido (gana quien tenga más puntos). Si nadie la atrapa, vuelve a
+  aparecer más tarde, hasta que alguien la atrape. Tocar antes (o tocar la polilla) hace que esa vez se te escape.
 - **Fin por tiempo:** gana quien tenga más puntos. Empate: muerte súbita de snitch.
 - **Informe final** con el resultado y las jugadas de cada jugador, visible para todos los que sigan en la sala.
 - Los jugadores no ven el registro de jugadas (solo los invitados). Los comentaristas escriben y sus comentarios
@@ -44,7 +45,8 @@ confeti; escenas en cada minijuego; podio con el jugador destacado al final; y s
   verde, tras el aviso "¡TIRO!"). Al mejor de 3, 5 o 7 (por defecto 5). Los demás miran con comentarios automáticos.
   Al final: ganador, reacción media y mejor tiempo de cada uno.
 - **🎯 Práctica libre** (botón en la portada, sin sala): cada uno practica el minijuego de su posición; 3 vidas, cada
-  acierto sube de nivel y se guarda el récord en el celular.
+  acierto sube de nivel y se guarda el récord en el celular. En la del buscador, la snitch se deja ver cada vez menos
+  (de 1 s hasta 0,3 s).
 - **Dificultad que sube:** en partidos y entrenamientos la zona se achica y la marca acelera con el reloj; en los
   duelos, ronda a ronda; en la práctica, nivel a nivel.
 - **Señuelos:** una polilla dorada (parecida a la snitch pero con alas anchas, sin bolita, más ámbar y sin iluminar el

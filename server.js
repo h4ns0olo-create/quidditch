@@ -25,7 +25,7 @@ const MAX_LOG = 100;
 const PUNTOS_GOL = 10;
 const PUNTOS_SNITCH = 150;
 const DURACIONES = [10, 15, 20];        // minutos de partido que puede elegir el administrador
-const MOMENTOS_SNITCH = [0.5, 0.75];    // la snitch aparece a la mitad y a los 3/4 del partido (20 min: min 10 y 15)
+const MOMENTOS_SNITCH = [0.5];          // la snitch empieza a aparecer a la mitad del partido (20 min: desde el minuto 10)
 const VENTANA_RED_MS = 1000;            // en duelos (tiro, snitch), cuánto esperamos el toque del otro por si viene con retraso
 const MAX_COMENTARIO = 140;
 
@@ -48,12 +48,17 @@ const RETOS = {
 // Posiciones de la zona: secuencia fija.
 const CENTROS = [0.5, 0.3, 0.7, 0.4, 0.62, 0.26, 0.74, 0.45, 0.56, 0.34, 0.68];
 const SNITCH = {
-  pausas: [2600, 4100, 1900, 3400, 4600, 2200, 3800, 3000], // espera antes de la señal (secuencia fija)
-  limiteMs: 3000,        // tras la señal, tiempo para tocar
+  pausas: [2600, 4100, 1900, 3400, 4600, 2200, 3800, 3000], // espera antes de que aparezca (secuencia fija)
+  ventanaMs: 1000,       // tiempo que se deja ver la snitch al principio…
+  ventanaMinMs: 600,     // …y al final del partido (o en las últimas rondas de un duelo)
+  limiteMs: 3000,        // duelo de guardianes: tiempo para atajar tras el aviso
   minimoMs: 100,         // reacción más rápida que esto = imposible
   entreRondasMs: 2500,
-  maxMuerteSubita: 5,    // apariciones en muerte súbita antes de declarar empate
+  maxMuerteSubita: 12,   // apariciones en muerte súbita antes de declarar empate
 };
+// Minutos de partido entre una aparición de la snitch y la siguiente (secuencia fija).
+const HUECOS_SNITCH = [1.2, 0.8, 1.5, 1.0, 1.3, 0.75];
+const HUECOS_MUERTE = [0.35, 0.25, 0.4, 0.3];
 
 const CASAS = ['Gryffindor', 'Slytherin', 'Ravenclaw', 'Hufflepuff'];
 const EQUIPOS = ['A', 'B'];
@@ -235,7 +240,7 @@ function estadoPublico(sala, esInvitado) {
     },
     duraciones: DURACIONES,
     accion: esInvitado && a ? { tipo: a.tipo, texto: a.texto } : null,
-    snitch: esInvitado && s ? { ronda: s.ronda, victorias: s.victorias, muerte: s.muerte } : null,
+    snitch: esInvitado && s ? { muerte: s.muerte, estado: s.estado } : null,
     log: esInvitado ? sala.log : null,
     resultado: sala.resultado,
     stats: sala.fase === 'final' ? Object.values(sala.stats) : null,
@@ -462,7 +467,7 @@ function soltarTodo(sala, p) {
   if (s) for (const eq of EQUIPOS) {
     if (s.busc[eq] === p.id) {
       s.busc[eq] = null;
-      if (s.estado !== 'pausa') evaluarRonda(sala, false);
+      evaluarSnitch(sala, false);
     }
   }
   if (sala.pelota && sala.pelota.portador === p.id && !sala.accion) {
@@ -937,41 +942,52 @@ function impactoBludger(sala, d, motivo) {
 }
 
 // ---------------------------------------------------------------- Snitch (buscadores)
-// Aparece en momentos fijos. Cada aparición es al mejor de 3 rondas: los dos ven "espera…", tras una pausa
-// aparece la señal y gana la ronda quien toque primero. Tocar antes de la señal pierde la ronda.
-// Quien gane 2 rondas la atrapa: +150 y se acaba el partido.
+// Desde la mitad del partido, la snitch aparece de vez en cuando SOLO UN INSTANTE (1 s al principio, 0,6 s al final)
+// y se va volando. Los buscadores ven "atento…"; cuando aparece, el primero que la toca a tiempo la atrapa:
+// +150 y se acaba el partido. Si nadie la atrapa, vuelve a aparecer más tarde, hasta que alguien la atrape.
+// Tocar antes de tiempo (o tocar la polilla) hace que esa vez se te escape, pero el otro todavía puede atraparla.
 function aparecerSnitch(sala, muerte) {
   if (sala.snitch || !(sala.fase === 'partido' || sala.fase === 'muerte')) return;
   const busc = { A: jugadoresDe(sala, 'A', 'buscador', false)[0] || null, B: jugadoresDe(sala, 'B', 'buscador', false)[0] || null };
   if (!busc.A && !busc.B) {
-    registrar(sala, '✨ La snitch aparece… pero no hay buscadores. Se escapa.');
+    registrar(sala, '✨ La snitch pasa volando… pero no hay buscadores.');
     return difundir(sala);
   }
   sala.aparicionesSnitch = (sala.aparicionesSnitch || 0) + 1;
-  sala.snitch = { muerte, senuelos: muerte || sala.aparicionesSnitch >= 2, ronda: 0, victorias: { A: 0, B: 0 }, busc, estado: 'pausa', rondaId: null, taps: { A: null, B: null }, senalEn: 0, timer: null, revisar: null };
+  const s = sala.snitch = {
+    muerte, senuelos: muerte || sala.aparicionesSnitch >= 2, busc, estado: 'espera', rondaId: hex(4),
+    taps: { A: null, B: null }, senalEn: 0, ventana: ventanaSnitch(dificultad(sala)), timer: null, revisar: null,
+  };
   animar(sala, { tipo: 'snitch', fase: 'aparece' });
-  registrar(sala, muerte ? '⚡ ¡La snitch aparece en la muerte súbita! (al mejor de 3)' : '✨ ¡Apareció la snitch dorada! Los buscadores se lanzan a por ella (al mejor de 3).');
-  nuevaRonda(sala);
-  difundir(sala);
-}
-
-function nuevaRonda(sala) {
-  const s = sala.snitch;
-  if (!s) return;
-  s.ronda++;
-  s.rondaId = hex(4);
-  s.estado = 'espera';
-  s.taps = { A: null, B: null };
-  const pausa = SNITCH.pausas[sala.contadorPausas++ % SNITCH.pausas.length];
+  registrar(sala, muerte ? '⚡ ¡La snitch anda cerca! El primero que la atrape gana.' : '✨ ¡La snitch anda cerca! Los buscadores la buscan…');
   enviarSnitch(sala);
+  const pausa = SNITCH.pausas[sala.contadorPausas++ % SNITCH.pausas.length];
   const extra = s.senuelos ? programarSenuelo(sala, s, pausa, (fase) => enviarSnitch(sala, null, { fase })) : 0;
   s.timer = setTimeout(() => {
     if (sala.snitch !== s || s.estado !== 'espera') return;
     s.estado = 'senal';
     s.senalEn = Date.now();
     enviarSnitch(sala);
-    s.timer = setTimeout(() => evaluarRonda(sala, true), SNITCH.limiteMs + AJUSTES.margenRedMs);
+    s.timer = setTimeout(() => evaluarSnitch(sala, true), s.ventana + AJUSTES.margenRedMs);
   }, pausa + extra);
+  difundir(sala);
+}
+
+// Tiempo que se deja ver la snitch: de 1 s (fácil) a 0,6 s (difícil).
+function ventanaSnitch(f) {
+  return Math.round(SNITCH.ventanaMs - (SNITCH.ventanaMs - SNITCH.ventanaMinMs) * f);
+}
+
+function programarSiguienteSnitch(sala) {
+  if (sala.fase === 'muerte') {
+    if (++sala.muertesSubitas >= SNITCH.maxMuerteSubita) return finalizar(sala, 'empate');
+    programar(sala, () => aparecerSnitch(sala, true), HUECOS_MUERTE[sala.muertesSubitas % HUECOS_MUERTE.length] * MINUTO_MS);
+    return;
+  }
+  if (sala.fase !== 'partido') return;
+  sala.contadorHuecos = (sala.contadorHuecos || 0) + 1;
+  const hueco = HUECOS_SNITCH[sala.contadorHuecos % HUECOS_SNITCH.length] * MINUTO_MS;
+  if (Date.now() + hueco < sala.partido.fin - 2000) programar(sala, () => aparecerSnitch(sala, false), hueco);
 }
 
 // Señuelo: a mitad de la espera aparece una polilla dorada durante un momento. Tocarla cuenta como tocar antes.
@@ -994,7 +1010,7 @@ function enviarSnitch(sala, soloId, extra) {
     if (!id || (soloId && soloId !== id)) continue;
     const p = sala.participantes.get(id);
     enviar(p && p.ws, {
-      t: 'snitch', fase: s.estado, rondaId: s.rondaId, ronda: s.ronda, yo: eq, victorias: s.victorias, muerte: s.muerte,
+      t: 'snitch', fase: s.estado, rondaId: s.rondaId, yo: eq, muerte: s.muerte, ventana: s.ventana,
       rival: s.busc[rival(eq)] ? nombreDe(sala, s.busc[rival(eq)]) : null,
       desdeSenal: s.estado === 'senal' ? Date.now() - s.senalEn : 0,
       ...extra,
@@ -1005,85 +1021,72 @@ function enviarSnitch(sala, soloId, extra) {
 function snitchTap(ws, m) {
   const { sala, p } = quien(ws);
   const s = sala && sala.snitch;
-  if (!p || !s || m.rondaId !== s.rondaId || s.estado === 'pausa') return;
+  if (!p || !s || m.rondaId !== s.rondaId || !['espera', 'senal'].includes(s.estado)) return;
   const eq = EQUIPOS.find((e) => s.busc[e] === p.id);
   if (!eq || s.taps[eq]) return;
   if (s.estado === 'espera' || m.antes) s.taps[eq] = { antes: true };
   else {
     const ms = Number(m.ms);
     const trans = Date.now() - s.senalEn;
-    s.taps[eq] = (!Number.isFinite(ms) || ms < SNITCH.minimoMs || ms > trans + AJUSTES.margenRelojMs) ? { antes: true, invalido: true } : { ms };
+    if (!Number.isFinite(ms) || ms < SNITCH.minimoMs || ms > trans + AJUSTES.margenRelojMs) s.taps[eq] = { antes: true, invalido: true };
+    else if (ms > s.ventana + 60) s.taps[eq] = { tarde: true };
+    else s.taps[eq] = { ms };
   }
-  evaluarRonda(sala, false);
+  evaluarSnitch(sala, false);
 }
 
-function evaluarRonda(sala, final) {
+function evaluarSnitch(sala, final) {
   const s = sala.snitch;
-  if (!s || s.estado === 'pausa') return;
+  if (!s || !['espera', 'senal'].includes(s.estado)) return;
   const t = s.taps;
-  const nom = (eq) => nombreDe(sala, s.busc[eq]);
-  for (const eq of EQUIPOS) {
-    if (t[eq] && t[eq].antes) {
-      const otro = rival(eq);
-      const gana = s.busc[otro] && !(t[otro] && t[otro].antes) ? otro : null;
-      return terminarRonda(sala, gana, t[eq].invalido ? `${nom(eq)} dio un tiempo imposible` : `${nom(eq)} tocó antes de tiempo`);
-    }
-  }
   if (final) for (const eq of EQUIPOS) if (!t[eq]) t[eq] = { nada: true };
   const tiempo = (eq) => (!s.busc[eq] ? Infinity : !t[eq] ? null : t[eq].ms !== undefined ? t[eq].ms : Infinity);
   const a = tiempo('A'), b = tiempo('B');
   if (a !== null && b !== null) {
-    if (a === Infinity && b === Infinity) return terminarRonda(sala, null, 'nadie tocó a tiempo');
-    if (a === b) return terminarRonda(sala, null, 'empate exacto');
-    const g = a < b ? 'A' : 'B';
-    return terminarRonda(sala, g, `reaccionó en ${seg(Math.min(a, b))}`);
+    if (a === Infinity && b === Infinity) return escaparSnitch(sala);
+    if (a === b) return escaparSnitch(sala);
+    return atraparSnitch(sala, a < b ? 'A' : 'B', Math.min(a, b));
   }
   if (s.estado !== 'senal') return;
   const conocido = a !== null ? a : b;
   if (conocido === Infinity) return; // esperamos al otro
   const trans = Date.now() - s.senalEn;
-  if (trans > conocido + VENTANA_RED_MS) return terminarRonda(sala, a !== null ? 'A' : 'B', `reaccionó en ${seg(conocido)}`);
+  if (trans > conocido + VENTANA_RED_MS) return atraparSnitch(sala, a !== null ? 'A' : 'B', conocido);
   clearTimeout(s.revisar);
-  s.revisar = setTimeout(() => evaluarRonda(sala, false), conocido + VENTANA_RED_MS - trans + 20);
+  s.revisar = setTimeout(() => evaluarSnitch(sala, false), conocido + VENTANA_RED_MS - trans + 20);
 }
 
-function terminarRonda(sala, ganador, motivo) {
-  const s = sala.snitch;
+function limpiarSnitch(s) {
   for (const t of ['timer', 'revisar', 'timerSenuelo', 'timerSenuelo2']) clearTimeout(s[t]);
-  s.estado = 'pausa';
-  if (ganador) { s.victorias[ganador]++; stat(sala, s.busc[ganador], 'rondasSnitch'); }
-  const marcadorRondas = `${sala.nombres.A} ${s.victorias.A} - ${s.victorias.B} ${sala.nombres.B}`;
-  registrar(sala, `✨ Ronda ${s.ronda}: ${ganador ? `gana ${nombreDe(sala, s.busc[ganador])}` : 'nadie gana'} (${motivo}). Snitch: ${marcadorRondas}.`);
-  enviarSnitch(sala, null, { fase: 'ronda', ganador, motivo });
-  if (ganador && s.victorias[ganador] >= 2) return atraparSnitch(sala, ganador);
-  if (s.ronda >= 3) return escaparSnitch(sala);
-  s.timer = setTimeout(() => nuevaRonda(sala), SNITCH.entreRondasMs);
-  difundir(sala);
 }
 
 function escaparSnitch(sala) {
   const s = sala.snitch;
-  registrar(sala, '✨ La snitch se escapa… volverá a aparecer.');
+  limpiarSnitch(s);
+  const adelantados = EQUIPOS.filter((e) => s.taps[e] && s.taps[e].antes && s.busc[e]).map((e) => nombreDe(sala, s.busc[e]));
+  const tarde = EQUIPOS.filter((e) => s.taps[e] && s.taps[e].tarde).map((e) => nombreDe(sala, s.busc[e]));
+  const motivo = [adelantados.length ? `${adelantados.join(' y ')} se adelant${adelantados.length > 1 ? 'aron' : 'ó'}` : '',
+    tarde.length ? `${tarde.join(' y ')} llegó tarde` : ''].filter(Boolean).join('; ') || 'nadie la atrapó a tiempo';
+  registrar(sala, `💨 La snitch pasó volando y se fue (${motivo}). Volverá a aparecer…`);
   animar(sala, { tipo: 'snitch', fase: 'escapa' });
   enviarSnitch(sala, null, { fase: 'fin', atrapada: false });
   sala.snitch = null;
-  if (s.muerte) {
-    if (++sala.muertesSubitas >= SNITCH.maxMuerteSubita) return finalizar(sala, 'empate');
-    programar(sala, () => aparecerSnitch(sala, true), 3000);
-  } else if (sala.finPendiente) {
+  if (sala.finPendiente && sala.fase === 'partido') {
     sala.finPendiente = false;
     return finTiempo(sala);
   }
+  programarSiguienteSnitch(sala);
   difundir(sala);
 }
 
-function atraparSnitch(sala, eq) {
+function atraparSnitch(sala, eq, ms) {
   const s = sala.snitch;
+  limpiarSnitch(s);
   const id = s.busc[eq];
   sala.ultimoBuscador = id;
   sala.marcador[eq] += PUNTOS_SNITCH;
   stat(sala, id, 'snitch');
-  registrar(sala, `🏆✨ ¡${nombreDe(sala, id)} atrapa la snitch dorada! +${PUNTOS_SNITCH} para ${sala.nombres[eq]}.`);
+  registrar(sala, `🏆✨ ¡${nombreDe(sala, id)} atrapa la snitch dorada en ${seg(ms)}! +${PUNTOS_SNITCH} para ${sala.nombres[eq]}.`);
   animar(sala, { tipo: 'snitch', fase: 'atrapada', equipo: eq, por: id });
   enviarSnitch(sala, null, { fase: 'fin', atrapada: true, ganador: eq });
   sala.snitch = null;
@@ -1149,7 +1152,7 @@ function enviarDuelo(sala, soloId, extra) {
     enviar(p && p.ws, {
       t: 'duelo', pos: d.pos, fase: d.estado, rondaId: d.rondaId, ronda: d.ronda, rondas: d.rondas, necesarias: d.necesarias,
       yo: i === 0 ? 'A' : 'B', victorias: { A: d.victorias[0], B: d.victorias[1] }, rival: d.nombres[1 - i],
-      desdeSenal: d.estado === 'senal' ? Date.now() - d.senalEn : 0,
+      desdeSenal: d.estado === 'senal' ? Date.now() - d.senalEn : 0, ventana: d.ventana,
       aguja: d.pos === 'guardian' && d.aguja ? { zonaIni: d.aguja.zonaIni, zonaFin: d.aguja.zonaFin, periodo: d.aguja.periodo, desde: Date.now() - d.aguja.inicio } : null,
       ...extra,
     });
@@ -1172,6 +1175,7 @@ function nuevaRondaDuelo(sala) {
     d.aguja = { zonaIni: centro - ancho / 2, zonaFin: centro + ancho / 2, periodo: Math.round(1500 / (1 + 0.35 * f)), inicio: Date.now() };
     enviarDuelo(sala);
   } else {
+    d.ventana = ventanaSnitch(f);
     enviarDuelo(sala);
     if (d.ronda >= 3) extra = programarSenuelo(sala, d, pausa, (fase) => enviarDuelo(sala, null, { fase }));
   }
@@ -1181,7 +1185,7 @@ function nuevaRondaDuelo(sala) {
     d.senalEn = Date.now();
     if (d.aguja) d.senalMs = d.senalEn - d.aguja.inicio;
     enviarDuelo(sala);
-    d.timer = setTimeout(() => evaluarDuelo(sala, true), SNITCH.limiteMs + AJUSTES.margenRedMs);
+    d.timer = setTimeout(() => evaluarDuelo(sala, true), (d.pos === 'buscador' ? d.ventana : SNITCH.limiteMs) + AJUSTES.margenRedMs);
   }, pausa + extra);
   difundir(sala);
 }
@@ -1206,7 +1210,7 @@ function dueloTap(ws, m) {
         const dentro = pos >= d.aguja.zonaIni - AJUSTES.tolerancia && pos <= d.aguja.zonaFin + AJUSTES.tolerancia;
         d.taps[i] = dentro ? { ms } : { fuera: true };
       }
-    } else d.taps[i] = { ms };
+    } else d.taps[i] = ms > d.ventana + 60 ? { tarde: true } : { ms };
   }
   evaluarDuelo(sala, false);
 }
@@ -1215,7 +1219,7 @@ function evaluarDuelo(sala, final) {
   const d = sala.duelo;
   if (!d || !['espera', 'senal'].includes(d.estado)) return;
   const t = d.taps;
-  for (const i of [0, 1]) {
+  if (d.pos === 'guardian') for (const i of [0, 1]) {
     if (t[i] && t[i].antes) {
       const gana = !(t[1 - i] && t[1 - i].antes) ? 1 - i : null;
       return terminarRondaDuelo(sala, gana, t[i].invalido ? `${d.nombres[i]} dio un tiempo imposible` : `${d.nombres[i]} tocó antes de tiempo`);
@@ -1225,9 +1229,11 @@ function evaluarDuelo(sala, final) {
   const tiempo = (i) => (!t[i] ? null : t[i].ms !== undefined ? t[i].ms : Infinity);
   const a = tiempo(0), b = tiempo(1);
   if (a !== null && b !== null) {
-    if (a === Infinity && b === Infinity) return terminarRondaDuelo(sala, null, d.pos === 'guardian' ? 'ninguno atajó en lo verde' : 'nadie tocó a tiempo');
+    const notas = [0, 1].filter((i) => t[i] && t[i].antes).map((i) => `${d.nombres[i]} se adelantó`)
+      .concat([0, 1].filter((i) => t[i] && t[i].tarde).map((i) => `${d.nombres[i]} llegó tarde`)).join('; ');
+    if (a === Infinity && b === Infinity) return terminarRondaDuelo(sala, null, notas || (d.pos === 'guardian' ? 'ninguno atajó en lo verde' : 'la snitch se fue: nadie la atrapó a tiempo'));
     if (a === b) return terminarRondaDuelo(sala, null, 'empate exacto');
-    return terminarRondaDuelo(sala, a < b ? 0 : 1, `reaccionó en ${seg(Math.min(a, b))}`);
+    return terminarRondaDuelo(sala, a < b ? 0 : 1, `reaccionó en ${seg(Math.min(a, b))}${notas ? `; ${notas}` : ''}`);
   }
   if (d.estado !== 'senal') return;
   const conocido = a !== null ? a : b;

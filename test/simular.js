@@ -290,37 +290,31 @@ async function main() {
     comprobar((await S[0].error({ t: 'comentar', texto: 'hola' })).msg.includes('comentaristas'), 'un jugador no puede comentar');
     comprobar((await I[3].error({ t: 'comentar', texto: 'hola' })).msg.includes('comentaristas'), 'un prefecto tampoco');
 
-    console.log('\n12) Snitch (aparece a la mitad: 50 s en la prueba)');
+    console.log('\n12) Snitch: aparece solo un instante, desde la mitad del partido (50 s en la prueba)');
     const bA = en('A-buscador'), bB = en('B-buscador');
     await hasta(() => bA.mensajes.some((m) => m.t === 'snitch' && m.fase === 'espera'), 60000, 'aparición de la snitch');
     await esperar(100);
     comprobar(S.filter((x) => x !== bA).every((x) => !x.mensajes.some((m) => m.t === 'snitch')), 'solo los buscadores reciben la snitch');
-    comprobar(S[0].estado.snitch === null && obs.estado.snitch && obs.estado.snitch.ronda === 1, 'los jugadores no ven la snitch; los invitados sí');
-    // Ronda 1: el buscador A toca antes de la señal y la pierde.
-    const ronda = bA.mensajes.filter((m) => m.t === 'snitch' && m.fase === 'espera').pop();
-    let finRonda = bB.recibir((m) => m.t === 'snitch' && m.fase === 'ronda', 8000);
-    bA.mandar({ t: 'snitch_tap', rondaId: ronda.rondaId, antes: true });
-    let fr = await finRonda;
-    comprobar(fr.ganador === 'B' && fr.victorias.B === 1, 'ronda 1: A toca antes de tiempo y gana B');
-    // Ronda 2: los dos tocan tras la señal; A es más rápido.
-    let senalA = bA.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 10000);
-    let senalB = bB.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 10000);
-    const [sA, sB] = await Promise.all([senalA, senalB]);
-    finRonda = bA.recibir((m) => m.t === 'snitch' && m.fase === 'ronda', 5000);
-    await esperar(450);
-    bB.mandar({ t: 'snitch_tap', rondaId: sB.rondaId, ms: 420 });
-    bA.mandar({ t: 'snitch_tap', rondaId: sA.rondaId, ms: 260 });
-    fr = await finRonda;
-    comprobar(fr.ganador === 'A', 'ronda 2: gana el que reaccionó antes (A, aunque su toque llegó después)');
-    // Ronda 3: A toca, B no toca nada.
-    senalA = bA.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 10000);
-    const s3 = await senalA;
+    comprobar(S[0].estado.snitch === null && !!obs.estado.snitch, 'los jugadores no ven la snitch; los invitados sí');
+    // Aparición 1: A se adelanta (esa vez se le escapa) y B toca tarde: la snitch se va volando.
+    const ap1 = bA.mensajes.filter((m) => m.t === 'snitch' && m.fase === 'espera').pop();
+    const finAp1 = bB.recibir((m) => m.t === 'snitch' && m.fase === 'fin', 15000);
+    bA.mandar({ t: 'snitch_tap', rondaId: ap1.rondaId, antes: true });
+    const senB = await bB.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 15000);
+    comprobar(senB.ventana <= 1000 && senB.ventana >= 600, `la snitch se deja ver solo ${senB.ventana} ms`);
+    await esperar(senB.ventana + 300);
+    bB.mandar({ t: 'snitch_tap', rondaId: senB.rondaId, ms: senB.ventana + 250 });
+    const f1 = await finAp1;
+    await esperar(200);
+    comprobar(f1.atrapada === false && log('pasó volando') && obs.estado.fase === 'partido', 'si nadie la atrapa a tiempo, se va volando y el partido sigue');
+    // Aparición 2: vuelve a aparecer más tarde y A la atrapa a tiempo.
+    const ap2 = await bA.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 30000);
     const finP = obs.recibir((m) => m.t === 'estado' && m.sala.fase === 'final', 6000);
-    await esperar(350);
+    await esperar(330);
     const ganaAntes = obs.estado.marcador.A;
-    bA.mandar({ t: 'snitch_tap', rondaId: s3.rondaId, ms: 300 });
+    bA.mandar({ t: 'snitch_tap', rondaId: ap2.rondaId, ms: 300 });
     await finP;
-    comprobar(obs.estado.marcador.A === ganaAntes + 150, 'ronda 3: A gana 2-1, atrapa la snitch y suma 150');
+    comprobar(obs.estado.marcador.A === ganaAntes + 150, 'vuelve a aparecer y A la atrapa a tiempo: +150');
     comprobar(obs.estado.fase === 'final' && obs.estado.resultado.motivo === 'snitch', 'atrapar la snitch termina el partido');
     const res = obs.estado.resultado;
     comprobar(res.ganador === (res.marcador.A > res.marcador.B ? 'A' : 'B'), `gana quien tiene más puntos (${res.marcador.A} - ${res.marcador.B})`);
@@ -401,10 +395,14 @@ async function main() {
     const esperaD1 = await cho.recibir((m) => m.t === 'duelo' && m.fase === 'espera', 6000);
     comprobar(esperaD1.necesarias === 2 && esperaD1.rival === 'Maenor', 'duelo de buscadores al mejor de 3 (gana quien llegue a 2)');
     comprobar(!miraD.mensajes.some((m) => m.t === 'duelo') && Array.isArray(miraD.estado.log) && miraD.estado.duelo.ids.length === 2, 'los demás miran (con los comentarios automáticos) pero no juegan');
-    // Ronda 1: Cho toca antes de tiempo.
-    let finR = mae.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 8000);
+    // Ronda 1: Cho se adelanta (esa vez se le escapa) y Maenor la atrapa a tiempo.
+    let finR = mae.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 15000);
     cho.mandar({ t: 'duelo_tap', rondaId: esperaD1.rondaId, antes: true });
-    comprobar((await finR).ganador === 'B', 'ronda 1: Cho toca antes de tiempo y gana Maenor');
+    const senM1 = await mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000);
+    comprobar(senM1.ventana <= 1000, `en el duelo la snitch también aparece solo un instante (${senM1.ventana} ms)`);
+    await esperar(330);
+    mae.mandar({ t: 'duelo_tap', rondaId: senM1.rondaId, ms: 300 });
+    comprobar((await finR).ganador === 'B', 'ronda 1: Cho se adelanta (se le escapa) y Maenor la atrapa');
     // Ronda 2: los dos tocan; Cho reacciona más rápido.
     const [sen1, sen2b] = await Promise.all([cho.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000), mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000)]);
     finR = cho.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 5000);
@@ -412,15 +410,18 @@ async function main() {
     mae.mandar({ t: 'duelo_tap', rondaId: sen2b.rondaId, ms: 380 });
     cho.mandar({ t: 'duelo_tap', rondaId: sen1.rondaId, ms: 250 });
     comprobar((await finR).ganador === 'A', 'ronda 2: gana Cho, que reaccionó antes');
-    // Ronda 3: hay señuelo (polilla). Cho la toca y pierde la ronda.
+    // Ronda 3: hay señuelo (polilla). Cho la toca y esa vez se le escapa; Maenor atrapa la snitch.
     const senR3 = await cho.recibir((m) => m.t === 'duelo' && (m.fase === 'senuelo' || m.fase === 'senal'), 12000);
     comprobar(senR3.fase === 'senuelo', 'desde la ronda 3 aparece la polilla dorada (señuelo) antes que la snitch');
-    const finDueloP = miraD.recibir((m) => m.t === 'estado' && m.sala.duelo && m.sala.duelo.estado === 'fin', 6000);
+    const finDueloP = miraD.recibir((m) => m.t === 'estado' && m.sala.duelo && m.sala.duelo.estado === 'fin', 12000);
     cho.mandar({ t: 'duelo_tap', rondaId: senR3.rondaId, antes: true });
+    const senM3 = await mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000);
+    await esperar(380);
+    mae.mandar({ t: 'duelo_tap', rondaId: senM3.rondaId, ms: 350 });
     await finDueloP;
     const resD = miraD.estado.duelo.resultado;
-    comprobar(resD.ganador === 1 && miraD.estado.log.some((l) => l.texto.includes('Cho tocó antes')), 'tocar la polilla pierde la ronda: Maenor gana el duelo 2-1');
-    comprobar(resD.stats[0].mejor === 250 && resD.stats[1].mejor === 380, 'resultado con el mejor tiempo de reacción de cada uno');
+    comprobar(resD.ganador === 1 && miraD.estado.log.some((l) => l.texto.includes('Cho se adelantó')), 'tocar la polilla hace que se te escape: Maenor gana el duelo 2-1');
+    comprobar(resD.stats[0].mejor === 250 && resD.stats[1].mejor === 300, 'resultado con el mejor tiempo de reacción de cada uno');
     // Duelo de guardianes
     jefeD.mandar({ t: 'empezar_duelo', a: cho.id, b: mae.id, pos: 'guardian', rondas: 3 });
     const gEsp = await cho.recibir((m) => m.t === 'duelo' && m.fase === 'espera' && m.pos === 'guardian', 6000);

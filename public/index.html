@@ -805,7 +805,7 @@
     $('panel-registro').classList.toggle('oculto', !sala.log);
     if (sala.log) {
       let extra = sala.accion ? `<div>⏳ ${esc(sala.accion.texto)}</div>` : '';
-      if (sala.snitch) extra = `<div>✨ Snitch en juego: ronda ${sala.snitch.ronda} (${esc(N('A'))} ${sala.snitch.victorias.A} - ${sala.snitch.victorias.B} ${esc(N('B'))})</div>` + extra;
+      if (sala.snitch) extra = `<div>✨ ¡La snitch anda cerca!${sala.snitch.estado === 'senal' ? ' ¡Ahí está!' : ''}</div>` + extra;
       $('registro-sub').textContent = sala.tipo === 'duelo' ? 'Comentarios automáticos del duelo.' : entreno() ? 'En los entrenamientos todos ven las jugadas.' : 'Solo lo ven los invitados (comentaristas, prefectos y administración).';
       $('registro').innerHTML = extra + sala.log.slice().reverse().map((l) => `<div>${esc(l.texto)}</div>`).join('');
     }
@@ -836,7 +836,7 @@
       const trans = sala.fase === 'partido' ? reloj.transcurrido + (performance.now() - reloj.recibido) : Math.min(reloj.transcurrido, pt.duracionMs);
       const t = Math.min(trans, pt.duracionMs);
       const estado = sala.fase === 'muerte' ? '⚡ Muerte súbita: ¡a por la snitch!' : sala.fase === 'final' ? '🏁 Terminado'
-        : pt.snitchMs.length ? `✨ Snitch: min ${pt.snitchMs.map((ms) => Math.round(ms / pt.minutoMs)).join(' y ')}` : '🏆 Sin snitch: gana quien tenga más puntos';
+        : pt.snitchMs.length ? `✨ Snitch desde el min ${Math.round(pt.snitchMs[0] / pt.minutoMs)}` : '🏆 Sin snitch: gana quien tenga más puntos';
       html = `<div class="fila"><span class="tiempo">⏱ ${mmss(t)} <span class="suave" style="font-size:.9rem">/ ${mmss(pt.duracionMs)}</span></span><span class="estado">${estado}</span></div>
         <div class="pista"><div class="lleno" style="width:${(t / pt.duracionMs) * 100}%"></div>${pt.snitchMs.map((ms) => `<span class="hito" style="left:${(ms / pt.duracionMs) * 100}%">✨</span>`).join('')}</div>`;
     }
@@ -1373,7 +1373,7 @@
     } else if (tipo === 'guardian') h += '<p>🧤 Defiendes los aros. Cuando el rival lance, aparecerá tu reto: ¡ataja antes de que lance!</p>';
     else if (tipo === 'buscador') {
       const pt = sala.partido;
-      h += `<p>✨ La snitch dorada aparecerá en el minuto ${pt.snitchMs.map((ms) => Math.round(ms / pt.minutoMs)).join(' y ')}. Cuando aparezca, se abrirá tu pantalla de snitch: ¡atrápala antes que el otro buscador!</p>`;
+      h += `<p>✨ Desde el minuto ${Math.round(pt.snitchMs[0] / pt.minutoMs)}, la snitch aparecerá de vez en cuando <b>solo un instante</b> y se irá volando. Se abrirá tu pantalla de snitch: ¡atrápala al toque, antes que el otro buscador!</p>`;
     }
     if (el.dataset.html !== h) { el.innerHTML = h; el.dataset.html = h; }
   }
@@ -1612,6 +1612,7 @@
       $('sn-rondas').innerHTML = practica ? `<span>${'❤️'.repeat(practica.vidas)}${'🖤'.repeat(3 - practica.vidas)}</span>` : '';
     } else {
       $('sn-titulo').textContent = modo === 'duelo' ? '⚔️ Duelo de buscadores' : m.muerte ? '⚡ ¡Muerte súbita! La snitch' : '✨ ¡La snitch dorada!';
+      if (modo === 'partido') $('sn-rondas').innerHTML = m.rival ? `<span>Contra ${esc(m.rival)}</span>` : '<span>Sin rival: ¡atrápala igual!</span>';
       if (m.victorias) {
         const n = m.necesarias || 2, otro = m.yo === 'A' ? 'B' : 'A';
         const dots = (v) => Array.from({ length: n }, (_, i) => `<i class="${i < v ? 'ok' : ''}"></i>`).join('');
@@ -1625,10 +1626,10 @@
       $('sn-texto').textContent = `Contra ${m.rival}, al mejor de ${m.rondas}.`;
     } else if (m.fase === 'espera') {
       sn.fase = 'espera'; sn.enviado = false;
-      zona.innerHTML = '<div class="grande esperando">Espera…<br>¡no toques todavía!</div>';
+      zona.innerHTML = '<div class="grande esperando">Atento…<br>¡no toques todavía!</div>';
       $('sn-texto').textContent = modo === 'practica'
-        ? `Toca en cuanto aparezca la snitch (tienes ${seg(m.limite)}). Si ves una polilla dorada, ¡no la toques!`
-        : `${modo === 'duelo' ? `Ronda ${m.ronda} · al mejor de ${m.rondas}` : `Ronda ${m.ronda} de 3`} · gana quien toque primero cuando aparezca la snitch. Si ves una polilla dorada, ¡no la toques! Tocar antes pierde la ronda.`;
+        ? `La snitch aparecerá solo ${seg(m.limite)}: ¡atrápala al toque! Si ves una polilla dorada, no la toques.`
+        : `${modo === 'duelo' ? `Ronda ${m.ronda} · al mejor de ${m.rondas} · ` : ''}La snitch aparecerá solo un instante y se irá volando: ¡atrápala antes que el otro buscador! Si tocas antes (o tocas la polilla dorada), esta vez se te escapa.`;
     } else if (m.fase === 'senuelo') {
       sn.fase = 'senuelo';
       capa.classList.add('senuelo');
@@ -1641,6 +1642,16 @@
       sonar('snitch');
       $('sn-texto').textContent = '';
       if (navigator.vibrate) try { navigator.vibrate(150); } catch {}
+      // Solo se deja ver un instante: luego se va volando
+      const ventana = m.ventana || m.limite || 1000;
+      const id = sn.rondaId;
+      clearTimeout(sn.timerVentana);
+      sn.timerVentana = setTimeout(() => {
+        if (!sn || sn.rondaId !== id || sn.fase !== 'senal') return;
+        sn.fase = 'ida';
+        capa.classList.remove('senal');
+        if (!sn.enviado) zona.innerHTML = '<div class="grande">💨 ¡Se fue volando!</div>';
+      }, Math.max(0, ventana - (m.desdeSenal || 0)));
     } else if (m.fase === 'ronda' || m.fase === 'pausa') {
       sn.fase = 'pausa';
       if (modo === 'practica') { zona.innerHTML = `<div class="grande">${esc(m.propio)}</div>`; $('sn-texto').textContent = ''; }
@@ -1653,9 +1664,9 @@
       sn.fase = 'fin'; sn.cerrando = true;
       const txt = modo === 'duelo'
         ? (m.ganador ? (m.ganador === m.yo ? '🏆 ¡GANASTE EL DUELO!' : '😣 Perdiste el duelo') : '🤝 Duelo empatado')
-        : (m.atrapada ? (m.ganador === m.yo ? '🏆 ¡ATRAPASTE LA SNITCH!<br>+150' : '😣 El otro buscador atrapó la snitch') : '✨ La snitch se escapó…');
+        : (m.atrapada ? (m.ganador === m.yo ? '🏆 ¡ATRAPASTE LA SNITCH!<br>+150' : '😣 El otro buscador atrapó la snitch') : '💨 Pasó volando… nadie la atrapó');
       zona.innerHTML = `<div class="grande">${txt}</div>`;
-      $('sn-texto').textContent = modo === 'partido' && !m.atrapada ? 'Volverá a aparecer.' : '';
+      $('sn-texto').textContent = modo === 'partido' && !m.atrapada ? 'Volverá a aparecer más tarde. ¡Atento!' : '';
       sn.timerCierre = setTimeout(cerrarSnitch, 3500);
     }
   }
@@ -1665,16 +1676,16 @@
     if (!sn || sn.enviado) return;
     const fase = sn.fase;
     const antes = fase === 'espera' || fase === 'senuelo';
-    if (!antes && fase !== 'senal') return;
+    if (!antes && fase !== 'senal') return; // ('ida' = ya se fue: tocar no sirve)
     sn.enviado = true;
     const ms = antes ? null : Math.round(performance.now() - sn.tSenal);
     if (sn.modo === 'practica') return practicaSnitchTap(antes, ms, fase === 'senuelo');
     const t = sn.modo === 'duelo' ? 'duelo_tap' : 'snitch_tap';
     mandar(antes ? { t, rondaId: sn.rondaId, antes: true } : { t, rondaId: sn.rondaId, ms });
-    $('sn-zona').innerHTML = antes ? `<div class="grande">❌ ${fase === 'senuelo' ? '¡Era una polilla!' : '¡Tocaste antes de tiempo!'}</div>` : '<div class="grande">✋ ¡Enviado!</div>';
+    $('sn-zona').innerHTML = antes ? `<div class="grande">❌ ${fase === 'senuelo' ? '¡Era una polilla!' : '¡Te adelantaste!'}<br><span style="font-size:1rem">Esta vez se te escapa.</span></div>` : '<div class="grande">✋ ¡La tienes!… esperando</div>';
   });
   function cerrarSnitch() {
-    if (sn) clearTimeout(sn.timerCierre);
+    if (sn) { clearTimeout(sn.timerCierre); clearTimeout(sn.timerVentana); }
     sn = null;
     $('capa-snitch').classList.add('oculto');
     $('capa-snitch').classList.remove('senal');
@@ -1745,7 +1756,7 @@
     golpeador: { clase: 'bateo', visual: 'circulo', ancho: 0.14, periodo: 1400, limite: 6000, boton: '¡BATEAR!', nombre: 'Golpeador', ayuda: 'Toca cuando el círculo encaje en el punteado.' },
     buscador: { nombre: 'Buscador', ayuda: 'Toca en cuanto aparezca la snitch. ¡Ojo con la polilla dorada!' },
   };
-  const difP = () => Math.min(1, (practica.nivel - 1) / 12);
+  const difP = () => Math.min(1.5, (practica.nivel - 1) / 15);
   function pintarPracticas() {
     const rec = (pos) => { try { return JSON.parse(localStorage.getItem('quidditch_practica_' + pos) || 'null'); } catch { return null; } };
     $('practicas').innerHTML = Object.entries(PRACTICAS).map(([pos, c]) => {
@@ -1762,7 +1773,7 @@
     if (!practica) return;
     if (practica.pos === 'buscador') return rondaSnitchPractica();
     const c = PRACTICAS[practica.pos], f = difP();
-    const ancho = c.ancho * (1 - 0.55 * f), periodo = Math.round(c.periodo / (1 + 0.6 * f));
+    const ancho = c.ancho * (1 - 0.5 * f), periodo = Math.round(c.periodo / (1 + 0.5 * f));
     const centro = 0.25 + Math.random() * 0.5;
     abrirReto({ id: 'local', clase: c.clase, visual: c.visual, titulo: `Nivel ${practica.nivel} · ${'❤️'.repeat(practica.vidas)}${'🖤'.repeat(3 - practica.vidas)}`,
       boton: c.boton, zonaIni: centro - ancho / 2, zonaFin: centro + ancho / 2, periodo, limite: c.limite, desde: 0, local: true });
@@ -1780,19 +1791,19 @@
   }
   function rondaSnitchPractica() {
     const f = difP(), id = 'P' + Date.now();
-    const limite = Math.round(1500 - 950 * f); // hay que reaccionar antes de esto
+    const limite = Math.max(300, 1000 - 25 * (practica.nivel - 1)); // tiempo que se deja ver: cada nivel, menos (mínimo 0,3 s)
     practica.limiteSnitch = limite;
     snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite });
     const pausa = 1500 + Math.random() * 3000;
-    const senuelo = practica.nivel >= 3 && Math.random() < 0.5;
+    const senuelo = practica.nivel >= 3 && Math.random() < Math.min(0.7, 0.35 + practica.nivel * 0.01);
     const t = practica.timers;
     if (senuelo) {
       t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senuelo', rondaId: id }); }, pausa * 0.5));
       t.push(setTimeout(() => { if (sn && sn.fase === 'senuelo') snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite }); }, pausa * 0.5 + 800));
     }
     const tSenal = pausa + (senuelo ? 1400 : 0);
-    t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senal', rondaId: id }); }, tSenal));
-    t.push(setTimeout(() => { if (sn && sn.fase === 'senal' && !sn.enviado) { sn.enviado = true; practicaSnitchTap(false, null); } }, tSenal + 2500));
+    t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senal', rondaId: id, limite }); }, tSenal));
+    t.push(setTimeout(() => { if (sn && !sn.enviado && (sn.fase === 'senal' || sn.fase === 'ida')) { sn.enviado = true; practicaSnitchTap(false, null); } }, tSenal + limite + 150));
   }
   function practicaSnitchTap(antes, ms, polilla) {
     if (!practica) return;
@@ -1801,8 +1812,8 @@
     practica.intentos++;
     let ok = false, txt;
     if (antes) txt = polilla ? '❌ ¡Era una polilla!' : '❌ ¡Tocaste antes de tiempo!';
-    else if (ms === null) txt = '⏰ Se escapó: muy tarde';
-    else if (ms > practica.limiteSnitch) txt = `🐢 ${seg(ms)}: muy lento (máx. ${seg(practica.limiteSnitch)})`;
+    else if (ms === null) txt = '💨 ¡Se fue volando!';
+    else if (ms > practica.limiteSnitch) txt = `🐢 ${seg(ms)}: se te escapó (solo estuvo ${seg(practica.limiteSnitch)})`;
     else { ok = true; txt = `✨ ¡Atrapada en ${seg(ms)}!`; }
     if (ok) { practica.aciertos++; practica.tiempos.push(ms); practica.nivel++; } else practica.vidas--;
     snitchMensaje({ modo: 'practica', fase: 'ronda', propio: txt });
