@@ -14,6 +14,7 @@ const { WebSocketServer } = require('ws');
 // ---------------------------------------------------------------- Ajustes
 const PORT = Number(process.env.PORT) || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'cambiame';
+const CAPITAN_PASSWORD = process.env.CAPITAN_PASSWORD || '';            // clave de capitanes: solo para entrenamientos
 const RESERVA_MS = Number(process.env.RESERVA_MS) || 60000;              // plaza reservada al desconectarse
 const BLUDGER_ESPERA_MS = Number(process.env.BLUDGER_ESPERA_MS) || 20000; // cada equipo, una bludger cada 20 s
 const MINUTO_MS = Number(process.env.MINUTO_MS) || 60000;                 // (las pruebas automáticas lo acortan)
@@ -66,18 +67,25 @@ const POSICIONES = [
   { id: 'buscador', nombre: 'Buscador', tipo: 'buscador' },
 ];
 const PAPELES_INVITADO = ['comentaristaA', 'comentaristaB', 'prefecto', 'administracion'];
-const PLAZAS = [];
-for (const e of EQUIPOS) for (const p of POSICIONES) PLAZAS.push(`${e}-${p.id}`);
+// Partido oficial: 7 por lado. Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador).
+const POSICIONES_DE = {
+  oficial: POSICIONES.map((p) => p.id),
+  entrenamiento: ['cazador1', 'cazador2', 'golpeador1', 'guardian', 'buscador'],
+};
 
 // ---------------------------------------------------------------- Estado
 const salas = new Map();   // codigo -> sala
 const tokens = new Map();  // token  -> { codigo, id }
 
-function nuevaSala(codigo, equipos) {
+function nuevaSala(codigo, equipos, tipo) {
   const plazas = {};
-  for (const id of PLAZAS) plazas[id] = null; // null = libre, id de participante, o {bloqueada, nombre}
+  for (const e of EQUIPOS) for (const id of POSICIONES_DE[tipo]) plazas[`${e}-${id}`] = null; // null = libre, id, o {bloqueada, nombre}
+  // Si en un entrenamiento los dos lados son de la misma casa, se llaman "Slytherin 1" y "Slytherin 2".
+  const nombres = equipos.A === equipos.B ? { A: `${equipos.A} 1`, B: `${equipos.B} 2` } : { ...equipos };
   return {
     codigo,
+    tipo,          // 'oficial' | 'entrenamiento'
+    nombres,
     creada: Date.now(),
     fase: 'lobby', // 'lobby' | 'inicio' (moneda) | 'partido' | 'muerte' (muerte súbita) | 'final'
     equipos,       // { A: 'Slytherin', B: 'Gryffindor' }
@@ -116,8 +124,8 @@ const seg = (ms) => (ms / 1000).toFixed(2).replace('.', ',') + ' s';
 const enJuego = (sala) => ['inicio', 'partido', 'muerte'].includes(sala.fase);
 
 function nombrePapel(sala, papel) {
-  if (papel === 'comentaristaA') return `Comentarista de ${sala.equipos.A}`;
-  if (papel === 'comentaristaB') return `Comentarista de ${sala.equipos.B}`;
+  if (papel === 'comentaristaA') return `Comentarista de ${sala.nombres.A}`;
+  if (papel === 'comentaristaB') return `Comentarista de ${sala.nombres.B}`;
   if (papel === 'prefecto') return 'Prefecto';
   return 'Administración';
 }
@@ -170,11 +178,14 @@ function estadoPublico(sala, esInvitado) {
   const s = sala.snitch;
   return {
     codigo: sala.codigo,
+    tipo: sala.tipo,
     fase: sala.fase,
     max: MAX_PARTICIPANTES,
     equipos: sala.equipos,
+    nombres: sala.nombres,
+    posiciones: POSICIONES_DE[sala.tipo],
     participantes: [...sala.participantes.values()].map((p) => ({
-      id: p.id, nombre: p.nombre, casa: p.casa, equipo: p.equipo, conectado: p.conectado, plaza: p.plaza, invitado: p.invitado,
+      id: p.id, nombre: p.nombre, casa: p.casa, equipo: p.equipo, lados: p.lados, conectado: p.conectado, plaza: p.plaza, invitado: p.invitado, admin: p.admin,
     })),
     plazas: sala.plazas,
     pelota: sala.pelota && { equipo: sala.pelota.equipo, portador: sala.pelota.portador, restaMs: Math.max(0, sala.pelota.limite - ahora) },
@@ -205,22 +216,31 @@ function difundir(sala) {
   const paraInvitados = JSON.stringify({ t: 'estado', sala: estadoPublico(sala, true) });
   const paraJugadores = JSON.stringify({ t: 'estado', sala: estadoPublico(sala, false) });
   for (const p of sala.participantes.values()) {
-    if (p.ws && p.ws.readyState === 1) p.ws.send(p.invitado ? paraInvitados : paraJugadores);
+    if (p.ws && p.ws.readyState === 1) p.ws.send(p.invitado || sala.tipo === 'entrenamiento' ? paraInvitados : paraJugadores);
   }
 }
 
 // ---------------------------------------------------------------- Entrada y reconexión
+// La contraseña de administración sirve para todo; la de capitanes, solo en entrenamientos.
+function esClaveAdmin(tipo, clave) {
+  return clave === ADMIN_PASSWORD || (tipo === 'entrenamiento' && !!CAPITAN_PASSWORD && clave === CAPITAN_PASSWORD);
+}
+
 function crearSala(ws, m) {
-  if (m.clave !== ADMIN_PASSWORD) return error(ws, 'Contraseña de administración incorrecta.');
+  const tipo = m.tipo === 'entrenamiento' ? 'entrenamiento' : 'oficial';
+  if (!esClaveAdmin(tipo, m.clave)) {
+    return error(ws, tipo === 'oficial' && CAPITAN_PASSWORD && m.clave === CAPITAN_PASSWORD
+      ? 'La clave de capitanes solo sirve para crear entrenamientos.' : 'Contraseña incorrecta.');
+  }
   const codigo = limpiarCodigo(m.codigo);
   if (codigo.length < 3 || codigo.length > 10) return error(ws, 'El código debe tener entre 3 y 10 letras o números.');
-  if (salas.has(codigo)) return enviar(ws, { t: 'sala_creada', codigo, equipos: salas.get(codigo).equipos, yaExistia: true });
+  if (salas.has(codigo)) return enviar(ws, { t: 'sala_creada', codigo, equipos: salas.get(codigo).equipos, nombres: salas.get(codigo).nombres, tipo: salas.get(codigo).tipo, yaExistia: true });
   if (!CASAS.includes(m.equipoA) || !CASAS.includes(m.equipoB)) return error(ws, 'Elige la casa de cada equipo.');
-  if (m.equipoA === m.equipoB) return error(ws, 'Los dos equipos deben ser de casas distintas.');
-  const sala = nuevaSala(codigo, { A: m.equipoA, B: m.equipoB });
+  if (m.equipoA === m.equipoB && tipo === 'oficial') return error(ws, 'En un partido oficial los dos equipos deben ser de casas distintas.');
+  const sala = nuevaSala(codigo, { A: m.equipoA, B: m.equipoB }, tipo);
   salas.set(codigo, sala);
-  registrar(sala, `Sala ${codigo} creada: ${m.equipoA} contra ${m.equipoB}.`);
-  enviar(ws, { t: 'sala_creada', codigo, equipos: sala.equipos });
+  registrar(sala, `${tipo === 'entrenamiento' ? 'Entrenamiento' : 'Partido'} ${codigo} creado: ${sala.nombres.A} contra ${sala.nombres.B}.`);
+  enviar(ws, { t: 'sala_creada', codigo, equipos: sala.equipos, nombres: sala.nombres, tipo });
 }
 
 // Se entra con una casa (solo si esa casa juega: luego solo puede elegir posiciones de su equipo)
@@ -234,11 +254,11 @@ function entrar(ws, m) {
   if (nombre.length < 1 || nombre.length > 20) return error(ws, 'Escribe un nombre de 1 a 20 letras.');
   const esInvitado = m.casa === 'Invitado';
   if (!esInvitado && !CASAS.includes(m.casa)) return error(ws, 'Elige tu casa o "Invitado".');
-  let equipo = null;
+  let lados = [];
   if (!esInvitado) {
-    equipo = EQUIPOS.find((e) => sala.equipos[e] === m.casa);
-    if (!equipo) {
-      return error(ws, `${m.casa} no juega en este partido (${sala.equipos.A} contra ${sala.equipos.B}). Puedes entrar como Invitado.`, 'casa_no_juega');
+    lados = EQUIPOS.filter((e) => sala.equipos[e] === m.casa); // en un entrenamiento de una sola casa, puede ir a los dos lados
+    if (!lados.length) {
+      return error(ws, `${m.casa} no juega en este partido (${sala.nombres.A} contra ${sala.nombres.B}). Puedes entrar como Invitado.`, 'casa_no_juega');
     }
     if (enJuego(sala)) return error(ws, 'El partido ya empezó: solo se puede entrar como Invitado.', 'partido_empezado');
   }
@@ -251,7 +271,7 @@ function entrar(ws, m) {
   }
   const p = {
     id: hex(6), token: hex(24),
-    nombre, casa: esInvitado ? null : m.casa, equipo, plaza: null, invitado: null, admin: false,
+    nombre, casa: esInvitado ? null : m.casa, lados, equipo: lados.length === 1 ? lados[0] : null, plaza: null, invitado: null, admin: false,
     ws: null, conectado: false, timerReserva: null, ultimoComentario: 0,
   };
   sala.participantes.set(p.id, p);
@@ -346,37 +366,53 @@ const YA_ELEGISTE = 'Ya elegiste tu función y no se puede cambiar. Si te equivo
 function elegirPlaza(ws, m) {
   const { sala, p } = quien(ws);
   if (!p) return error(ws, 'Primero entra en una sala.');
-  if (!p.equipo) return error(ws, 'Entraste como Invitado: elige comentarista, prefecto o administración.');
+  if (!p.lados.length) return error(ws, 'Entraste como Invitado: elige un papel de invitado.');
   if (p.plaza) return error(ws, YA_ELEGISTE, 'ya_elegiste');
   if (sala.fase !== 'lobby') return error(ws, 'Las posiciones solo se eligen antes del partido.');
   const plaza = String(m.plaza || '');
-  if (!PLAZAS.includes(plaza)) return error(ws, 'Esa plaza no existe.');
-  if (equipoDePlaza(plaza) !== p.equipo) return error(ws, `Solo puedes elegir posiciones de ${sala.equipos[p.equipo]}.`, 'otro_equipo');
+  if (!(plaza in sala.plazas)) return error(ws, 'Esa plaza no existe.');
+  if (!p.lados.includes(equipoDePlaza(plaza))) return error(ws, `Solo puedes elegir posiciones de ${p.lados.map((e) => sala.nombres[e]).join(' o ')}.`, 'otro_equipo');
   if (sala.plazas[plaza] !== null) return error(ws, 'Esa plaza ya está ocupada. Elige otra.', 'plaza_ocupada');
   sala.plazas[plaza] = p.id;
   p.plaza = plaza;
-  registrar(sala, `${p.nombre} es ${nombreDePlaza(plaza)} de ${sala.equipos[p.equipo]}.`);
+  p.equipo = equipoDePlaza(plaza);
+  registrar(sala, `${p.nombre} es ${nombreDePlaza(plaza)} de ${sala.nombres[p.equipo]}.`);
   difundir(sala);
 }
 
 function serInvitado(ws, m) {
   const { sala, p } = quien(ws);
   if (!p) return error(ws, 'Primero entra en una sala.');
-  if (p.equipo) return error(ws, `Entraste con la casa ${p.casa}: elige una posición de tu equipo. Para ser invitado, sal y entra como Invitado.`);
+  if (p.lados.length) return error(ws, `Entraste con la casa ${p.casa}: elige una posición de tu equipo. Para ser invitado, sal y entra como Invitado.`);
   if (p.invitado) return error(ws, YA_ELEGISTE, 'ya_elegiste');
   const papel = String(m.tipo || '');
   if (!PAPELES_INVITADO.includes(papel)) return error(ws, 'Ese papel no existe.');
   if (papel.startsWith('comentarista')) {
+    if (sala.tipo === 'entrenamiento') return error(ws, 'En los entrenamientos no hay comentaristas.');
     for (const x of sala.participantes.values()) {
       if (x.invitado === papel) return error(ws, `Ya hay ${nombrePapel(sala, papel)}: ${x.nombre}.`, 'papel_ocupado');
     }
   }
   if (papel === 'administracion') {
-    if (m.clave !== ADMIN_PASSWORD) return error(ws, 'Contraseña de administración incorrecta.', 'clave_mala');
+    if (!p.admin && !esClaveAdmin(sala.tipo, m.clave)) return error(ws, 'Contraseña incorrecta.', 'clave_mala');
     p.admin = true;
   }
   p.invitado = papel;
   registrar(sala, `${p.nombre} mira el partido como ${nombrePapel(sala, papel)}.`);
+  difundir(sala);
+}
+
+// Administrar sin dejar de jugar: cualquiera que sepa la contraseña puede activar la administración.
+function adminLogin(ws, m) {
+  const { sala, p } = quien(ws);
+  if (!p) return error(ws, 'Primero entra en una sala.');
+  if (p.admin) return;
+  if (!esClaveAdmin(sala.tipo, m.clave)) {
+    return error(ws, sala.tipo === 'oficial' && CAPITAN_PASSWORD && m.clave === CAPITAN_PASSWORD
+      ? 'La clave de capitanes solo sirve en los entrenamientos.' : 'Contraseña incorrecta.', 'clave_mala');
+  }
+  p.admin = true;
+  registrar(sala, `🔑 ${p.nombre} ahora también administra la sala.`);
   difundir(sala);
 }
 
@@ -417,7 +453,7 @@ function empezar(ws, m) {
   const duracionMin = Number(m.duracion);
   if (!DURACIONES.includes(duracionMin)) return error(ws, 'Elige la duración del partido.');
   for (const e of EQUIPOS) {
-    if (!jugadoresDe(sala, e, 'cazador').length) return error(ws, `${sala.equipos[e]} necesita al menos un cazador conectado.`);
+    if (!jugadoresDe(sala, e, 'cazador').length) return error(ws, `${sala.nombres[e]} necesita al menos un cazador conectado.`);
   }
   const ahora = Date.now();
   sala.fase = 'inicio';
@@ -440,7 +476,7 @@ function empezar(ws, m) {
   // La moneda: azar de verdad (lo pidió la organización).
   const moneda = crypto.randomInt(2) === 0 ? 'A' : 'B';
   sala.partido = { duracionMin, moneda, inicio: ahora + INICIO_MS, fin: ahora + INICIO_MS + duracionMin * MINUTO_MS, timers: [] };
-  registrar(sala, `🪙 ¡Moneda al aire! Partido de ${duracionMin} minutos: ${sala.equipos.A} contra ${sala.equipos.B}.`);
+  registrar(sala, `🪙 ¡Moneda al aire! ${sala.tipo === 'entrenamiento' ? 'Entrenamiento' : 'Partido'} de ${duracionMin} minutos: ${sala.nombres.A} contra ${sala.nombres.B}.`);
   programar(sala, () => arrancarPartido(sala), INICIO_MS);
   difundir(sala);
 }
@@ -449,8 +485,9 @@ function arrancarPartido(sala) {
   if (sala.fase !== 'inicio') return;
   const pt = sala.partido;
   sala.fase = 'partido';
-  const animal = { Gryffindor: 'el león', Slytherin: 'la serpiente', Ravenclaw: 'el águila', Hufflepuff: 'el tejón' }[sala.equipos[pt.moneda]];
-  registrar(sala, `🪙 Salió ${animal}: ¡empieza ${sala.equipos[pt.moneda]} con la quaffle! ⏱ Comienza el partido.`);
+  const animal = sala.equipos.A === sala.equipos.B ? `el ${pt.moneda === 'A' ? '1' : '2'}`
+    : { Gryffindor: 'el león', Slytherin: 'la serpiente', Ravenclaw: 'el águila', Hufflepuff: 'el tejón' }[sala.equipos[pt.moneda]];
+  registrar(sala, `🪙 Salió ${animal}: ¡empieza ${sala.nombres[pt.moneda]} con la quaffle! ⏱ Comienza el partido.`);
   darPelotaA(sala, pt.moneda);
   const dur = pt.duracionMin * MINUTO_MS;
   for (const f of MOMENTOS_SNITCH) programar(sala, () => aparecerSnitch(sala, false), f * dur);
@@ -476,7 +513,7 @@ function nuevaPartida(ws) {
   sala.partido = null;
   sala.resultado = null;
   sala.stats = {};
-  for (const id of PLAZAS) if (sala.plazas[id] && typeof sala.plazas[id] === 'object') sala.plazas[id] = null;
+  for (const id of Object.keys(sala.plazas)) if (sala.plazas[id] && typeof sala.plazas[id] === 'object') sala.plazas[id] = null;
   registrar(sala, '🔄 Nueva partida: de vuelta al lobby.');
   difundir(sala);
 }
@@ -517,7 +554,7 @@ function finalizar(sala, motivo, equipoSnitch) {
     snitch: equipoSnitch ? { equipo: equipoSnitch, nombre: nombreDe(sala, sala.ultimoBuscador) } : null,
   };
   registrar(sala, ganador
-    ? `🏁 ¡Fin del partido! Gana ${sala.equipos[ganador]} ${sala.marcador[ganador]} a ${sala.marcador[rival(ganador)]}.`
+    ? `🏁 ¡Fin del partido! Gana ${sala.nombres[ganador]} ${sala.marcador[ganador]} a ${sala.marcador[rival(ganador)]}.`
     : `🏁 ¡Fin del partido! Empate ${A} a ${B}.`);
   difundir(sala);
 }
@@ -640,7 +677,7 @@ function darPelotaA(sala, equipo) {
     if (!caz.length) continue;
     const nuevo = caz[sala.rotacion[e]++ % caz.length];
     sala.pelota = { equipo: e, portador: nuevo, limite: 0 };
-    registrar(sala, `La quaffle es de ${sala.equipos[e]}: la tiene ${nombreDe(sala, nuevo)}.`);
+    registrar(sala, `La quaffle es de ${sala.nombres[e]}: la tiene ${nombreDe(sala, nuevo)}.`);
     avisarA(sala, nuevo, '🏐 ¡Tienes la quaffle!', true);
     armarPosesion(sala);
     return;
@@ -694,7 +731,7 @@ function avanzarPase(sala, a, final) {
     avisarA(sala, de, `✅ ¡Pase completado a ${nA}!`, true);
     const faltan = pasesNecesarios(sala, equipo) - sala.pasesBuenos;
     avisarA(sala, receptor, faltan <= 0 ? `🏐 ${nDe} te pasó la quaffle. ¡Ya puedes lanzar a la meta!` : `🏐 ${nDe} te pasó la quaffle.`, true);
-    if (faltan <= 0) registrar(sala, `¡${sala.equipos[equipo]} ya puede lanzar a la meta!`);
+    if (faltan <= 0) registrar(sala, `¡${sala.nombres[equipo]} ya puede lanzar a la meta!`);
   } else {
     const motivo = !receptorSigue ? 'el receptor ya no está' : r.motivo;
     registrar(sala, `${nDe} pasa a ${nA}… ¡pase fallido! (${motivo})`);
@@ -752,8 +789,8 @@ function resolverTiro(sala, a, res, rT, rG) {
   if (res === 'gol') {
     sala.marcador[equipo] += PUNTOS_GOL;
     stat(sala, de, 'goles');
-    registrar(sala, `¡GOOOL de ${nDe}! +${PUNTOS_GOL} para ${sala.equipos[equipo]}${det}`);
-    avisarA(sala, de, `🎉 ¡GOOOL! +${PUNTOS_GOL} para ${sala.equipos[equipo]}`, true);
+    registrar(sala, `¡GOOOL de ${nDe}! +${PUNTOS_GOL} para ${sala.nombres[equipo]}${det}`);
+    avisarA(sala, de, `🎉 ¡GOOOL! +${PUNTOS_GOL} para ${sala.nombres[equipo]}`, true);
     if (guardian) avisarA(sala, guardian, rG && rG.precision > 0 ? `😣 ¡Gol! ${nDe} lanzó antes de que atajaras.` : `😣 ${nDe} te marcó gol.`, false);
   } else if (res === 'falla') {
     registrar(sala, `${nDe} falla el tiro (${rT.motivo}).`);
@@ -810,7 +847,7 @@ function avanzarBludger(sala, a, final) {
     const defensores = jugadoresDe(sala, rival(d.equipo), 'golpeador');
     if (!defensores.length) return impactoBludger(sala, d, 'no hay golpeadores para repelerla');
     d.fase = 'repeler';
-    a.texto = `¡Bludger hacia ${d.nO}! Los golpeadores de ${sala.equipos[rival(d.equipo)]} intentan repelerla…`;
+    a.texto = `¡Bludger hacia ${d.nO}! Los golpeadores de ${sala.nombres[rival(d.equipo)]} intentan repelerla…`;
     for (const id of defensores) lanzarReto(sala, a, id, 'repeler', `¡Bludger hacia ${d.nO}! Repélela`);
     programarFin(sala, a, RETOS.repeler.limite);
     registrar(sala, a.texto);
@@ -948,7 +985,7 @@ function terminarRonda(sala, ganador, motivo) {
   clearTimeout(s.revisar);
   s.estado = 'pausa';
   if (ganador) { s.victorias[ganador]++; stat(sala, s.busc[ganador], 'rondasSnitch'); }
-  const marcadorRondas = `${sala.equipos.A} ${s.victorias.A} - ${s.victorias.B} ${sala.equipos.B}`;
+  const marcadorRondas = `${sala.nombres.A} ${s.victorias.A} - ${s.victorias.B} ${sala.nombres.B}`;
   registrar(sala, `✨ Ronda ${s.ronda}: ${ganador ? `gana ${nombreDe(sala, s.busc[ganador])}` : 'nadie gana'} (${motivo}). Snitch: ${marcadorRondas}.`);
   enviarSnitch(sala, null, { fase: 'ronda', ganador, motivo });
   if (ganador && s.victorias[ganador] >= 2) return atraparSnitch(sala, ganador);
@@ -978,7 +1015,7 @@ function atraparSnitch(sala, eq) {
   sala.ultimoBuscador = id;
   sala.marcador[eq] += PUNTOS_SNITCH;
   stat(sala, id, 'snitch');
-  registrar(sala, `🏆✨ ¡${nombreDe(sala, id)} atrapa la snitch dorada! +${PUNTOS_SNITCH} para ${sala.equipos[eq]}.`);
+  registrar(sala, `🏆✨ ¡${nombreDe(sala, id)} atrapa la snitch dorada! +${PUNTOS_SNITCH} para ${sala.nombres[eq]}.`);
   enviarSnitch(sala, null, { fase: 'fin', atrapada: true, ganador: eq });
   sala.snitch = null;
   finalizar(sala, 'snitch', eq);
@@ -1010,6 +1047,7 @@ const ACCIONES = {
   salir,
   elegir_plaza: elegirPlaza,
   ser_invitado: serInvitado,
+  admin_login: adminLogin,
   empezar,
   terminar: terminarAhora,
   nueva_partida: nuevaPartida,

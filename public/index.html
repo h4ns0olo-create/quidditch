@@ -288,8 +288,14 @@
   <div class="portada"><h1 style="font-size:1.8rem">ADMINISTRACIÓN</h1></div>
   <div class="panel">
     <form id="f-admin" autocomplete="off">
-      <label for="i-clave">Contraseña de administración</label>
+      <label for="i-clave" id="l-clave">Contraseña de administración</label>
       <input id="i-clave" type="password" required>
+      <label>¿Qué vas a crear?</label>
+      <div class="duraciones" id="tipos">
+        <button type="button" class="sec elegida" data-tipo="oficial">🏆 Partido oficial</button>
+        <button type="button" class="sec" data-tipo="entrenamiento">🧹 Entrenamiento</button>
+      </div>
+      <p class="suave" id="ayuda-tipo"></p>
       <label for="i-codigo-nuevo">Código para la nueva sala</label>
       <input id="i-codigo-nuevo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
       <label>Equipo 1</label>
@@ -300,8 +306,8 @@
     </form>
     <div id="admin-ok" class="oculto">
       <p>✅ Sala <b id="admin-codigo"></b> lista: <span id="admin-equipos"></span>.</p>
-      <p class="suave">Comparte el código con los demás. Entra tú como <b>Invitado</b> y elige <b>Administración</b> para poder empezar el partido.</p>
-      <button class="ancho" id="admin-entrar">Entrar a la sala como administrador</button>
+      <p class="suave">Comparte el código con los demás. Entra con tu casa si vas a jugar, o como <b>Invitado</b> si solo vas a mirar: en los dos casos tendrás la administración (🔑) para empezar.</p>
+      <button class="ancho" id="admin-entrar">Entrar a la sala</button>
     </div>
   </div>
   <p class="suave"><a href="#" id="volver-inicio">← Volver</a></p>
@@ -335,7 +341,7 @@
 
   <div class="panel oculto" id="panel-registro">
     <h2>📜 Lo que pasa en el campo</h2>
-    <p class="suave" style="margin-top:-6px">Solo lo ven los invitados (comentaristas, prefectos y administración).</p>
+    <p class="suave" style="margin-top:-6px" id="registro-sub"></p>
     <div class="registro" id="registro"></div>
   </div>
 
@@ -401,6 +407,18 @@
     Hufflepuff: { emo: '🦡', c: '#ecbb22', a: '#3a2f28', t: '#231a10' },
   };
   const INVITADO = { emo: '👀', c: '#5b4a8f', a: '#cfc6ee', t: '#ffffff' };
+  const SEGUNDO = {
+    Gryffindor: { emo: '🦁', c: '#d9a12a', a: '#7f0909', t: '#2a1a00' },
+    Slytherin:  { emo: '🐍', c: '#8f99a4', a: '#1a472a', t: '#10201a' },
+    Ravenclaw:  { emo: '🦅', c: '#b07d3a', a: '#0e1a40', t: '#1a1206' },
+    Hufflepuff: { emo: '🦡', c: '#4a3b30', a: '#ecbb22', t: '#ffffff' },
+  };
+  const mismaCasa = () => sala.equipos.A === sala.equipos.B;
+  const L = (eq) => (eq === 'B' && mismaCasa() ? SEGUNDO[sala.equipos.B] : k(sala.equipos[eq])); // colores de un lado
+  const VL = (eq) => { const x = L(eq); return `--c:${x.c};--a:${x.a};--t:${x.t}`; };
+  const N = (eq) => sala.nombres[eq];                                                               // nombre de un lado
+  const posSala = () => POSICIONES.filter((p) => sala.posiciones.includes(p[0]));
+  const entreno = () => sala.tipo === 'entrenamiento';
   const k = (casa) => CASAS[casa] || INVITADO;
   const vars = (casa) => { const x = k(casa); return `--c:${x.c};--a:${x.a};--t:${x.t}`; };
   const POSICIONES = [
@@ -410,8 +428,8 @@
   ];
   const TIPOS = { cazador: 'Cazador', golpeador: 'Golpeador', guardian: 'Guardián', buscador: 'Buscador' };
   const ICONO_PAPEL = { comentaristaA: '🎙️', comentaristaB: '🎙️', prefecto: '📋', administracion: '🔑' };
-  const nombrePapel = (papel) => papel === 'comentaristaA' ? `Comentarista de ${sala.equipos.A}`
-    : papel === 'comentaristaB' ? `Comentarista de ${sala.equipos.B}` : papel === 'prefecto' ? 'Prefecto' : 'Administración';
+  const nombrePapel = (papel) => papel === 'comentaristaA' ? `Comentarista de ${N('A')}`
+    : papel === 'comentaristaB' ? `Comentarista de ${N('B')}` : papel === 'prefecto' ? (entreno() ? 'Espectador' : 'Prefecto') : 'Administración';
 
   // Posiciones en el mapa del campo (equipo A a la izquierda; el B es simétrico).
   const COORD = {
@@ -448,6 +466,8 @@
   let enPausa = false;    // true si esta pestaña cedió la sesión a otra
   const elegidas = { entrar: '', A: 'Gryffindor', B: 'Slytherin' };
   let claveAdmin = '';    // se recuerda al crear la sala, para no pedirla dos veces
+  let autoAdmin = false;  // al entrar a la sala recién creada, se activa la administración sola
+  let tipoSala = 'oficial';
   let duracionElegida = 20;
   let bludgerListo = { A: 0, B: 0 };
   let posesionHasta = 0;
@@ -502,10 +522,14 @@
       $('f-admin').classList.add('oculto');
       $('admin-ok').classList.remove('oculto');
       $('admin-codigo').textContent = m.codigo;
-      $('admin-equipos').textContent = `${k(m.equipos.A).emo} ${m.equipos.A} contra ${m.equipos.B} ${k(m.equipos.B).emo}`;
+      $('admin-equipos').textContent = `${m.tipo === 'entrenamiento' ? 'entrenamiento' : 'partido oficial'} ${k(m.equipos.A).emo} ${m.nombres.A} contra ${m.nombres.B} ${k(m.equipos.B).emo}`;
       return;
     }
-    if (m.t === 'bienvenida') { yo = m.yo; guardar.poner(m.token); avisar(''); mostrar('p-sala'); return; }
+    if (m.t === 'bienvenida') {
+      yo = m.yo; guardar.poner(m.token); avisar(''); mostrar('p-sala');
+      if (autoAdmin && claveAdmin) { autoAdmin = false; mandar({ t: 'admin_login', clave: claveAdmin }); }
+      return;
+    }
     if (m.t === 'estado') {
       sala = m.sala;
       const ahora = performance.now();
@@ -549,6 +573,15 @@
     }
   }
   pintarCasas();
+  function pintarTipo() {
+    for (const b of document.querySelectorAll('[data-tipo]')) b.classList.toggle('elegida', b.dataset.tipo === tipoSala);
+    $('ayuda-tipo').textContent = tipoSala === 'oficial'
+      ? 'Partido oficial: 7 por equipo, dos casas distintas y comentaristas.'
+      : 'Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador). Elige la misma casa dos veces para dividir un equipo en dos, o dos casas distintas. Sirve la clave de capitanes.';
+    $('l-clave').textContent = tipoSala === 'oficial' ? 'Contraseña de administración' : 'Contraseña (de administración o de capitanes)';
+  }
+  pintarTipo();
+  for (const b of document.querySelectorAll('[data-tipo]')) b.addEventListener('click', () => { tipoSala = b.dataset.tipo; pintarTipo(); });
 
   // ---------- Formularios
   $('f-entrar').addEventListener('submit', (e) => {
@@ -560,13 +593,13 @@
   $('volver-inicio').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-inicio'); });
   $('f-admin').addEventListener('submit', (e) => {
     e.preventDefault();
-    if (elegidas.A === elegidas.B) return avisar('Los dos equipos deben ser de casas distintas.');
+    if (elegidas.A === elegidas.B && tipoSala === 'oficial') return avisar('En un partido oficial los dos equipos deben ser de casas distintas.');
     claveAdmin = $('i-clave').value;
-    mandar({ t: 'crear_sala', clave: claveAdmin, codigo: $('i-codigo-nuevo').value, equipoA: elegidas.A, equipoB: elegidas.B });
+    mandar({ t: 'crear_sala', tipo: tipoSala, clave: claveAdmin, codigo: $('i-codigo-nuevo').value, equipoA: elegidas.A, equipoB: elegidas.B });
   });
   $('admin-entrar').addEventListener('click', () => {
     $('i-codigo').value = $('admin-codigo').textContent;
-    elegidas.entrar = 'Invitado';
+    autoAdmin = true;
     pintarCasas();
     mostrar('p-inicio');
     $('i-nombre').focus();
@@ -590,7 +623,7 @@
 
   // Botones que se pintan dinámicamente
   document.body.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-pasar],[data-tirar],[data-bludger],[data-invitado],[data-duracion],[data-empezar],[data-terminar],[data-nueva]');
+    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-pasar],[data-tirar],[data-bludger],[data-invitado],[data-duracion],[data-empezar],[data-terminar],[data-nueva],[data-llave]');
     if (!b) return;
     const d = b.dataset;
     if (d.casaPick) { elegidas[d.grupo] = d.casaPick; pintarCasas(); }
@@ -606,11 +639,16 @@
     else if ('empezar' in d) empezar();
     else if ('terminar' in d) { if (confirm('¿Terminar el partido ahora? Ganará quien tenga más puntos.')) mandar({ t: 'terminar' }); }
     else if ('nueva' in d) mandar({ t: 'nueva_partida' });
+    else if ('llave' in d) {
+      const clave = prompt(entreno() ? 'Contraseña de administración o de capitanes:' : 'Contraseña de administración:');
+      if (clave) { claveAdmin = clave; mandar({ t: 'admin_login', clave }); }
+    }
   });
 
   function elegirPapel(papel) {
     if (papel === 'administracion') {
-      const clave = claveAdmin || prompt('Contraseña de administración:');
+      if (persona(yo).admin) return mandar({ t: 'ser_invitado', tipo: papel });
+      const clave = claveAdmin || prompt(entreno() ? 'Contraseña de administración o de capitanes:' : 'Contraseña de administración:');
       if (!clave) return;
       claveAdmin = clave;
       return mandar({ t: 'ser_invitado', tipo: papel, clave });
@@ -619,17 +657,17 @@
   }
 
   function empezar() {
-    const faltan = ['A', 'B'].map((eq) => 7 - POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length);
+    const faltan = ['A', 'B'].map((eq) => posSala().length - posSala().filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length);
     const total = faltan[0] + faltan[1];
     const texto = total
-      ? `Faltan ${total} plaza${total > 1 ? 's' : ''} por ocupar (${sala.equipos.A}: ${faltan[0]}, ${sala.equipos.B}: ${faltan[1]}). ¿Empezar igual el partido de ${duracionElegida} minutos?`
-      : `¿Lanzar la moneda y empezar el partido de ${duracionElegida} minutos?`;
+      ? `Faltan ${total} plaza${total > 1 ? 's' : ''} por ocupar (${N('A')}: ${faltan[0]}, ${N('B')}: ${faltan[1]}). ¿Empezar igual (${duracionElegida} minutos)?`
+      : `¿Lanzar la moneda y empezar (${duracionElegida} minutos)?`;
     if (confirm(texto)) mandar({ t: 'empezar', duracion: duracionElegida });
   }
 
   // ---------- Pintar la sala
   const persona = (id) => sala.participantes.find((p) => p.id === id);
-  const etiqueta = (p) => `<span class="punto" style="background:${k(p.casa).c}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}</span>`;
+  const etiqueta = (p) => `<span class="punto" style="background:${k(p.casa).c}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}${p.admin ? ' 🔑' : ''}</span>`;
   const miTipo = (mi) => mi.plaza ? POSICIONES.find((x) => x[0] === mi.plaza.split('-')[1])[2] : null;
   const jugando = () => ['inicio', 'partido', 'muerte'].includes(sala.fase);
   const mmss = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
@@ -658,7 +696,8 @@
     $('panel-registro').classList.toggle('oculto', !sala.log);
     if (sala.log) {
       let extra = sala.accion ? `<div>⏳ ${esc(sala.accion.texto)}</div>` : '';
-      if (sala.snitch) extra = `<div>✨ Snitch en juego: ronda ${sala.snitch.ronda} (${esc(sala.equipos.A)} ${sala.snitch.victorias.A} - ${sala.snitch.victorias.B} ${esc(sala.equipos.B)})</div>` + extra;
+      if (sala.snitch) extra = `<div>✨ Snitch en juego: ronda ${sala.snitch.ronda} (${esc(N('A'))} ${sala.snitch.victorias.A} - ${sala.snitch.victorias.B} ${esc(N('B'))})</div>` + extra;
+      $('registro-sub').textContent = entreno() ? 'En los entrenamientos todos ven las jugadas.' : 'Solo lo ven los invitados (comentaristas, prefectos y administración).';
       $('registro').innerHTML = extra + sala.log.slice().reverse().map((l) => `<div>${esc(l.texto)}</div>`).join('');
     }
     for (const eq of ['A', 'B']) pintarEquipo(eq, mi);
@@ -668,19 +707,20 @@
 
   function miPapel(mi) {
     if (mi.plaza) {
-      const eq = mi.equipo, x = k(sala.equipos[eq]);
+      const eq = mi.equipo, x = L(eq);
       const nom = POSICIONES.find((p) => p[0] === mi.plaza.split('-')[1])[1];
-      return `${icono(miTipo(mi), x.c, x.a)} ${nom} · ${x.emo} ${esc(sala.equipos[eq])}`;
+      return `${icono(miTipo(mi), x.c, x.a)} ${nom} · ${x.emo} ${esc(N(eq))}${mi.admin ? ' · 🔑' : ''}`;
     }
-    if (mi.invitado) return `${ICONO_PAPEL[mi.invitado]} ${esc(nombrePapel(mi.invitado))}`;
-    if (mi.equipo) return `${esc(sala.equipos[mi.equipo])} · elige tu posición`;
-    return 'Invitado · elige tu papel';
+    const llave = mi.admin ? ' · 🔑' : '';
+    if (mi.invitado) return `${ICONO_PAPEL[mi.invitado]} ${esc(nombrePapel(mi.invitado))}${llave}`;
+    if (mi.lados.length) return `${esc(mi.casa)} · elige tu posición${llave}`;
+    return `Invitado · elige tu papel${llave}`;
   }
 
   function pintarReloj() {
     const pt = sala.partido;
     let html;
-    if (sala.fase === 'lobby') html = '<div class="fila"><span class="estado" style="text-align:left">⏳ Esperando a que la administración empiece el partido.</span></div>';
+    if (sala.fase === 'lobby') html = '<div class="fila"><span class="estado" style="text-align:left">⏳ Esperando a que la administración lance la moneda.</span></div>';
     else if (sala.fase === 'inicio') html = '<div class="fila"><span class="tiempo">00:00</span><span class="estado">🪙 Lanzando la moneda…</span></div>';
     else {
       const trans = sala.fase === 'partido' ? reloj.transcurrido + (performance.now() - reloj.recibido) : Math.min(reloj.transcurrido, pt.duracionMs);
@@ -695,11 +735,12 @@
   function pintarMarcador() {
     const m = sala.marcador;
     const lado = (eq) => {
-      const casa = sala.equipos[eq], x = k(casa);
+      const casa = N(eq), x = L(eq);
       const pulso = marcadorPrevio && marcadorPrevio[eq] !== m[eq] ? 'pulso' : '';
-      return `<div class="lado ${eq} ${pulso}" style="${vars(casa)}"><div class="nom">${eq === 'A' ? x.emo + ' ' : ''}${casa.toUpperCase()}${eq === 'B' ? ' ' + x.emo : ''}</div><div class="pts">${m[eq]}</div></div>`;
+      return `<div class="lado ${eq} ${pulso}" style="${VL(eq)}"><div class="nom">${eq === 'A' ? x.emo + ' ' : ''}${casa.toUpperCase()}${eq === 'B' ? ' ' + x.emo : ''}</div><div class="pts">${m[eq]}</div></div>`;
     };
-    if (!marcadorPrevio || marcadorPrevio.A !== m.A || marcadorPrevio.B !== m.B || !$('marcador').innerHTML) {
+    if (!marcadorPrevio || marcadorPrevio.A !== m.A || marcadorPrevio.B !== m.B || !$('marcador').innerHTML || $('marcador').dataset.n !== N('A') + N('B')) {
+      $('marcador').dataset.n = N('A') + N('B');
       $('marcador').innerHTML = lado('A') + '<div class="vs">VS</div>' + lado('B');
     }
     marcadorPrevio = { ...m };
@@ -710,19 +751,18 @@
     const r = sala.resultado;
     if (sala.fase !== 'final' || !r) { el.classList.add('oculto'); return; }
     el.classList.remove('oculto');
-    const motivo = r.motivo === 'snitch' ? `✨ ${esc(r.snitch.nombre)} atrapó la snitch dorada para ${esc(sala.equipos[r.snitch.equipo])}.`
+    const motivo = r.motivo === 'snitch' ? `✨ ${esc(r.snitch.nombre)} atrapó la snitch dorada para ${esc(N(r.snitch.equipo))}.`
       : r.motivo === 'tiempo' ? '⏰ Se acabó el tiempo.' : r.motivo === 'admin' ? 'La administración terminó el partido.' : '⚡ La snitch no apareció para nadie en la muerte súbita.';
-    let html = '<h2 style="justify-content:center">🏁 Fin del partido</h2>';
+    let html = `<h2 style="justify-content:center">🏁 Fin ${entreno() ? 'del entrenamiento' : 'del partido'}</h2>`;
     if (r.ganador) {
-      const casa = sala.equipos[r.ganador];
-      html += `<div class="grande">🏆 ${k(casa).emo}</div><div class="gana">¡Gana ${esc(casa)}!</div>`;
+      html += `<div class="grande">🏆 ${L(r.ganador).emo}</div><div class="gana">¡Gana ${esc(N(r.ganador))}!</div>`;
     } else html += '<div class="grande">🤝</div><div class="gana">¡Empate!</div>';
-    html += `<p><b>${esc(sala.equipos.A)} ${r.marcador.A} - ${r.marcador.B} ${esc(sala.equipos.B)}</b></p><p class="motivo">${motivo}</p>`;
+    html += `<p><b>${esc(N('A'))} ${r.marcador.A} - ${r.marcador.B} ${esc(N('B'))}</b></p><p class="motivo">${motivo}</p>`;
     if (sala.stats && sala.stats.length) {
       html += '<div class="stats">';
       for (const eq of ['A', 'B']) {
-        const casa = sala.equipos[eq], x = k(casa);
-        html += `<h3 style="${vars(casa)}">${x.emo} ${esc(casa)}</h3>`;
+        const x = L(eq);
+        html += `<h3 style="${VL(eq)}">${x.emo} ${esc(N(eq))}</h3>`;
         const orden = POSICIONES.map((p) => `${eq}-${p[0]}`);
         const lista = sala.stats.filter((s) => s.equipo === eq).sort((a, b) => orden.indexOf(a.plaza) - orden.indexOf(b.plaza));
         for (const s of lista) {
@@ -745,12 +785,14 @@
 
   function pintarAdmin(mi) {
     const el = $('panel-admin');
-    if (!mi || mi.invitado !== 'administracion') { el.classList.add('oculto'); return; }
+    if (!mi || !mi.admin) { el.classList.add('oculto'); return; }
     el.classList.remove('oculto');
     let h = '<h2>🔑 Administración</h2>';
     if (sala.fase === 'lobby') {
-      const llenas = (eq) => POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
-      h += `<p>${k(sala.equipos.A).emo} ${esc(sala.equipos.A)}: <b>${llenas('A')}/7</b> · ${k(sala.equipos.B).emo} ${esc(sala.equipos.B)}: <b>${llenas('B')}/7</b></p>`;
+      const llenas = (eq) => posSala().filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
+      const tot = posSala().length;
+      h += `<p class="suave">${entreno() ? '🧹 Entrenamiento' : '🏆 Partido oficial'}</p>`;
+      h += `<p>${L('A').emo} ${esc(N('A'))}: <b>${llenas('A')}/${tot}</b> · ${L('B').emo} ${esc(N('B'))}: <b>${llenas('B')}/${tot}</b></p>`;
       h += '<p class="suave">Duración del partido:</p><div class="duraciones">' +
         sala.duraciones.map((d) => `<button class="sec ${d === duracionElegida ? 'elegida' : ''}" data-duracion="${d}">${d} min</button>`).join('') + '</div>';
       h += '<button class="ancho btn-lanzar" data-empezar>🪙 Lanzar moneda y empezar</button>';
@@ -760,7 +802,7 @@
   }
 
   function pintarCampo(mi) {
-    const puedoElegir = sala.fase === 'lobby' && mi.equipo && !mi.plaza;
+    const puedoElegir = sala.fase === 'lobby' && mi.lados.length && !mi.plaza;
     let s = `<svg viewBox="0 0 360 210" role="img" aria-label="Campo de juego con las posiciones">
       <defs>
         <linearGradient id="cesped" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b8a4f"/><stop offset="1" stop-color="#176337"/></linearGradient>
@@ -773,14 +815,14 @@
       <line x1="180" y1="8" x2="180" y2="202" stroke="#fff" stroke-opacity=".35" stroke-dasharray="5 5"/>
       <circle cx="180" cy="105" r="16" fill="none" stroke="#fff" stroke-opacity=".35"/>`;
     for (const eq of ['A', 'B']) {
-      const x0 = k(sala.equipos[eq]);
+      const x0 = L(eq);
       s += `<rect x="${eq === 'A' ? 0 : 180}" width="180" height="210" fill="${x0.c}" opacity=".22" clip-path="url(#ovalo)"/>`;
       const x = eq === 'A' ? 22 : 338;
       for (const y of [80, 105, 130]) s += `<line x1="${x}" y1="${y + 8}" x2="${x}" y2="${y + 15}" stroke="${x0.a}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="7.5" fill="none" stroke="${x0.a}" stroke-width="2.5"/>`;
     }
     for (const eq of ['A', 'B']) {
-      const x0 = k(sala.equipos[eq]);
-      for (const [id, , tipo] of POSICIONES) {
+      const x0 = L(eq);
+      for (const [id, , tipo] of posSala()) {
         const plaza = `${eq}-${id}`, ocupa = sala.plazas[plaza];
         const [x, y] = coord(eq, id);
         const ly = y > 160 ? y - 19 : y + 25;
@@ -793,7 +835,7 @@
           s += forma(tipo, `fill="${x0.c}" stroke="${x0.a}" stroke-width="2.5"`);
           s += `<text y="${ly - y}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" stroke="#0b1a10" stroke-width="3" paint-order="stroke">${esc(p ? p.nombre.slice(0, 9) : '')}</text></g>`;
         } else {
-          const mio = puedoElegir && mi.equipo === eq;
+          const mio = puedoElegir && mi.lados.includes(eq);
           s += `<g transform="translate(${x},${y})" ${mio ? `class="libre" data-plaza="${plaza}"` : `opacity="${puedoElegir ? .35 : .8}"`}><circle r="18" fill="transparent"/>${forma(tipo, 'fill="rgba(0,0,0,.15)" stroke="#fff" stroke-opacity=".7" stroke-width="1.8" stroke-dasharray="3 2.5"')}<text y="${ly - y}" text-anchor="middle" font-size="8.5" fill="#fff" fill-opacity=".7">${mio ? 'elegir' : 'libre'}</text></g>`;
         }
       }
@@ -815,11 +857,11 @@
   }
 
   function pintarEquipo(eq, mi) {
-    const casa = sala.equipos[eq], x = k(casa);
-    const llenas = POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
-    const puedoElegir = sala.fase === 'lobby' && mi.equipo === eq && !mi.plaza;
-    let html = `<div class="tit" style="${vars(casa)}"><span>${x.emo} ${esc(casa)}</span><span>${llenas}/7</span></div><div class="filas">`;
-    for (const [id, nombre, tipo] of POSICIONES) {
+    const x = L(eq);
+    const llenas = posSala().filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length;
+    const puedoElegir = sala.fase === 'lobby' && mi.lados.includes(eq) && !mi.plaza;
+    let html = `<div class="tit" style="${VL(eq)}"><span>${x.emo} ${esc(N(eq))}</span><span>${llenas}/${posSala().length}</span></div><div class="filas">`;
+    for (const [id, nombre, tipo] of posSala()) {
       const plaza = `${eq}-${id}`, ocupa = sala.plazas[plaza];
       let quien, boton = '';
       if (ocupa && typeof ocupa === 'object') quien = `<span class="suave">🚫 Vacía (${esc(ocupa.nombre)} abandonó)</span>`;
@@ -836,35 +878,37 @@
   function pintarInvitados(mi) {
     const invitados = sala.participantes.filter((p) => p.invitado);
     const ocupado = (papel) => invitados.find((p) => p.invitado === papel);
-    let h = '<h2>👀 Invitados</h2><p class="suave">Miran el partido. Los dos comentaristas (uno por equipo) escriben lo que pasa para todos.</p>';
+    let h = entreno() ? '<h2>👀 Invitados</h2><p class="suave">Miran el entrenamiento.</p>'
+      : '<h2>👀 Invitados</h2><p class="suave">Miran el partido. Los dos comentaristas (uno por equipo) escriben lo que pasa para todos.</p>';
     h += invitados.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="pos ancha">${ICONO_PAPEL[p.invitado]} ${esc(nombrePapel(p.invitado))}</span><span class="ocupa">${etiqueta(p)}</span></div>`).join('');
-    if (!mi.equipo && !mi.invitado) {
+    if (!mi.lados.length && !mi.invitado) {
       h += '<p style="margin-top:10px"><b>Elige tu papel:</b></p><div class="chips">';
-      for (const papel of ['comentaristaA', 'comentaristaB']) {
+      for (const papel of entreno() ? [] : ['comentaristaA', 'comentaristaB']) {
         const q = ocupado(papel);
         h += `<button class="sec peq" data-invitado="${papel}" ${q ? 'disabled' : ''}>🎙️ ${esc(nombrePapel(papel))}${q ? ' (ocupado)' : ''}</button>`;
       }
-      h += '<button class="sec peq" data-invitado="prefecto">📋 Prefecto</button><button class="sec peq" data-invitado="administracion">🔑 Administración</button></div>';
+      h += `<button class="sec peq" data-invitado="prefecto">📋 ${nombrePapel('prefecto')}</button><button class="sec peq" data-invitado="administracion">🔑 Administración</button></div>`;
       h += '<div class="aviso-fijo">⚠️ Después de elegir no podrás cambiar. Si te equivocas, sal de la sala y vuelve a entrar.</div>';
     }
     const sinNada = sala.participantes.filter((p) => !p.plaza && !p.invitado);
     if (sinNada.length) h += `<p class="suave" style="margin-top:8px">Todavía eligiendo: ${sinNada.map((p) => esc(p.nombre)).join(', ')}</p>`;
+    // Activar la administración sin dejar de jugar
+    if (!mi.admin) h += `<div class="aviso-fijo" style="color:var(--suave)">🔑 ¿Eres el administrador${entreno() ? ' o capitán' : ''}? <button class="sec peq" data-llave>Activar administración</button></div>`;
     $('panel-invitados').innerHTML = h;
   }
 
   // Panel "Tu jugada": solo muestra lo que TÚ puedes hacer ahora.
   function pintarJugada(mi) {
     const el = $('panel-jugada');
-    if (mi.invitado || (!mi.equipo && !mi.invitado) || sala.fase === 'final') { el.classList.add('oculto'); el.dataset.html = ''; return; }
+    if (mi.invitado || !mi.lados.length || sala.fase === 'final') { el.classList.add('oculto'); el.dataset.html = ''; return; }
     el.classList.remove('oculto');
     const eq = mi.equipo, tipo = miTipo(mi), pel = sala.pelota, ocupado = sala.enJuego;
-    const casa = sala.equipos[eq];
     let h = '<h2>🧹 Tu jugada</h2>';
     if (!mi.plaza) {
-      h += `<p>Elige tu posición en <b>${k(casa).emo} ${esc(casa)}</b>: toca una figura que diga <b>elegir</b> en el campo, o <b>Ocupar</b> en la lista.</p>`;
+      h += `<p>Elige tu posición en <b>${mi.lados.map((e) => `${L(e).emo} ${esc(N(e))}`).join(' o ')}</b>: toca una figura que diga <b>elegir</b> en el campo, o <b>Ocupar</b> en la lista.</p>`;
       h += '<div class="aviso-fijo">⚠️ Después no podrás cambiar de posición. Si te equivocas, sal de la sala y vuelve a entrar.</div>';
     } else if (sala.fase === 'lobby') {
-      h += '<p>¡Listo! El partido empezará cuando la administración lance la moneda.</p>';
+      h += `<p>¡Listo! ${entreno() ? 'El entrenamiento' : 'El partido'} empezará cuando la administración lance la moneda.</p>`;
       h += '<p class="suave">Si te equivocaste de posición: sal de la sala y vuelve a entrar.</p>';
     } else if (sala.fase === 'inicio') h += '<p>🪙 ¡Moneda al aire! Prepárate…</p>';
     else if (sala.fase === 'muerte') {
@@ -921,12 +965,12 @@
     monedaFin = performance.now() - sala.partido.transcurridoMs;
     for (const eq of ['A', 'B']) {
       const cara = $('cara-' + eq);
-      cara.setAttribute('style', vars(sala.equipos[eq]));
-      cara.textContent = k(sala.equipos[eq]).emo;
+      cara.setAttribute('style', VL(eq));
+      cara.innerHTML = L(eq).emo + (mismaCasa() ? `<span style="position:absolute;bottom:14px;font-size:28px;font-family:var(--titulo);font-weight:900;color:var(--t)">${eq === 'A' ? 1 : 2}</span>` : '');
     }
     $('moneda').className = 'moneda girando';
     $('moneda-salto').className = 'moneda-salto saltando';
-    $('moneda-texto').textContent = `${sala.equipos.A} o ${sala.equipos.B}…`;
+    $('moneda-texto').textContent = `${N('A')} o ${N('B')}…`;
     $('cuenta-grande').textContent = '';
     capa.classList.remove('oculto');
     requestAnimationFrame(animarMoneda);
@@ -938,7 +982,7 @@
       const g = sala.partido.moneda;
       $('moneda').className = 'moneda' + (g === 'B' ? ' ladoB' : '');
       $('moneda-salto').className = 'moneda-salto';
-      $('moneda-texto').textContent = `¡${k(sala.equipos[g]).emo} Empieza ${sala.equipos[g]} con la quaffle!`;
+      $('moneda-texto').textContent = `¡${L(g).emo} Empieza ${N(g)} con la quaffle!`;
       if (navigator.vibrate) try { navigator.vibrate(80); } catch {}
     }
     $('cuenta-grande').textContent = queda <= 3000 ? (queda > 0 ? Math.ceil(queda / 1000) : '¡YA!') : '';

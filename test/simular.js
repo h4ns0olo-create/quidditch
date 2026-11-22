@@ -11,6 +11,7 @@ const WebSocket = require('ws');
 const RESERVA_MS = 2000;
 const BLUDGER_MS = 1500;
 const CLAVE = 'prueba123';
+const CAPI = 'capitan123';
 let URL = '';
 
 let fallos = 0;
@@ -81,7 +82,7 @@ async function hasta(fn, ms, texto = 'condición') {
 function arrancarServidor(puerto, minutoMs) {
   const servidor = spawn(process.execPath, [path.join(__dirname, '..', 'server.js')], {
     env: { ...process.env, PORT: String(puerto), RESERVA_MS: String(RESERVA_MS), BLUDGER_ESPERA_MS: String(BLUDGER_MS),
-      MINUTO_MS: String(minutoMs), INICIO_MS: '300', ADMIN_PASSWORD: CLAVE },
+      MINUTO_MS: String(minutoMs), INICIO_MS: '300', ADMIN_PASSWORD: CLAVE, CAPITAN_PASSWORD: CAPI },
     stdio: ['ignore', 'pipe', 'inherit'],
   });
   return new Promise((ok) => servidor.stdout.on('data', (d) => d.toString().includes('listo') && ok(servidor)));
@@ -329,7 +330,41 @@ async function main() {
     await obs.recibir((m) => m.t === 'estado' && m.sala.fase === 'lobby');
     comprobar(obs.estado.marcador.A === 0 && Object.values(obs.estado.plazas).filter((v) => typeof v === 'string').length === 14, 'vuelve al lobby con el marcador a cero y las posiciones intactas');
 
-    console.log('\n14) Fin por tiempo, empate y muerte súbita (otro servidor: 1 minuto = 0,4 s)');
+    console.log('\n14) Administrar sin dejar de jugar (partido oficial)');
+    comprobar((await S[3].error({ t: 'admin_login', clave: CAPI })).msg.includes('entrenamientos'), 'la clave de capitanes no sirve en un partido oficial');
+    S[3].mandar({ t: 'admin_login', clave: CLAVE });
+    await esperar(150);
+    const yoS3 = obs.estado.participantes.find((x) => x.id === S[3].id);
+    comprobar(yoS3.admin === true && !!yoS3.plaza, 'un jugador activa la administración y conserva su posición');
+
+    console.log('\n15) Entrenamientos');
+    const capi = await nuevo('capi');
+    comprobar((await capi.error({ t: 'crear_sala', tipo: 'oficial', clave: CAPI, codigo: 'NOVALE', equipoA: 'Slytherin', equipoB: 'Gryffindor' })).msg.includes('solo sirve'), 'con la clave de capitanes no se crean partidos oficiales');
+    capi.mandar({ t: 'crear_sala', tipo: 'entrenamiento', clave: CAPI, codigo: 'ENTRENO', equipoA: 'Slytherin', equipoB: 'Slytherin' });
+    const ent = await capi.recibir((m) => m.t === 'sala_creada');
+    comprobar(ent.tipo === 'entrenamiento' && ent.nombres.A === 'Slytherin 1' && ent.nombres.B === 'Slytherin 2', 'entrenamiento de una sola casa: "Slytherin 1" contra "Slytherin 2"');
+    const e1 = await nuevo('Entrena1');
+    await e1.entrar('ENTRENO', 'Slytherin');
+    await esperar(100);
+    comprobar(e1.estado.tipo === 'entrenamiento' && e1.estado.posiciones.length === 5 && Object.keys(e1.estado.plazas).length === 10, '5 posiciones por lado (10 en total)');
+    comprobar(e1.estado.participantes.find((x) => x.id === e1.id).lados.length === 2, 'un Slytherin puede elegir cualquiera de los dos lados');
+    comprobar((await e1.error({ t: 'elegir_plaza', plaza: 'A-cazador3' })).msg.includes('no existe'), 'en el entrenamiento no hay cazador 3');
+    e1.mandar({ t: 'elegir_plaza', plaza: 'B-cazador1' });
+    const e2 = await nuevo('Entrena2'); await e2.entrar('ENTRENO', 'Slytherin'); e2.mandar({ t: 'elegir_plaza', plaza: 'A-cazador1' });
+    const e3 = await nuevo('Entrena3');
+    comprobar((await e3.entrar('ENTRENO', 'Gryffindor')).codigo === 'casa_no_juega', 'otra casa no puede entrar a jugar en este entrenamiento');
+    await e3.entrar('ENTRENO', 'Invitado');
+    comprobar((await e3.error({ t: 'ser_invitado', tipo: 'comentaristaA' })).msg.includes('no hay comentaristas'), 'en los entrenamientos no hay comentaristas');
+    await esperar(150);
+    comprobar(Array.isArray(e1.estado.log), 'en los entrenamientos los jugadores sí ven las jugadas');
+    comprobar((await e2.error({ t: 'empezar', duracion: 10 })).msg.includes('administración'), 'sin la clave, un jugador no puede empezar');
+    e2.mandar({ t: 'admin_login', clave: CAPI });
+    await esperar(100);
+    e2.mandar({ t: 'empezar', duracion: 10 });
+    await e1.recibir((m) => m.t === 'estado' && m.sala.fase === 'partido', 3000);
+    comprobar(e1.estado.fase === 'partido' && !!e1.estado.pelota, 'un capitán que juega activa la administración con su clave y empieza el entrenamiento');
+
+    console.log('\n16) Fin por tiempo, empate y muerte súbita (otro servidor: 1 minuto = 0,4 s)');
     servidor2 = await arrancarServidor(3998, 400);
     URL = 'ws://127.0.0.1:3998';
     const ad2 = await nuevo('ad2');
@@ -365,7 +400,7 @@ async function main() {
     await ad4.recibir((m) => m.t === 'estado' && m.sala.fase === 'final', 40000);
     comprobar(ad4.estado.resultado.ganador === 'A' && ad4.estado.marcador.A === 150, 'en la muerte súbita, quien atrapa la snitch gana');
 
-    console.log('\n15) Página web');
+    console.log('\n17) Página web');
     const html = await fetch('http://127.0.0.1:3999/').then((x) => x.text());
     comprobar(html.includes('Soy el administrador') && html.includes('<title>Quidditch</title>'), 'la página se sirve con el título "Quidditch"');
   } catch (e) {

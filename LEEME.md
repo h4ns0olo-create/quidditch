@@ -24,7 +24,16 @@ Cómo funciona (paso 3):
 - Los jugadores no ven el registro de jugadas (solo los invitados). Los comentaristas escriben y sus comentarios
   aparecen como banners para todos.
 
-Todavía NO incluye: capitanes que confirman el inicio y corrección del marcador por la administración.
+**Entrenamientos** (paso 4):
+- Al crear la sala se elige **Partido oficial** o **Entrenamiento**.
+- Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador), sin comentaristas, y todos ven
+  las jugadas. Se puede elegir la misma casa dos veces ("Slytherin 1" contra "Slytherin 2") o dos casas distintas.
+- **Clave de capitanes** (`CAPITAN_PASSWORD` en Render): sirve solo para crear y dirigir entrenamientos.
+  La contraseña de administración sirve para todo.
+- **Administrar y jugar a la vez:** cualquiera con la contraseña toca "🔑 Activar administración" (abajo, en
+  Invitados) sin perder su posición. Quien crea la sala ya entra con la administración activada.
+
+Todavía NO incluye: corrección del marcador por la administración.
 
 ## Probarlo en tu computadora (opcional)
 Necesita Node.js 18 o más nuevo.
