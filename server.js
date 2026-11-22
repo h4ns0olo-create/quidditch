@@ -697,7 +697,9 @@ const latido = setInterval(() => {
 }, 20000);
 wss.on('close', () => clearInterval(latido));
 
-server.listen(PORT, () => {
+console.log(`Arrancando el servidor (Node ${process.version}, puerto ${PORT})…`);
+server.on('error', (e) => { console.error('No se pudo abrir el puerto:', e.message); process.exit(1); });
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Quidditch listo en el puerto ${PORT}`);
   if (ADMIN_PASSWORD === 'cambiame') console.log('AVISO: define ADMIN_PASSWORD (la contraseña por defecto es "cambiame").');
 });
