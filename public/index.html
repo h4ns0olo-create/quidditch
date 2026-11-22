@@ -1791,7 +1791,7 @@
   }
   function rondaSnitchPractica() {
     const f = difP(), id = 'P' + Date.now();
-    const limite = Math.max(300, 1000 - 25 * (practica.nivel - 1)); // tiempo que se deja ver: cada nivel, menos (mínimo 0,3 s)
+    const limite = Math.max(250, 800 - 20 * (practica.nivel - 1)); // tiempo que se deja ver: 0,8 s y cada nivel menos (mínimo 0,25 s)
     practica.limiteSnitch = limite;
     snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite });
     const pausa = 1500 + Math.random() * 3000;

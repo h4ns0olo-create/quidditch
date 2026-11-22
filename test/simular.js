@@ -301,7 +301,7 @@ async function main() {
     const finAp1 = bB.recibir((m) => m.t === 'snitch' && m.fase === 'fin', 15000);
     bA.mandar({ t: 'snitch_tap', rondaId: ap1.rondaId, antes: true });
     const senB = await bB.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 15000);
-    comprobar(senB.ventana <= 1000 && senB.ventana >= 600, `la snitch se deja ver solo ${senB.ventana} ms`);
+    comprobar(senB.ventana <= 800 && senB.ventana >= 400, `la snitch se deja ver solo ${senB.ventana} ms`);
     await esperar(senB.ventana + 300);
     bB.mandar({ t: 'snitch_tap', rondaId: senB.rondaId, ms: senB.ventana + 250 });
     const f1 = await finAp1;
@@ -309,6 +309,7 @@ async function main() {
     comprobar(f1.atrapada === false && log('pasó volando') && obs.estado.fase === 'partido', 'si nadie la atrapa a tiempo, se va volando y el partido sigue');
     // Aparición 2: vuelve a aparecer más tarde y A la atrapa a tiempo.
     const ap2 = await bA.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 30000);
+    comprobar(ap2.ventana < senB.ventana, `cada vez que se escapa, la siguiente dura menos (${senB.ventana} → ${ap2.ventana} ms)`);
     const finP = obs.recibir((m) => m.t === 'estado' && m.sala.fase === 'final', 6000);
     await esperar(330);
     const ganaAntes = obs.estado.marcador.A;
@@ -399,7 +400,7 @@ async function main() {
     let finR = mae.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 15000);
     cho.mandar({ t: 'duelo_tap', rondaId: esperaD1.rondaId, antes: true });
     const senM1 = await mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000);
-    comprobar(senM1.ventana <= 1000, `en el duelo la snitch también aparece solo un instante (${senM1.ventana} ms)`);
+    comprobar(senM1.ventana <= 800, `en el duelo la snitch también aparece solo un instante (${senM1.ventana} ms)`);
     await esperar(330);
     mae.mandar({ t: 'duelo_tap', rondaId: senM1.rondaId, ms: 300 });
     comprobar((await finR).ganador === 'B', 'ronda 1: Cho se adelanta (se le escapa) y Maenor la atrapa');

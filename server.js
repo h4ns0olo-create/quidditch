@@ -49,8 +49,10 @@ const RETOS = {
 const CENTROS = [0.5, 0.3, 0.7, 0.4, 0.62, 0.26, 0.74, 0.45, 0.56, 0.34, 0.68];
 const SNITCH = {
   pausas: [2600, 4100, 1900, 3400, 4600, 2200, 3800, 3000], // espera antes de que aparezca (secuencia fija)
-  ventanaMs: 1000,       // tiempo que se deja ver la snitch al principio…
-  ventanaMinMs: 600,     // …y al final del partido (o en las últimas rondas de un duelo)
+  ventanaMs: 800,        // tiempo que se deja ver la snitch la primera vez…
+  pasoMs: 60,            // …cada vez que se escapa, la siguiente dura esto menos…
+  ventanaMinMs: 400,     // …hasta este mínimo (partidos y entrenamientos)
+  ventanaMinDueloMs: 450, // en los duelos: de 0,8 s (primera ronda) a 0,45 s (última)
   limiteMs: 3000,        // duelo de guardianes: tiempo para atajar tras el aviso
   minimoMs: 100,         // reacción más rápida que esto = imposible
   entreRondasMs: 2500,
@@ -942,7 +944,7 @@ function impactoBludger(sala, d, motivo) {
 }
 
 // ---------------------------------------------------------------- Snitch (buscadores)
-// Desde la mitad del partido, la snitch aparece de vez en cuando SOLO UN INSTANTE (1 s al principio, 0,6 s al final)
+// Desde la mitad del partido, la snitch aparece de vez en cuando SOLO UN INSTANTE (0,8 s y cada vez menos, hasta 0,4 s)
 // y se va volando. Los buscadores ven "atento…"; cuando aparece, el primero que la toca a tiempo la atrapa:
 // +150 y se acaba el partido. Si nadie la atrapa, vuelve a aparecer más tarde, hasta que alguien la atrape.
 // Tocar antes de tiempo (o tocar la polilla) hace que esa vez se te escape, pero el otro todavía puede atraparla.
@@ -956,7 +958,7 @@ function aparecerSnitch(sala, muerte) {
   sala.aparicionesSnitch = (sala.aparicionesSnitch || 0) + 1;
   const s = sala.snitch = {
     muerte, senuelos: muerte || sala.aparicionesSnitch >= 2, busc, estado: 'espera', rondaId: hex(4),
-    taps: { A: null, B: null }, senalEn: 0, ventana: ventanaSnitch(dificultad(sala)), timer: null, revisar: null,
+    taps: { A: null, B: null }, senalEn: 0, ventana: ventanaPartido(sala), timer: null, revisar: null,
   };
   animar(sala, { tipo: 'snitch', fase: 'aparece' });
   registrar(sala, muerte ? '⚡ ¡La snitch anda cerca! El primero que la atrape gana.' : '✨ ¡La snitch anda cerca! Los buscadores la buscan…');
@@ -973,9 +975,15 @@ function aparecerSnitch(sala, muerte) {
   difundir(sala);
 }
 
-// Tiempo que se deja ver la snitch: de 1 s (fácil) a 0,6 s (difícil).
+// Tiempo que se deja ver la snitch en un partido: 0,8 s la primera vez; cada vez que se escapa, 0,06 s menos,
+// y algo menos a medida que avanza el reloj. Nunca menos de 0,4 s.
+function ventanaPartido(sala) {
+  const v = SNITCH.ventanaMs - SNITCH.pasoMs * (sala.aparicionesSnitch - 1) - 100 * dificultad(sala);
+  return Math.round(Math.max(SNITCH.ventanaMinMs, v));
+}
+// En los duelos: de 0,8 s (primera ronda) a 0,45 s (última ronda).
 function ventanaSnitch(f) {
-  return Math.round(SNITCH.ventanaMs - (SNITCH.ventanaMs - SNITCH.ventanaMinMs) * f);
+  return Math.round(SNITCH.ventanaMs - (SNITCH.ventanaMs - SNITCH.ventanaMinDueloMs) * f);
 }
 
 function programarSiguienteSnitch(sala) {
