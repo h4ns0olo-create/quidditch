@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: quidditch-amigos
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /salud
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false   # Render te pedirá escribirla al crear el servicio

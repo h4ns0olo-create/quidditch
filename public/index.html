@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b1530">
+<title>Quidditch entre amigos</title>
+<style>
+  :root {
+    --fondo: #1b1530; --panel: #2a2245; --panel2: #352c56; --texto: #f4f0ff; --suave: #b9b0d6;
+    --acento: #f2c14e; --verde: #3ccf6e; --rojo: #ef5b5b; --equipoA: #e0703a; --equipoB: #4a8fe0;
+    --casa1: #f2c14e; --casa2: #7f0909;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--fondo); color: var(--texto); }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.4;
+    padding: 12px 16px calc(24px + env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  }
+  h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+  h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  p { margin: 6px 0; }
+  .suave { color: var(--suave); font-size: .9rem; }
+  .oculto { display: none !important; }
+  .panel { background: var(--panel); border-radius: 14px; padding: 14px; margin: 12px 0; }
+  label { display: block; margin: 10px 0 4px; font-weight: 600; }
+  input, select {
+    width: 100%; font-size: 16px; padding: 12px; border-radius: 10px; border: 1px solid #4b4170;
+    background: #15102a; color: var(--texto);
+  }
+  button {
+    font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 12px 14px; cursor: pointer;
+    background: var(--acento); color: #1b1530; touch-action: manipulation;
+  }
+  button.sec { background: var(--panel2); color: var(--texto); }
+  button.peq { padding: 6px 10px; font-size: .85rem; }
+  button:disabled { opacity: .45; }
+  button.ancho { width: 100%; margin-top: 14px; }
+  a { color: var(--acento); }
+
+  .cabecera { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    border-left: 6px solid var(--casa1); padding: 6px 10px; background: var(--panel); border-radius: 10px; }
+  .cabecera b { display: block; }
+  .estado-red { font-size: .8rem; padding: 3px 8px; border-radius: 99px; background: #2f5c3e; white-space: nowrap; }
+  .estado-red.mal { background: #6b2a2a; }
+
+  .equipo h2 { display: flex; justify-content: space-between; align-items: center; }
+  .equipo.A h2 span.marca { color: var(--equipoA); }
+  .equipo.B h2 span.marca { color: var(--equipoB); }
+  .plaza { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 8px 0; border-top: 1px solid #3b3260; min-height: 46px; }
+  .plaza .pos { color: var(--suave); font-size: .85rem; min-width: 92px; }
+  .plaza .quien { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plaza.mia { background: #3a2f63; margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 8px; }
+  .punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .desc { opacity: .55; }
+  .desc::after { content: " (desconectado)"; font-size: .8rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+  .registro { max-height: 260px; overflow-y: auto; font-size: .92rem; }
+  .registro div { padding: 4px 0; border-bottom: 1px solid #3b3260; }
+  .registro div:first-child { font-weight: 700; color: var(--acento); }
+
+  .error { background: #5a2330; color: #ffdede; padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
+
+  /* Barra de pase a pantalla completa */
+  #capa-barra { position: fixed; inset: 0; background: rgba(15, 10, 32, .97); z-index: 10;
+    display: flex; flex-direction: column; justify-content: center; padding: 24px 16px; gap: 18px;
+    user-select: none; -webkit-user-select: none; }
+  #capa-barra .titulo { font-size: 1.3rem; font-weight: 800; text-align: center; }
+  .barra { position: relative; height: 64px; background: #3b3260; border-radius: 14px; overflow: hidden; }
+  .barra .zona { position: absolute; top: 0; bottom: 0; background: var(--verde); }
+  .barra .marca { position: absolute; top: -4px; bottom: -4px; width: 8px; margin-left: -4px;
+    background: #fff; border-radius: 4px; box-shadow: 0 0 10px #fff; will-change: transform; left: 0; }
+  #btn-tap { font-size: 1.6rem; padding: 26px; border-radius: 18px; background: var(--acento); }
+  #btn-tap.enviado { background: var(--panel2); color: var(--texto); }
+  .cuenta { text-align: center; font-size: 1.1rem; color: var(--suave); }
+  .cuenta.urgente { color: var(--rojo); font-weight: 800; }
+</style>
+</head>
+<body>
+
+<!-- Pantalla de entrada -->
+<section id="p-inicio">
+  <h1>🧹 Quidditch entre amigos</h1>
+  <p class="suave">Entra con tu nombre, tu casa y el código de la sala.</p>
+  <div class="panel">
+    <form id="f-entrar" autocomplete="off">
+      <label for="i-nombre">Tu nombre</label>
+      <input id="i-nombre" maxlength="20" required placeholder="Ej.: Ana">
+      <label for="i-casa">Tu casa</label>
+      <select id="i-casa" required>
+        <option value="">Elige…</option>
+        <option>Gryffindor</option><option>Slytherin</option><option>Ravenclaw</option><option>Hufflepuff</option>
+      </select>
+      <label for="i-codigo">Código de la sala</label>
+      <input id="i-codigo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
+      <button class="ancho" type="submit">Entrar</button>
+    </form>
+  </div>
+  <p class="suave"><a href="#" id="ir-admin">Soy la administradora</a></p>
+</section>
+
+<!-- Pantalla de administración -->
+<section id="p-admin" class="oculto">
+  <h1>Administración</h1>
+  <div class="panel">
+    <form id="f-admin" autocomplete="off">
+      <label for="i-clave">Contraseña de administración</label>
+      <input id="i-clave" type="password" required>
+      <label for="i-codigo-nuevo">Código para la nueva sala</label>
+      <input id="i-codigo-nuevo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
+      <button class="ancho" type="submit">Crear sala</button>
+    </form>
+    <div id="admin-ok" class="oculto">
+      <p>✅ Sala <b id="admin-codigo"></b> lista. Comparte este código con los invitados.</p>
+      <button class="ancho" id="admin-entrar">Entrar yo también a la sala</button>
+    </div>
+  </div>
+  <p class="suave"><a href="#" id="volver-inicio">← Volver</a></p>
+</section>
+
+<!-- Sala -->
+<section id="p-sala" class="oculto">
+  <div class="cabecera">
+    <div><b id="yo-nombre"></b><span class="suave" id="yo-detalle"></span></div>
+    <span class="estado-red" id="estado-red">Conectado</span>
+  </div>
+  <p class="suave">Sala <b id="sala-codigo"></b> · <span id="sala-cuenta"></span></p>
+
+  <div class="panel" id="panel-pelota">
+    <h2>🏐 Prueba de pases</h2>
+    <p id="pelota-texto"></p>
+    <div class="chips" id="pelota-botones"></div>
+  </div>
+
+  <div class="panel equipo A" id="equipo-A"></div>
+  <div class="panel equipo B" id="equipo-B"></div>
+
+  <div class="panel">
+    <h2>👀 Invitados</h2>
+    <p class="suave">Solo miran el partido.</p>
+    <div id="lista-invitados"></div>
+    <div class="chips">
+      <button class="sec peq" data-invitado="comentarista">Ser comentarista</button>
+      <button class="sec peq" data-invitado="prefecto">Ser prefecto</button>
+      <button class="sec peq" data-invitado="administracion">Administración</button>
+    </div>
+    <div id="sin-plaza" class="suave"></div>
+  </div>
+
+  <div class="panel">
+    <h2>📜 Lo que pasa</h2>
+    <div class="registro" id="registro"></div>
+  </div>
+
+  <button class="sec ancho" id="btn-salir">Salir de la sala</button>
+</section>
+
+<div id="aviso" class="error oculto" role="alert"></div>
+
+<!-- Barra de pase -->
+<div id="capa-barra" class="oculto">
+  <div class="titulo" id="barra-titulo">Pasa a …</div>
+  <p class="suave" style="text-align:center;margin:0">Toca el botón cuando la marca blanca esté en la zona verde.</p>
+  <div class="barra" id="barra"><div class="zona" id="barra-zona"></div><div class="marca" id="barra-marca"></div></div>
+  <div class="cuenta" id="barra-cuenta"></div>
+  <button id="btn-tap">¡AHORA!</button>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const COLORES_CASA = {
+    Gryffindor: ['#d3a625', '#7f0909'], Slytherin: ['#5d9b6b', '#1a472a'],
+    Ravenclaw: ['#6f8fd8', '#0e1a40'], Hufflepuff: ['#ffdb00', '#372e29'],
+  };
+  const POSICIONES = [
+    ['cazador1', 'Cazador 1'], ['cazador2', 'Cazador 2'], ['cazador3', 'Cazador 3'],
+    ['golpeador1', 'Golpeador 1'], ['golpeador2', 'Golpeador 2'], ['guardian', 'Guardián'], ['buscador', 'Buscador'],
+  ];
+  const INVITADOS = { comentarista: 'Comentarista', prefecto: 'Prefecto', administracion: 'Administración' };
+
+  // ---------- Guardado del token (para reconectar). Si el navegador no deja guardar, sigue funcionando.
+  let tokenMemoria = null;
+  const guardar = {
+    leer() { try { return localStorage.getItem('quidditch_token') || tokenMemoria; } catch { return tokenMemoria; } },
+    poner(t) { tokenMemoria = t; try { localStorage.setItem('quidditch_token', t); } catch {} },
+    borrar() { tokenMemoria = null; try { localStorage.removeItem('quidditch_token'); } catch {} },
+  };
+
+  let ws = null, yo = null, sala = null, reintento = 0, timerReintento = null;
+  let pendiente = null; // mensaje a enviar al conectar (entrar / crear sala)
+  let enPausa = false;  // true si esta pestaña cedió la sesión a otra
+
+  // ---------- Conexión
+  function conectar() {
+    clearTimeout(timerReintento);
+    if (ws && (ws.readyState === 0 || ws.readyState === 1)) return;
+    ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
+    ws.onopen = () => {
+      reintento = 0;
+      ponerRed(true);
+      const token = guardar.leer();
+      if (pendiente) { ws.send(JSON.stringify(pendiente)); pendiente = null; }
+      else if (token) ws.send(JSON.stringify({ t: 'reconectar', token }));
+    };
+    ws.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch { return; } recibir(m); };
+    ws.onclose = () => {
+      ponerRed(false);
+      // Solo reintenta si estábamos en una sala (o íbamos a entrar).
+      if (!enPausa && (guardar.leer() || pendiente)) {
+        reintento = Math.min(reintento + 1, 6);
+        timerReintento = setTimeout(conectar, 600 * reintento);
+      }
+    };
+  }
+  function mandar(m) {
+    enPausa = false;
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify(m));
+    else { pendiente = m; conectar(); }
+  }
+  // Al volver a la app (iPhone/Android suelen cortar la conexión en segundo plano)
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !enPausa && guardar.leer()) conectar(); });
+  window.addEventListener('online', () => { if (!enPausa && guardar.leer()) conectar(); });
+
+  function ponerRed(ok) {
+    const el = $('estado-red');
+    el.textContent = ok ? 'Conectado' : 'Reconectando…';
+    el.classList.toggle('mal', !ok);
+  }
+
+  // ---------- Mensajes del servidor
+  function recibir(m) {
+    if (m.t === 'error') {
+      if (m.codigo === 'token_invalido') { guardar.borrar(); yo = null; mostrar('p-inicio'); }
+      if (m.codigo === 'otra_pestana') { enPausa = true; yo = null; mostrar('p-inicio'); }
+      return avisar(m.msg);
+    }
+    if (m.t === 'sala_creada') {
+      $('f-admin').classList.add('oculto');
+      $('admin-ok').classList.remove('oculto');
+      $('admin-codigo').textContent = m.codigo;
+      return;
+    }
+    if (m.t === 'bienvenida') { yo = m.yo; guardar.poner(m.token); avisar(''); mostrar('p-sala'); return; }
+    if (m.t === 'estado') { sala = m.sala; pintar(); return; }
+    if (m.t === 'barra') return abrirBarra(m.accion);
+    if (m.t === 'fuera') { guardar.borrar(); yo = null; sala = null; mostrar('p-inicio'); }
+  }
+
+  let timerAviso = null;
+  function avisar(texto) {
+    const el = $('aviso');
+    el.textContent = texto;
+    el.classList.toggle('oculto', !texto);
+    clearTimeout(timerAviso);
+    if (texto) { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); timerAviso = setTimeout(() => avisar(''), 6000); }
+  }
+  function mostrar(id) {
+    for (const s of ['p-inicio', 'p-admin', 'p-sala']) $(s).classList.toggle('oculto', s !== id);
+    if (id !== 'p-sala') cerrarBarra();
+  }
+
+  // ---------- Formularios
+  $('f-entrar').addEventListener('submit', (e) => {
+    e.preventDefault();
+    mandar({ t: 'entrar', nombre: $('i-nombre').value, casa: $('i-casa').value, codigo: $('i-codigo').value });
+  });
+  $('ir-admin').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-admin'); });
+  $('volver-inicio').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-inicio'); });
+  $('f-admin').addEventListener('submit', (e) => {
+    e.preventDefault();
+    mandar({ t: 'crear_sala', clave: $('i-clave').value, codigo: $('i-codigo-nuevo').value });
+  });
+  $('admin-entrar').addEventListener('click', () => {
+    $('i-codigo').value = $('admin-codigo').textContent;
+    mostrar('p-inicio');
+    $('i-nombre').focus();
+  });
+  $('btn-salir').addEventListener('click', () => {
+    if (confirm('¿Seguro que quieres salir? Perderás tu plaza.')) mandar({ t: 'salir' });
+  });
+  document.querySelectorAll('[data-invitado]').forEach((b) =>
+    b.addEventListener('click', () => mandar({ t: 'ser_invitado', tipo: b.dataset.invitado })));
+
+  // ---------- Pintar la sala
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const persona = (id) => sala.participantes.find((p) => p.id === id);
+  const etiqueta = (p) => `<span class="punto" style="background:${COLORES_CASA[p.casa][0]}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}</span>`;
+
+  function pintar() {
+    if (!sala || !yo) return;
+    const mi = persona(yo);
+    if (!mi) return;
+    const [c1, c2] = COLORES_CASA[mi.casa];
+    document.documentElement.style.setProperty('--casa1', c1);
+    document.documentElement.style.setProperty('--casa2', c2);
+    $('yo-nombre').textContent = mi.nombre;
+    $('yo-detalle').textContent = `${mi.casa} · ${miPapel(mi)}`;
+    $('sala-codigo').textContent = sala.codigo;
+    $('sala-cuenta').textContent = `${sala.participantes.length}/${sala.max} participantes`;
+
+    for (const eq of ['A', 'B']) {
+      let html = `<h2><span class="marca">Equipo ${eq}</span><span class="suave">${POSICIONES.filter(([id]) => typeof sala.plazas[`${eq}-${id}`] === 'string').length}/7</span></h2>`;
+      for (const [id, nombre] of POSICIONES) {
+        const plaza = `${eq}-${id}`;
+        const ocupa = sala.plazas[plaza];
+        let quien, boton = '';
+        if (ocupa && typeof ocupa === 'object') quien = `<span class="suave">🚫 Vacía (${esc(ocupa.nombre)} abandonó)</span>`;
+        else if (ocupa) {
+          quien = etiqueta(persona(ocupa));
+          if (ocupa === yo) boton = `<button class="sec peq" data-dejar>Dejar</button>`;
+        } else {
+          quien = '<span class="suave">Libre</span>';
+          if (sala.fase === 'lobby') boton = `<button class="peq" data-plaza="${plaza}">Ocupar</button>`;
+        }
+        html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${nombre}</span><span class="quien">${quien}</span>${boton}</div>`;
+      }
+      $('equipo-' + eq).innerHTML = html;
+    }
+
+    const invitados = sala.participantes.filter((p) => p.invitado);
+    $('lista-invitados').innerHTML = invitados.map((p) => `<div class="plaza"><span class="pos">${INVITADOS[p.invitado]}</span><span class="quien">${etiqueta(p)}</span>${p.id === yo ? '<button class="sec peq" data-dejar>Dejar</button>' : ''}</div>`).join('');
+    const sinNada = sala.participantes.filter((p) => !p.plaza && !p.invitado);
+    $('sin-plaza').innerHTML = sinNada.length ? `<p>Todavía eligiendo: ${sinNada.map((p) => esc(p.nombre)).join(', ')}</p>` : '';
+
+    pintarPelota(mi);
+    $('registro').innerHTML = sala.log.slice().reverse().map((l) => `<div>${esc(l.texto)}</div>`).join('');
+
+    // Si la jugada que tenía abierta ya terminó, se cierra la barra.
+    if (barra && (!sala.accion || sala.accion.id !== barra.id)) cerrarBarra();
+  }
+
+  function miPapel(p) {
+    if (p.plaza) { const [eq, id] = p.plaza.split('-'); return `${POSICIONES.find((x) => x[0] === id)[1]} · Equipo ${eq}`; }
+    if (p.invitado) return INVITADOS[p.invitado];
+    return 'sin plaza todavía';
+  }
+
+  function pintarPelota(mi) {
+    const pel = sala.pelota, acc = sala.accion;
+    let texto, botones = '';
+    const soyCazador = mi.plaza && mi.plaza.includes('cazador');
+    if (acc) texto = `⏳ ${esc(persona(acc.de).nombre)} está pasando a ${esc(persona(acc.a).nombre)}…`;
+    else if (!pel) {
+      texto = 'La pelota está suelta.';
+      if (soyCazador) botones = '<button data-tomar>Tomar la pelota</button>';
+      else texto += ' Un cazador puede tomarla para probar los pases.';
+    } else {
+      const port = persona(pel.portador);
+      texto = `La tiene <b>${esc(port.nombre)}</b> (Equipo ${pel.equipo}). Pases buenos seguidos: ${sala.pasesBuenos}/2.`;
+      if (pel.portador === yo) {
+        const comp = ['cazador1', 'cazador2', 'cazador3'].map((c) => sala.plazas[`${pel.equipo}-${c}`])
+          .filter((id) => typeof id === 'string' && id !== yo).map(persona);
+        botones = comp.length
+          ? comp.map((p) => `<button data-pasar="${p.id}" ${p.conectado ? '' : 'disabled'}>Pasar a ${esc(p.nombre)}</button>`).join('')
+          : '<span class="suave">Necesitas otro cazador en tu equipo para pasar.</span>';
+      }
+    }
+    $('pelota-texto').innerHTML = texto;
+    $('pelota-botones').innerHTML = botones;
+  }
+
+  // Botones que se pintan dinámicamente
+  document.body.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.plaza) mandar({ t: 'elegir_plaza', plaza: b.dataset.plaza });
+    else if ('dejar' in b.dataset) mandar({ t: 'dejar_plaza' });
+    else if ('tomar' in b.dataset) mandar({ t: 'tomar_pelota' });
+    else if (b.dataset.pasar) mandar({ t: 'pasar', a: b.dataset.pasar });
+  });
+
+  // ---------- Barra de pase
+  // La marca va y vuelve. El celular mide cuánto tardas en tocar y el servidor comprueba si fue en el verde.
+  let barra = null;
+  function abrirBarra(a) {
+    barra = { ...a, t0: performance.now() - a.desde, enviado: false };
+    $('barra-titulo').textContent = `Pasa a ${a.a}`;
+    $('barra-zona').style.left = (a.zonaIni * 100) + '%';
+    $('barra-zona').style.width = ((a.zonaFin - a.zonaIni) * 100) + '%';
+    $('btn-tap').textContent = '¡AHORA!';
+    $('btn-tap').classList.remove('enviado');
+    $('capa-barra').classList.remove('oculto');
+    if (navigator.vibrate) try { navigator.vibrate(80); } catch {}
+    requestAnimationFrame(animar);
+  }
+  function animar() {
+    if (!barra) return;
+    const ms = performance.now() - barra.t0;
+    const ancho = $('barra').clientWidth;
+    if (!barra.enviado) {
+      const f = (ms % barra.periodo) / barra.periodo;
+      const pos = f < 0.5 ? f * 2 : 2 - f * 2;
+      $('barra-marca').style.transform = `translateX(${pos * ancho}px)`;
+    }
+    const resta = Math.max(0, barra.limite - ms) / 1000;
+    $('barra-cuenta').textContent = barra.enviado ? 'Enviado, esperando resultado…' : `Te quedan ${resta.toFixed(1)} s`;
+    $('barra-cuenta').classList.toggle('urgente', !barra.enviado && resta < 2);
+    if (ms > barra.limite + 3000) return cerrarBarra(); // por si se perdió la respuesta
+    requestAnimationFrame(animar);
+  }
+  function tocar(e) {
+    e.preventDefault();
+    if (!barra || barra.enviado) return;
+    barra.enviado = true;
+    const ms = Math.round(performance.now() - barra.t0);
+    mandar({ t: 'tap', accion: barra.id, ms });
+    $('btn-tap').textContent = 'Enviado';
+    $('btn-tap').classList.add('enviado');
+  }
+  function cerrarBarra() {
+    barra = null;
+    $('capa-barra').classList.add('oculto');
+  }
+  // pointerdown responde antes que click en el celular
+  $('btn-tap').addEventListener('pointerdown', tocar);
+  $('barra').addEventListener('pointerdown', tocar);
+
+  // ---------- Arranque
+  if (guardar.leer()) conectar();
+})();
+</script>
+</body>
+</html>
