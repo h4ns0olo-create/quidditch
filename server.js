@@ -87,8 +87,8 @@ const AVATAR = {
   mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'murcielago', 'sapo', 'ratita', 'snitch'],
 };
 // Accesorios: se pueden llevar varios a la vez, pero en la cabeza solo uno
-const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
-const DE_CABEZA = ['lazo', 'flor', 'diadema', 'corona', 'campeon'];
+const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
+const DE_CABEZA = ['vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
 function limpiarAvatar(a) {
   const x = a && typeof a === 'object' ? a : {};
   const r = {};
