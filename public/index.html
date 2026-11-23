@@ -2186,6 +2186,7 @@
     if (!reto.enviado) {
       const f = (ms % reto.periodo) / reto.periodo;
       reto.dibujar(f < 0.5 ? f * 2 : 2 - f * 2);
+      reto.msDibujado = ms;   // lo último que vio el jugador en pantalla
     }
     const resta = Math.max(0, reto.limite - ms) / 1000;
     const cuenta = $('reto-cuenta');
@@ -2205,7 +2206,10 @@
     e.preventDefault();
     if (!reto || reto.enviado || reto.resultado) return;
     reto.enviado = true;
-    const ms = Math.round(performance.now() - reto.t0);
+    // Cuenta la posición que el jugador estaba VIENDO al tocar (el último dibujo), no la del instante en que el
+    // celular procesa el toque: si el celular va lento, ese instante llega tarde y la marca ya se movió.
+    const ahora = performance.now() - reto.t0;
+    const ms = Math.round(reto.msDibujado !== undefined && ahora - reto.msDibujado < 300 ? reto.msDibujado : ahora);
     $('btn-tap').textContent = 'Enviado';
     $('btn-tap').classList.add('enviado');
     if (reto.local) return practicaTap(ms);
