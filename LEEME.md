@@ -58,8 +58,10 @@ con ojos grandes o chico con ojos "de cazador" y mandíbula marcada), 16 peinado
 cualquiera puede usar cualquiera), piel, color de pelo, color de ojos, expresión, pecas, maquillaje (natural u oscuro;
 solo se ve en el retrato), accesorios combinables (gafas, bufanda, aretes en las dos orejas y **un** objeto de cabeza:
 gafas de vuelo, cinta deportiva, moño, flor, diadema, corona o laurel de campeón), uniforme del retrato (escolar o de quidditch), escoba (clásica, veloz o antigua) y su madera, mascota
-(lechuza, gato, perro, murciélago, sapo, ratita o snitch; el gato y el perro van en la punta de la escoba, el murciélago
-vuela al lado) y aura. Se elige cada vez que entras (no se guarda). En el campo todos llevan siempre el uniforme de
+(lechuza, gato, perro, conejo, murciélago, sapo, ratita o snitch; la lechuza, el gato, el perro y el conejo tienen varios
+colores y el perro además 5 razas: golden, pitbull, poodle, pug y yorkie; el gato, el perro y el conejo van en la punta
+de la escoba, el murciélago y la lechuza vuelan al lado) y aura. El avatar queda guardado en el celular para la próxima
+vez. En el campo todos llevan siempre el uniforme de
 quidditch del equipo.
 **Premios** (quedan guardados en el celular): escoba dorada (nivel 15 en la práctica), corona (ganar un duelo),
 aura dorada (jugador destacado), snitch mascota (atrapar la snitch) y laurel de campeón (ganar un partido oficial).

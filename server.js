@@ -84,7 +84,15 @@ const AVATAR = {
   maquillaje: ['ninguno', 'natural', 'oscuro'],
   escoba: ['clasica', 'veloz', 'antigua'],
   escobaColor: ['clara', 'oscura', 'roja', 'negra', 'dorada'],
-  mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'murcielago', 'sapo', 'ratita', 'snitch'],
+  mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'conejo', 'murcielago', 'sapo', 'ratita', 'snitch'],
+  raza: ['golden', 'pitbull', 'poodle', 'pug', 'yorkie'],
+};
+// Colores posibles de cada mascota (el primero es el que sale si no se elige)
+const PELAJES = {
+  lechuza: ['rubia', 'blanca', 'marron'],
+  gato: ['negro', 'blanco', 'naranja', 'gris', 'siames', 'tricolor'],
+  perro: ['dorado', 'crema', 'manchas', 'negro', 'chocolate', 'gris'],
+  conejo: ['blanco', 'gris', 'negro', 'marron', 'manchas'],
 };
 // Accesorios: se pueden llevar varios a la vez, pero en la cabeza solo uno
 const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
@@ -98,6 +106,8 @@ function limpiarAvatar(a) {
   r.peloColor = entero(x.peloColor, 8);
   r.ojos = entero(x.ojos, 5);
   for (const k of ['aura', 'pecas']) r[k] = x[k] ? 1 : 0;
+  const pelajes = PELAJES[r.mascota];
+  r.mascotaColor = pelajes ? (pelajes.includes(x.mascotaColor) ? x.mascotaColor : pelajes[0]) : '';
   r.accesorios = [];
   let cabeza = false;
   for (const id of Array.isArray(x.accesorios) ? x.accesorios.slice(0, 12) : []) {
