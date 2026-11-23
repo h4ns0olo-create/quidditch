@@ -324,6 +324,34 @@
   .formatos button small { font-weight: 600; font-size: .75rem; color: var(--suave); }
   .formatos button.elegida { outline: 3px solid #fff; }
   @keyframes tenue { 50% { opacity: .45; } }
+  /* ---------- Cuadro del torneo */
+  .torneo h2 { margin: 0 0 4px; }
+  .torneo .t-resumen { margin: 0 0 10px; color: var(--suave); }
+  .torneo .t-resumen b { color: var(--texto); }
+  .cuadro { display: grid; grid-template-columns: 1fr 16px 1fr; gap: 0; align-items: center; margin-top: 4px; }
+  .cuadro .semis { display: flex; flex-direction: column; gap: 14px; }
+  .cuadro .lineas { position: relative; align-self: stretch; }
+  .cuadro .lineas::before { content: ""; position: absolute; left: 0; width: 8px; top: 25%; bottom: 25%; border: 2px solid rgba(242,193,78,.55); border-left: none; border-radius: 0 8px 8px 0; }
+  .cuadro .lineas::after { content: ""; position: absolute; left: 8px; right: 0; top: 50%; border-top: 2px solid rgba(242,193,78,.55); }
+  .partido { border-radius: 12px; background: rgba(0,0,0,.25); border: 1px solid rgba(255,255,255,.12); overflow: hidden; font-size: .8rem; min-width: 0; }
+  .partido.proximo { border-color: var(--oro); box-shadow: 0 0 0 2px rgba(242,193,78,.25); }
+  .partido.es-final { border-color: rgba(242,193,78,.6); }
+  .p-cab { display: flex; justify-content: space-between; gap: 6px; padding: 5px 8px; font-size: .68rem; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+    color: var(--suave); background: rgba(255,255,255,.06); }
+  .p-cab span { text-transform: none; font-weight: 700; white-space: nowrap; }
+  .p-eq { display: flex; justify-content: space-between; align-items: center; gap: 4px; padding: 6px 7px; border-left: 4px solid var(--c, transparent); }
+  .p-eq + .p-eq { border-top: 1px solid rgba(255,255,255,.07); }
+  .p-eq span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+  .p-eq b { font-variant-numeric: tabular-nums; }
+  .p-eq.gana { background: rgba(242,193,78,.14); }
+  .p-eq.gana b { color: var(--oro); }
+  .p-eq.pierde { opacity: .55; }
+  .p-eq.tbd span { color: var(--suave); font-weight: 600; font-style: italic; }
+  .tercero { margin-top: 14px; }
+  .tercero .partido { max-width: 260px; margin: 0 auto; }
+  .t-tabla { margin-top: 14px; display: grid; gap: 6px; }
+  .t-tabla div { display: flex; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,.05); border-left: 4px solid var(--c); font-weight: 700; }
+  .t-tabla div:first-child { background: rgba(242,193,78,.15); }
 </style>
 </head>
 <body>
@@ -343,6 +371,7 @@
     <h1>QUIDDITCH</h1>
     <div class="emblemas" id="emblemas"></div>
   </div>
+  <div class="panel torneo" id="torneo"></div>
   <div class="panel">
     <form id="f-entrar" autocomplete="off">
       <label for="i-nombre">Tu nombre</label>
@@ -684,6 +713,70 @@
   }
 
   // ---------- Selectores de casa
+  // ---------- Torneo de las Casas (tipo Mundial). Después de cada partido se apunta aquí el marcador [equipo A, equipo B]
+  // (y "ganador: 'A'" o "'B'" solo si hubiera empate). El tercer puesto y la final se rellenan solos con los resultados.
+  const TORNEO = {
+    nombre: 'Torneo de las Casas',
+    partidos: {
+      semi1:   { ronda: 'Semifinal 1', corto: 'Semi 1', fecha: '2026-11-28', A: 'Slytherin', B: 'Ravenclaw', marcador: null },
+      semi2:   { ronda: 'Semifinal 2', corto: 'Semi 2', fecha: '2026-12-05', A: 'Hufflepuff', B: 'Gryffindor', marcador: null },
+      tercero: { ronda: 'Tercer puesto', fecha: '2026-12-12', marcador: null },
+      final:   { ronda: 'Final', fecha: '2026-12-19', marcador: null },
+    },
+  };
+  let torneoAbierto = false;
+  function ganadorDe(pa) {
+    if (!pa.marcador || !pa.A || !pa.B) return null;
+    const [a, b] = pa.marcador;
+    const g = a > b ? 'A' : b > a ? 'B' : pa.ganador;
+    return g ? { gana: pa[g], pierde: pa[g === 'A' ? 'B' : 'A'] } : null;
+  }
+  function pintarTorneo() {
+    const P = TORNEO.partidos;
+    const s1 = ganadorDe(P.semi1), s2 = ganadorDe(P.semi2);
+    P.final.A = s1 && s1.gana; P.final.B = s2 && s2.gana;
+    P.tercero.A = s1 && s1.pierde; P.tercero.B = s2 && s2.pierde;
+    const hueco = { final: ['Ganador semi 1', 'Ganador semi 2'], tercero: ['Perdedor semi 1', 'Perdedor semi 2'] };
+    const fechaLarga = (f) => new Date(f + 'T12:00:00').toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' });
+    const fechaCorta = (f) => new Date(f + 'T12:00:00').toLocaleDateString('es', { weekday: 'short', day: 'numeric', month: 'short' });
+    const hoy = new Date(); const hoyTxt = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    const orden = ['semi1', 'semi2', 'tercero', 'final'];
+    const proximo = orden.find((id) => !ganadorDe(P[id]));
+    const nombreCasa = (c) => `${k(c).emo} ${esc(c)}`;
+    const tarjeta = (id) => {
+      const pa = P[id], g = ganadorDe(pa);
+      const fila = (lado, i) => {
+        const casa = pa[lado];
+        if (!casa) return `<div class="p-eq tbd"><span>${hueco[id][i]}</span></div>`;
+        const clase = g ? (g.gana === casa ? 'gana' : 'pierde') : '';
+        return `<div class="p-eq ${clase}" style="--c:${k(casa).c}"><span>${nombreCasa(casa)}</span><b>${pa.marcador ? pa.marcador[i] : ''}</b></div>`;
+      };
+      const cuando = pa.fecha === hoyTxt ? '¡Hoy!' : fechaCorta(pa.fecha);
+      return `<div class="partido ${id === proximo ? 'proximo' : ''} ${id === 'final' ? 'es-final' : ''}"><div class="p-cab">${id === 'final' ? '🏆 ' : ''}${pa.corto || pa.ronda}<span>${cuando}</span></div>${fila('A', 0)}${fila('B', 1)}</div>`;
+    };
+    const campeon = ganadorDe(P.final);
+    let resumen;
+    if (campeon) resumen = `🏆 ¡<b>${nombreCasa(campeon.gana)}</b> es la campeona del torneo!`;
+    else if (proximo) {
+      const pa = P[proximo];
+      resumen = `📅 Próximo: <b>${pa.ronda}</b> · ${pa.fecha === hoyTxt ? '<b>¡hoy!</b>' : fechaLarga(pa.fecha)}${pa.A && pa.B ? ` · <b>${nombreCasa(pa.A)}</b> vs <b>${nombreCasa(pa.B)}</b>` : ''}`;
+    }
+    let html = `<h2>🏆 ${TORNEO.nombre}</h2><p class="t-resumen">${resumen}</p>`;
+    if (torneoAbierto) {
+      html += `<div class="cuadro"><div class="semis">${tarjeta('semi1')}${tarjeta('semi2')}</div><div class="lineas"></div>${tarjeta('final')}</div>`;
+      html += `<div class="tercero">${tarjeta('tercero')}</div>`;
+      const t3 = ganadorDe(P.tercero);
+      if (campeon && t3) {
+        html += '<div class="t-tabla">' + [['🥇', campeon.gana], ['🥈', campeon.pierde], ['🥉', t3.gana], ['4.º', t3.pierde]]
+          .map(([m, c]) => `<div style="--c:${k(c).c}">${m} <span>${nombreCasa(c)}</span></div>`).join('') + '</div>';
+      }
+    }
+    html += `<button type="button" class="sec ancho" id="btn-torneo" style="margin-top:10px">${torneoAbierto ? 'Ocultar el cuadro ▴' : 'Ver el cuadro del torneo ▾'}</button>`;
+    $('torneo').innerHTML = html;
+  }
+  $('torneo').addEventListener('click', (e) => { if (e.target.closest('#btn-torneo')) { torneoAbierto = !torneoAbierto; pintarTorneo(); } });
+  pintarTorneo();
+
   function pintarCasas() {
     $('emblemas').innerHTML = Object.keys(CASAS).map((c) => `<div class="emblema" style="${vars(c)}" title="${c}">${CASAS[c].emo}</div>`).join('');
     for (const el of document.querySelectorAll('.casas')) {

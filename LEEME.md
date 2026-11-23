@@ -70,6 +70,11 @@ campeón (ganar 2 partidos oficiales), trofeo (ganar la final del torneo: al cre
 marca la casilla "Es la final del torneo"),
 unicornio (nivel 60 en la práctica libre, cualquier posición) y unicornio dorado (nivel 100). Quien ya tenía esos
 niveles de antes recibe los premios al abrir la página.
+**🏆 Torneo de las Casas** (tipo Mundial), en la portada: semifinal 1 (Slytherin vs Ravenclaw, 28 nov), semifinal 2
+(Hufflepuff vs Gryffindor, 5 dic), tercer puesto (los perdedores, 12 dic) y final (los ganadores, 19 dic). Se ve el
+próximo partido y, con "Ver el cuadro del torneo", el cuadro completo con resultados y, al final, la tabla del 1.º al 4.º.
+Los resultados se apuntan a mano en `public/index.html`, en `TORNEO` (campo `marcador: [equipo A, equipo B]`); el tercer
+puesto y la final se rellenan solos. Cada partido se crea como partido oficial; en la final se marca "Es la final del torneo".
 **Palco y capitanes**: comentaristas, espectadores y administración aparecen con su
 retrato en "🏟️ En el palco", debajo del estadio, y en la lista de invitados; los comentarios salen con la carita de quien
 los escribe. Quien activa la administración con la clave de capitanes lleva una insignia plateada con una "C" junto a su
