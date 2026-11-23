@@ -81,12 +81,15 @@ const AVATAR = {
     'atras', 'ondulado_chico', 'punta', 'rizos_cerrados', 'greñas', 'raya', 'alborotado'],
   expresion: ['seria', 'sonrisa'],
   uniforme: ['escolar', 'quidditch'],
-  sombrero: ['ninguno', 'mago', 'gorro', 'cuernos', 'aureola', 'lazo', 'corona', 'campeon'],
-  accesorio: ['ninguno', 'gafas', 'antifaz', 'bufanda'],
-  escoba: ['clasica', 'veloz', 'robusta', 'antigua'],
+  fondo: ['liso', 'destellos', 'castillo', 'rayas'],
+  maquillaje: ['ninguno', 'natural', 'oscuro', 'glam'],
+  escoba: ['clasica', 'veloz', 'antigua'],
   escobaColor: ['clara', 'oscura', 'roja', 'negra', 'dorada'],
-  mascota: ['ninguna', 'lechuza', 'gato', 'sapo', 'ratita', 'snitch'],
+  mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'murcielago', 'sapo', 'ratita', 'snitch'],
 };
+// Accesorios: se pueden llevar varios a la vez, pero en la cabeza solo uno
+const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'mago', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
+const DE_CABEZA = ['mago', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
 function limpiarAvatar(a) {
   const x = a && typeof a === 'object' ? a : {};
   const r = {};
@@ -95,7 +98,14 @@ function limpiarAvatar(a) {
   r.piel = entero(x.piel, 5);
   r.peloColor = entero(x.peloColor, 8);
   r.ojos = entero(x.ojos, 5);
-  for (const k of ['aura', 'pecas', 'diadema', 'aretes']) r[k] = x[k] ? 1 : 0;
+  for (const k of ['aura', 'pecas']) r[k] = x[k] ? 1 : 0;
+  r.accesorios = [];
+  let cabeza = false;
+  for (const id of Array.isArray(x.accesorios) ? x.accesorios.slice(0, 12) : []) {
+    if (!ACCESORIOS.includes(id) || r.accesorios.includes(id)) continue;
+    if (DE_CABEZA.includes(id)) { if (cabeza) continue; cabeza = true; }
+    r.accesorios.push(id);
+  }
   return r;
 }
 // Partido oficial: 7 por lado. Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador).
