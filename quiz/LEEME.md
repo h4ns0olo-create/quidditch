@@ -12,7 +12,7 @@ vive en esta carpeta `quiz/` y en Render es otro servicio, con su propia direcci
   formulario (botones "+ Añadir pregunta" y "− Quitar la última") o pega todo el texto. Al abrir el quiz recibe un
   **código** (en una pizarra) y un **enlace** para compartir por Instagram. Ve en directo quién entró y cuánto lleva.
   Puede **borrar un intento** hecho por error. Cuando quiera, toca **Cerrar quiz y publicar resultados**.
-- **Alumno:** entra con el código, el nombre de su personaje y su casa. Responde a su ritmo, sin volver atrás,
+- **Alumno:** entra con el código, su nombre y apellido y su casa. Responde a su ritmo, sin volver atrás,
   con tiempo por pregunta (por defecto 20 s). Las preguntas y las alternativas salen en otro orden para cada uno.
   Al terminar ve "Esperando resultados…" hasta que el profesor publica.
 - **Cómo se cuentan los puntos de cada casa** (lo elige el profesor; la página se lo explica con un ejemplo):

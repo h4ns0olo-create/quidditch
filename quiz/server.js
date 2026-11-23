@@ -226,7 +226,7 @@ function alumnoEntrar(d) {
   if (!q) return { error: 'No existe ningún quiz con ese código. Revisa que esté bien escrito.' };
   if (q.estado !== 'abierto') return { error: 'Este quiz ya está cerrado.' };
   const nombre = String(d.nombre || '').replace(/\s+/g, ' ').trim();
-  if (!nombre) return { error: 'Escribe el nombre de tu personaje.' };
+  if (!nombre) return { error: 'Escribe tu nombre y apellido.' };
   if (nombre.length > MAX_NOMBRE) return { error: `El nombre es demasiado largo (máximo ${MAX_NOMBRE} letras).` };
   if (!CASAS.includes(d.casa)) return { error: 'Elige tu casa.' };
   const norm = normalizar(nombre);

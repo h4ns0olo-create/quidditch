@@ -193,10 +193,10 @@
 <!-- ============ ALUMNO: ENTRAR ============ -->
 <section class="vista" id="vEntrar" hidden>
   <h1>Quiz de clase</h1>
-  <p class="nota">Escribe el código que te dio tu profesor, el nombre de tu personaje y tu casa.</p>
+  <p class="nota">Escribe el código que te dio tu profesor, tu nombre y apellido y tu casa.</p>
   <label for="codigo">Código del quiz</label>
   <input type="text" id="codigo" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="K7PX">
-  <label for="nombre">Nombre de tu personaje</label>
+  <label for="nombre">Nombre y apellido</label>
   <input type="text" id="nombre" maxlength="30" autocomplete="off" placeholder="Ej.: Elara Moonwhistle">
   <label>Tu casa</label>
   <div class="casas" id="casas"></div>
@@ -411,7 +411,7 @@ async function entrar() {
   const nombre = $('nombre').value.trim();
   const err = $('errorEntrar');
   if (!codigo) return (err.textContent = 'Escribe el código del quiz.');
-  if (!nombre) return (err.textContent = 'Escribe el nombre de tu personaje.');
+  if (!nombre) return (err.textContent = 'Escribe tu nombre y apellido.');
   if (!casaElegida) return (err.textContent = 'Elige tu casa.');
   err.textContent = '';
   $('btnEntrar').disabled = true;
