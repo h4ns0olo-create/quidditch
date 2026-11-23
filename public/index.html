@@ -1029,7 +1029,7 @@
   const PELOS_CHICO = ['atras', 'ondulado_chico', 'punta', 'rizos_cerrados', 'greñas', 'raya', 'alborotado'];
   const PELOS = ['#2b1d14', '#5a3a22', '#8a5a2b', '#c98e3c', '#ecd27f', '#b33a24', '#dcdcdc', '#4b6bd6', '#d35fd8'];
   const COLOR_ESCOBA = { clara: '#c9935a', oscura: '#6b4226', roja: '#9c3b2a', negra: '#2e2a2a', dorada: '#e2b13c' };
-  // ---------- Mascotas con color (y raza, el perro). Dibujadas sentadas, de frente: (0,0) = donde se apoyan, ~12 de alto.
+  // ---------- Mascotas con color. Dibujadas sentadas, de frente: (0,0) = donde se apoyan, ~12 de alto.
   const PELAJES = {
     lechuza: { rubia: ['Rubia', '#b48a5a', '#ead7ad', '#8e6a44'], blanca: ['Blanca', '#f4f1ea', '#ffffff', '#cfc6b6'], marron: ['Marrón oscuro', '#5e4130', '#a88462', '#3f2a1e'] },
     gato: { negro: ['Negro', '#2e2e33', '#4a4a52', '#1d1d21'], blanco: ['Blanco', '#f6f3ee', '#ffffff', '#d9d3c8'], naranja: ['Naranja', '#e8913a', '#f6c58a', '#c0661c'],
@@ -1039,7 +1039,6 @@
     conejo: { blanco: ['Blanco', '#f7f5f0', '#ffffff', '#e3ddd2'], gris: ['Gris clarito', '#c9ccd2', '#e8eaed', '#a3a7af'], negro: ['Negro', '#2e2c2e', '#4f4c4f', '#1c1b1c'],
       marron: ['Marrón', '#9a6a42', '#d2b08a', '#74492a'], manchas: ['Blanco con manchas', '#f7f5f0', '#ffffff', '#2e2c2e', '#2e2c2e'] },
   };
-  const RAZAS = [['golden', 'Golden'], ['pitbull', 'Pitbull'], ['poodle', 'Poodle'], ['pug', 'Pug'], ['yorkie', 'Yorkie']];
   const pelajeDe = (av) => { const t = PELAJES[av.mascota]; return t ? (t[av.mascotaColor] || Object.values(t)[0]) : null; };
   let OM = '#2b1d16';   // contorno de las mascotas (más claro en las negras, para que se vean sobre la túnica)
   const ojitos = (x, y, r, color = '#1a1412', borde = '') => [-1, 1].map((l) => `<circle cx="${l * x}" cy="${y}" r="${r}" fill="${color}"${borde ? ` stroke="${borde}" stroke-width=".18"` : ''}/><circle cx="${l * x + r * .35}" cy="${y - r * .35}" r="${r * .35}" fill="#fff"/>`).join('');
@@ -1084,7 +1083,7 @@
     g += `<path d="M-1.2,-.4 l-.4,.5 M-1.2,-.4 l0,.6 M-1.2,-.4 l.4,.5 M1.2,-.4 l-.4,.5 M1.2,-.4 l0,.6 M1.2,-.4 l.4,.5" stroke="#d9a441" stroke-width=".3" stroke-linecap="round"/>`;
     return g;
   }
-  function dibujoPerro(raza, id, [, c, cl, cd, sp]) {
+  function dibujoPerro(id, [, c, cl, cd, sp]) {
     const oreja = id === 'manchas' ? sp : cd, hocico = id === 'manchas' ? '#ffffff' : cl;
     const contorno = `stroke="${OM}" stroke-width=".3"`;
     const anillo = id === 'negro' || id === 'chocolate' ? '#c9b8a8' : '';
@@ -1092,7 +1091,7 @@
     const manchasCuerpo = id === 'manchas' ? `<ellipse cx="-1.6" cy="-2.8" rx="1.1" ry="1.3" fill="${sp}"/><ellipse cx="1.7" cy="-1.4" rx=".8" ry=".9" fill="${sp}"/>` : '';
     const manchaCara = (x, y) => id === 'manchas' ? `<ellipse cx="${x}" cy="${y}" rx="1" ry=".85" fill="${sp}"/>` : '';
     const nariz = (y, w = .5) => `<ellipse cy="${y}" rx="${w}" ry="${w * .75}" fill="#1a1412"/><path d="M0,${y + .35} L0,${y + .8} M0,${y + .8} Q-.5,${y + 1.2} -.9,${y + .9} M0,${y + .8} Q.5,${y + 1.2} .9,${y + .9}" fill="none" stroke="${OM}" stroke-width=".2" stroke-linecap="round"/>`;
-    if (raza === 'golden') {
+    {
       g += `<path d="M2.6,-1.2 Q5.6,-1.4 5.8,-4.8 Q5,-3.2 3.4,-3.4" fill="${c}" ${contorno}/>`;
       g += `<path d="M-3.2,0 Q-3.9,-5 -1.8,-6.2 L1.8,-6.2 Q3.9,-5 3.2,0 Z" fill="${c}" ${contorno}/>${manchasCuerpo}`;
       g += `<path d="M-1.6,-5.8 Q-1,-3 0,-2.6 Q1,-3 1.6,-5.8 Z" fill="${cl}" opacity=".85"/>`;
@@ -1100,46 +1099,6 @@
       g += `<ellipse cy="-8.1" rx="2.6" ry="2.4" fill="${c}" ${contorno}/>${manchaCara(1.2, -8.6)}<ellipse cy="-6.9" rx="1.45" ry="1.05" fill="${hocico}" ${contorno}/>`;
       g += [-1, 1].map((l) => `<ellipse cx="${l * 2.55}" cy="-7.6" rx="1" ry="2" transform="rotate(${l * -14} ${l * 2.55} -7.6)" fill="${oreja}" ${contorno}/>`).join('');
       g += ojitos(.95, -8.5, .36, '#1a1412', anillo) + nariz(-7.3);
-    } else if (raza === 'pitbull') {
-      g += `<path d="M2.8,-1.2 Q4.6,-1.6 5,-3.6" fill="none" stroke="${OM}" stroke-width="1.1" stroke-linecap="round"/><path d="M2.8,-1.2 Q4.6,-1.6 5,-3.6" fill="none" stroke="${c}" stroke-width=".6" stroke-linecap="round"/>`;
-      g += `<path d="M-3.6,0 Q-4.2,-5 -2.2,-6.2 L2.2,-6.2 Q4.2,-5 3.6,0 Z" fill="${c}" ${contorno}/>${manchasCuerpo}`;
-      g += `<path d="M-1.3,-6 Q0,-2 1.3,-6 Z" fill="#f6f2ea" opacity="${id === 'manchas' ? 0 : .9}"/>`;
-      g += [-1, 1].map((l) => `<rect x="${l * 1.6 - .8}" y="-3.2" width="1.6" height="3.2" rx=".6" fill="${c}" ${contorno}/>`).join('');
-      g += `<path d="M-3.2,-8.4 L-2.6,-10.6 L-1.3,-9.6 Z M3.2,-8.4 L2.6,-10.6 L1.3,-9.6 Z" fill="${oreja}" ${contorno} stroke-linejoin="round"/>`;
-      g += `<path d="M-3.2,-8.2 Q-3.2,-10.2 0,-10.3 Q3.2,-10.2 3.2,-8.2 Q3.3,-6.2 2.2,-5.7 L-2.2,-5.7 Q-3.3,-6.2 -3.2,-8.2 Z" fill="${c}" ${contorno}/>${manchaCara(1.4, -8.6)}`;
-      g += `<path d="M-2,-7.4 Q0,-8.1 2,-7.4 Q2.2,-5.7 0,-5.5 Q-2.2,-5.7 -2,-7.4 Z" fill="${hocico}" ${contorno}/>`;
-      g += `<path d="M-.4,-9.6 L-.2,-8.9 M.4,-9.6 L.2,-8.9" stroke="${cd}" stroke-width=".25" stroke-linecap="round"/>`;
-      g += ojitos(1.2, -8.3, .34, '#1a1412', anillo) + nariz(-7.2, .6);
-    } else if (raza === 'poodle') {
-      const bolas = (lista, color) => lista.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" ${contorno}/>`).join('');
-      g += `<path d="M2,-2.4 L3.6,-4.2" stroke="${OM}" stroke-width=".7" stroke-linecap="round"/><path d="M2,-2.4 L3.6,-4.2" stroke="${c}" stroke-width=".35"/>` + bolas([[3.9, -4.6, 1]], c);
-      g += [-1, 1].map((l) => `<rect x="${l * 1.1 - .45}" y="-2.6" width=".9" height="2.6" rx=".4" fill="${c}" ${contorno}/>`).join('') + bolas([[-1.1, -.5, .75], [1.1, -.5, .75]], c);
-      g += bolas([[-1.4, -4.6, 1.6], [1.4, -4.6, 1.6], [0, -3.4, 1.7]], c) + manchasCuerpo;
-      g += bolas([[-2.5, -7.2, 1.25], [-2.6, -6, 1.1], [2.5, -7.2, 1.25], [2.6, -6, 1.1]], oreja);
-      g += `<ellipse cy="-7.8" rx="1.9" ry="2" fill="${c}" ${contorno}/>` + bolas([[-1, -10, 1.1], [1, -10, 1.1], [0, -10.8, 1.2]], c) + manchaCara(.9, -8.2);
-      g += `<ellipse cy="-6.6" rx=".95" ry="1.05" fill="${hocico}" ${contorno}/>`;
-      g += ojitos(.75, -8, .3, '#1a1412', anillo) + nariz(-7, .38);
-    } else if (raza === 'pug') {
-      const masc = id === 'negro' ? '#141212' : '#2a2420';
-      g += `<circle cx="3.1" cy="-4.4" r=".9" fill="none" stroke="${OM}" stroke-width=".8"/><circle cx="3.1" cy="-4.4" r=".9" fill="none" stroke="${c}" stroke-width=".45"/>`;
-      g += `<ellipse cy="-2.9" rx="3.4" ry="3" fill="${c}" ${contorno}/>${manchasCuerpo}`;
-      g += [-1, 1].map((l) => `<rect x="${l * 1.3 - .6}" y="-2" width="1.2" height="2" rx=".5" fill="${c}" ${contorno}/>`).join('');
-      g += `<path d="M-2.9,-8.6 L-2.4,-10 L-1.2,-9.6 Z M2.9,-8.6 L2.4,-10 L1.2,-9.6 Z" fill="${masc}" ${contorno} stroke-linejoin="round"/>`;
-      g += `<ellipse cy="-7.7" rx="2.9" ry="2.5" fill="${c}" ${contorno}/>${manchaCara(1.5, -8.8)}`;
-      g += `<ellipse cy="-6.9" rx="1.8" ry="1.45" fill="${masc}"/>`;
-      g += `<path d="M-1,-9.3 Q0,-9.7 1,-9.3 M-.7,-8.85 Q0,-9.15 .7,-8.85" fill="none" stroke="${id === 'negro' ? '#555' : cd}" stroke-width=".25" stroke-linecap="round"/>`;
-      g += [-1, 1].map((l) => `<circle cx="${l * 1.25}" cy="-7.9" r=".62" fill="#1a1412" stroke="${id === 'negro' ? '#555' : OM}" stroke-width=".15"/><circle cx="${l * 1.25 + .22}" cy="-8.12" r=".2" fill="#fff"/>`).join('');
-      g += `<ellipse cy="-7" rx=".45" ry=".3" fill="#000"/><path d="M0,-6.7 L0,-6.3 Q-.5,-5.9 -.9,-6.2 M0,-6.3 Q.5,-5.9 .9,-6.2" fill="none" stroke="#555" stroke-width=".2" stroke-linecap="round"/>`;
-    } else {   // yorkie: pelo largo, cuerpo gris acero y cabeza del color elegido, con lacito
-      const cuerpo = mezclar(c, '#4a5562', id === 'manchas' ? .2 : .6);
-      g += `<path d="M2.2,-3 Q3.6,-4 3.2,-5.6" fill="none" stroke="${OM}" stroke-width=".9" stroke-linecap="round"/><path d="M2.2,-3 Q3.6,-4 3.2,-5.6" fill="none" stroke="${cuerpo}" stroke-width=".5" stroke-linecap="round"/>`;
-      g += `<path d="M-2.8,0 Q-2.6,-3.6 -1.4,-5.6 L1.4,-5.6 Q2.6,-3.6 2.8,0 Q2,-.5 1.4,0 Q.7,-.5 0,0 Q-.7,-.5 -1.4,0 Q-2,-.5 -2.8,0 Z" fill="${cuerpo}" ${contorno}/>`;
-      g += `<path d="M-1.6,-1.4 L-1.4,-.2 M-.5,-2 L-.5,-.3 M.5,-2 L.5,-.3 M1.6,-1.4 L1.4,-.2" stroke="${mezclar(cuerpo, '#000000', .25)}" stroke-width=".2"/>`;
-      g += `<path d="M-1.9,-8.4 L-2.3,-11.2 L-.6,-9.6 Z M1.9,-8.4 L2.3,-11.2 L.6,-9.6 Z" fill="${c}" ${contorno} stroke-linejoin="round"/><path d="M-1.8,-9 L-2,-10.4 L-1.1,-9.6 Z M1.8,-9 L2,-10.4 L1.1,-9.6 Z" fill="#e8a0a8" opacity=".7"/>`;
-      g += `<path d="M-2.2,-7.8 Q-2.4,-10 0,-10 Q2.4,-10 2.2,-7.8 Q2.6,-5.6 1.4,-4.8 Q0,-5.4 -1.4,-4.8 Q-2.6,-5.6 -2.2,-7.8 Z" fill="${c}" ${contorno}/>${manchaCara(1, -8.4)}`;
-      g += `<path d="M-1,-6.4 Q0,-4.4 1,-6.4" fill="${cl}" opacity=".8"/>`;
-      g += `<path d="M0,-10 L-1,-10.6 L-1,-9.5 Z M0,-10 L1,-10.6 L1,-9.5 Z" fill="#e0457b" stroke="#8a1f45" stroke-width=".2"/><circle cy="-10" r=".3" fill="#c0325f"/>`;
-      g += ojitos(.85, -8, .32, '#1a1412', anillo) + nariz(-7, .4);
     }
     return g;
   }
@@ -1151,7 +1110,7 @@
     if (av.mascota === 'gato') return dibujoGato(id, p);
     if (av.mascota === 'conejo') return dibujoConejo(id, p);
     if (av.mascota === 'lechuza') return dibujoLechuza(id, p);
-    return dibujoPerro(RAZAS.some((r) => r[0] === av.raza) ? av.raza : 'golden', id, p);
+    return dibujoPerro(id, p);
   }
 
   const OPCIONES = [
@@ -1170,7 +1129,6 @@
     ['escoba', 'Escoba', [['clasica', 'Clásica'], ['veloz', 'Veloz'], ['antigua', 'Antigua']]],
     ['escobaColor', 'Madera', Object.entries(COLOR_ESCOBA).map(([k, c]) => [k, c, k === 'dorada' ? 'escoba_dorada' : null])],
     ['mascota', 'Mascota', [['ninguna', 'Nada'], ['lechuza', '🦉 Lechuza'], ['gato', '🐈 Gato'], ['perro', '🐶 Perro'], ['conejo', '🐰 Conejo'], ['murcielago', '🦇 Murciélago'], ['sapo', '🐸 Sapo'], ['ratita', '🐭 Ratita'], ['snitch', '✨ Snitch', 'snitch_mascota']]],
-    ['raza', 'Raza del perro', RAZAS],
     ['mascotaColor', 'Color de la mascota', []],
     ['aura', 'Aura', [[0, 'Sin aura'], [1, '✨ Aura dorada', 'aura']]],
   ];
@@ -1181,7 +1139,7 @@
     snitch_mascota: { nombre: 'Snitch mascota', como: 'Atrapa la snitch en un partido o entrenamiento' },
     campeon: { nombre: 'Laurel de campeón', como: 'Gana un partido oficial' },
   };
-  const AV_BASE = { genero: 'chica', piel: 1, pelo: 'liso', peloColor: 1, ojos: 0, expresion: 'seria', pecas: 0, maquillaje: 'ninguno', accesorios: [], uniforme: 'escolar', escoba: 'clasica', escobaColor: 'clara', mascota: 'ninguna', mascotaColor: '', raza: 'golden', aura: 0 };
+  const AV_BASE = { genero: 'chica', piel: 1, pelo: 'liso', peloColor: 1, ojos: 0, expresion: 'seria', pecas: 0, maquillaje: 'ninguno', accesorios: [], uniforme: 'escolar', escoba: 'clasica', escobaColor: 'clara', mascota: 'ninguna', mascotaColor: '', aura: 0 };
   // Accesorios: se pueden combinar, pero en la cabeza solo uno a la vez
   const CABEZA = ['vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
   const lleva = (av, id) => (av.accesorios || []).includes(id);
@@ -1595,7 +1553,6 @@
     $('ed-jinete').innerHTML = `<svg viewBox="-30 -28 52 46">${jinete(null, col.c, col.a, false, miAvatar)}</svg>`;
     caja.innerHTML = OPCIONES.map(([k, titulo, ops0, multi]) => {
       let ops = ops0;
-      if (k === 'raza' && miAvatar.mascota !== 'perro') return '';
       if (k === 'mascotaColor') {
         const t = PELAJES[miAvatar.mascota];
         if (!t) return '';

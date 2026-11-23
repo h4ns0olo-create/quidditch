@@ -59,7 +59,7 @@ cualquiera puede usar cualquiera), piel, color de pelo, color de ojos, expresió
 solo se ve en el retrato), accesorios combinables (gafas, bufanda, aretes en las dos orejas y **un** objeto de cabeza:
 gafas de vuelo, cinta deportiva, moño, flor, diadema, corona o laurel de campeón), uniforme del retrato (escolar o de quidditch), escoba (clásica, veloz o antigua) y su madera, mascota
 (lechuza, gato, perro, conejo, murciélago, sapo, ratita o snitch; la lechuza, el gato, el perro y el conejo tienen varios
-colores y el perro además 5 razas: golden, pitbull, poodle, pug y yorkie; el gato, el perro y el conejo van en la punta
+colores; el gato, el perro y el conejo van en la punta
 de la escoba, el murciélago y la lechuza vuelan al lado) y aura. El avatar queda guardado en el celular para la próxima
 vez. En el campo todos llevan siempre el uniforme de
 quidditch del equipo.

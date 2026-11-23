@@ -85,7 +85,6 @@ const AVATAR = {
   escoba: ['clasica', 'veloz', 'antigua'],
   escobaColor: ['clara', 'oscura', 'roja', 'negra', 'dorada'],
   mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'conejo', 'murcielago', 'sapo', 'ratita', 'snitch'],
-  raza: ['golden', 'pitbull', 'poodle', 'pug', 'yorkie'],
 };
 // Colores posibles de cada mascota (el primero es el que sale si no se elige)
 const PELAJES = {

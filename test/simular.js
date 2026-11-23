@@ -109,7 +109,7 @@ async function main() {
     vestido.mandar({ t: 'entrar', nombre: 'Vestido', casa: 'Invitado', codigo: 'FIESTA', avatar: { accesorios: ['gafas', 'mago', 'vuelo', 'cinta', 'antifaz', 'gafas', 'bufanda'], mascota: 'perro', raza: 'pug', mascotaColor: 'siames', maquillaje: 'glam', fondo: 'castillo', piel: 99, truco: 'x', escoba: 'robusta' } });
     await vestido.recibir((m) => m.t === 'estado');
     const av = vestido.estado.participantes.find((p) => p.nombre === 'Vestido').avatar;
-    comprobar(av.mascota === 'perro' && av.raza === 'pug' && av.mascotaColor === 'dorado' && av.maquillaje === 'ninguno' && !('fondo' in av) && av.piel === 0 && av.escoba === 'clasica' && !('truco' in av), 'el aspecto elegido se guarda y se ignoran valores raros (la escoba robusta y el maquillaje glam ya no existen; un perro no puede ser siamés)');
+    comprobar(av.mascota === 'perro' && !('raza' in av) && av.mascotaColor === 'dorado' && av.maquillaje === 'ninguno' && !('fondo' in av) && av.piel === 0 && av.escoba === 'clasica' && !('truco' in av), 'el aspecto elegido se guarda y se ignoran valores raros (la escoba robusta y el maquillaje glam ya no existen; un perro no puede ser siamés)');
     comprobar(JSON.stringify(av.accesorios) === JSON.stringify(['gafas', 'vuelo', 'bufanda']), 'accesorios: gafas y bufanda juntos, en la cabeza solo uno, sin antifaz ni sombrero de mago');
     vestido.mandar({ t: 'salir' });
     await vestido.recibir((m) => m.t === 'fuera');
