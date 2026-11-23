@@ -65,7 +65,9 @@ de la escoba, el murciélago y la lechuza vuelan al lado) y aura. El avatar qued
 vez. En el campo todos llevan siempre el uniforme de
 quidditch del equipo.
 **Premios** (quedan guardados en el celular): escoba dorada (nivel 15 en la práctica), corona (ganar un duelo),
-aura dorada (jugador destacado), snitch mascota (atrapar la snitch), laurel de campeón (ganar un partido oficial),
+aura dorada (jugador destacado), snitch mascota (atrapar la snitch), medalla (ganar un partido oficial), laurel de
+campeón (ganar 2 partidos oficiales), trofeo (ganar la final del torneo: al crear el partido oficial, la administración
+marca la casilla "Es la final del torneo"),
 unicornio (nivel 60 en la práctica libre, cualquier posición) y unicornio dorado (nivel 100). Quien ya tenía esos
 niveles de antes recibe los premios al abrir la página.
 **Palco y capitanes**: comentaristas, espectadores y administración aparecen con su

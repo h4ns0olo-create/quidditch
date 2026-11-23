@@ -95,7 +95,7 @@ const PELAJES = {
   unicornio: ['blanco', 'dorado'],
 };
 // Accesorios: se pueden llevar varios a la vez, pero en la cabeza solo uno
-const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
+const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'medalla', 'trofeo', 'vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
 const DE_CABEZA = ['vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
 function limpiarAvatar(a) {
   const x = a && typeof a === 'object' ? a : {};
@@ -254,6 +254,7 @@ function estadoPublico(sala, esInvitado) {
   return {
     codigo: sala.codigo,
     tipo: sala.tipo,
+    final: !!sala.final,
     fase: sala.fase,
     max: MAX_PARTICIPANTES,
     equipos: sala.equipos,
@@ -323,8 +324,9 @@ function crearSala(ws, m) {
   if (m.equipoA === m.equipoB && tipo === 'oficial') return error(ws, 'En un partido oficial los dos equipos deben ser de casas distintas.');
   const formato = tipo === 'oficial' ? 'oficial' : tipo === 'duelo' ? 'duelo' : FORMATOS.includes(m.formato) ? m.formato : 'e5';
   const sala = nuevaSala(codigo, { A: m.equipoA, B: m.equipoB }, tipo, formato);
+  sala.final = tipo === 'oficial' && m.final === true;   // final del torneo: los ganadores se llevan el trofeo
   salas.set(codigo, sala);
-  registrar(sala, tipo === 'duelo' ? `Sala de duelos ${codigo} creada.` : `${tipo === 'entrenamiento' ? 'Entrenamiento' : 'Partido'} ${codigo} creado: ${sala.nombres.A} contra ${sala.nombres.B}.`);
+  registrar(sala, tipo === 'duelo' ? `Sala de duelos ${codigo} creada.` : `${tipo === 'entrenamiento' ? 'Entrenamiento' : sala.final ? '🏆 Final del torneo' : 'Partido'} ${codigo} creado: ${sala.nombres.A} contra ${sala.nombres.B}.`);
   enviar(ws, { t: 'sala_creada', codigo, equipos: sala.equipos, nombres: sala.nombres, tipo, formato });
 }
 

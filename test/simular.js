@@ -103,6 +103,14 @@ async function main() {
     creador.mandar({ t: 'crear_sala', clave: CLAVE, codigo: 'fiesta', equipoA: 'Slytherin', equipoB: 'Gryffindor' });
     const creada = await creador.recibir((m) => m.t === 'sala_creada');
     comprobar(creada.codigo === 'FIESTA' && creada.equipos.A === 'Slytherin', 'sala FIESTA creada: Slytherin contra Gryffindor');
+    creador.mandar({ t: 'crear_sala', clave: CLAVE, codigo: 'GRANFINAL', equipoA: 'Ravenclaw', equipoB: 'Hufflepuff', final: true });
+    await creador.recibir((m) => m.t === 'sala_creada' && m.codigo === 'GRANFINAL');
+    const miron = await nuevo('Miron');
+    await miron.entrar('GRANFINAL', 'Invitado');
+    await esperar(100);
+    comprobar(miron.estado.final === true, 'se puede marcar un partido oficial como final del torneo');
+    miron.mandar({ t: 'salir' });
+    await miron.recibir((m) => m.t === 'fuera');
 
     console.log('\n2) Entrada: casa o Invitado');
     const vestido = await nuevo('Vestido');
