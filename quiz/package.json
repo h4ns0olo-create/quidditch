@@ -1,0 +1,14 @@
+{
+  "name": "quiz-clases",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quizzes cortos para las clases del rol (proyecto separado del Quidditch)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/simular.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

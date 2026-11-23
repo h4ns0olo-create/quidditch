@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b2118">
+<title>Quiz de clase</title>
+<style>
+  :root {
+    --fondo: #f4ecda; --tarjeta: #fffaf0; --tinta: #2b2118; --suave: #6f6252; --borde: #dccfb4;
+    --acento: #6b3fa0; --acento2: #4e2c78; --bien: #2f7d32; --mal: #b3261e;
+    --gry: #7f0909; --gry-t: #ffd34e; --huf: #eeb939; --huf-t: #1a1a1a;
+    --rav: #1b2a5c; --rav-t: #d9b47a; --sly: #1a472a; --sly-t: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--fondo); color: var(--tinta); }
+  body { font: 17px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
+  main { max-width: 520px; margin: 0 auto; padding: 16px 16px 48px; }
+  h1 { font-size: 26px; margin: 8px 0 4px; }
+  h2 { font-size: 21px; margin: 18px 0 8px; }
+  h3 { font-size: 18px; margin: 14px 0 6px; }
+  p { margin: 8px 0; }
+  .suave { color: var(--suave); font-size: 15px; }
+  .tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; margin: 12px 0; }
+  label { display: block; font-weight: 600; margin: 12px 0 6px; }
+  input[type=text], input[type=password], textarea, select {
+    width: 100%; font: inherit; font-size: 17px; padding: 12px; border: 1px solid var(--borde);
+    border-radius: 10px; background: #fff; color: var(--tinta);
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  button { font: inherit; cursor: pointer; border: 0; border-radius: 12px; padding: 14px 16px; }
+  .btn { display: block; width: 100%; background: var(--acento); color: #fff; font-weight: 700; font-size: 18px; margin: 12px 0; }
+  .btn:active { background: var(--acento2); }
+  .btn:disabled { opacity: .55; }
+  .btn2 { display: block; width: 100%; background: transparent; color: var(--acento); border: 2px solid var(--acento); font-weight: 600; margin: 10px 0; }
+  .btn-peligro { background: transparent; color: var(--mal); border: 2px solid var(--mal); }
+  .enlace { background: none; color: var(--acento); text-decoration: underline; padding: 8px 0; font-size: 16px; }
+  .fila { display: flex; gap: 8px; }
+  .fila > * { flex: 1; }
+  .error { color: var(--mal); font-weight: 600; min-height: 1.4em; margin: 8px 0; white-space: pre-line; }
+  .ok { color: var(--bien); font-weight: 600; }
+  [hidden] { display: none !important; }
+
+  /* Casas */
+  .casas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .casa { padding: 14px 6px; font-weight: 700; font-size: 16px; border: 3px solid transparent; opacity: .9; }
+  .casa[aria-pressed=true] { border-color: var(--tinta); opacity: 1; box-shadow: 0 0 0 2px #fff inset; }
+  .c-Gryffindor { background: var(--gry); color: var(--gry-t); }
+  .c-Hufflepuff { background: var(--huf); color: var(--huf-t); }
+  .c-Ravenclaw { background: var(--rav); color: var(--rav-t); }
+  .c-Slytherin { background: var(--sly); color: var(--sly-t); }
+  .punto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+  /* Pregunta */
+  .cabecera { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .reloj { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .reloj.poco { color: var(--mal); }
+  .barra { height: 10px; background: var(--borde); border-radius: 6px; overflow: hidden; margin: 8px 0 14px; }
+  .barra > div { height: 100%; background: var(--acento); width: 100%; }
+  .barra.poco > div { background: var(--mal); }
+  .enunciado { font-size: 21px; font-weight: 700; margin: 10px 0 16px; overflow-wrap: anywhere; }
+  .opcion { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; background: var(--tarjeta);
+    color: var(--tinta); border: 2px solid var(--borde); margin: 10px 0; padding: 16px 14px; font-size: 18px; overflow-wrap: anywhere; }
+  .opcion b { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--acento); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; }
+  .opcion.elegida { border-color: var(--acento); background: #efe6fb; }
+  .opcion:disabled { opacity: .7; }
+  .aviso { text-align: center; font-weight: 700; min-height: 1.5em; }
+
+  /* Esperando */
+  .giro { width: 46px; height: 46px; border: 5px solid var(--borde); border-top-color: var(--acento); border-radius: 50%;
+    margin: 24px auto; animation: giro 1s linear infinite; }
+  @keyframes giro { to { transform: rotate(360deg); } }
+  .centro { text-align: center; }
+
+  /* Resultados */
+  .podio { list-style: none; padding: 0; margin: 0; }
+  .podio li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px;
+    border-radius: 12px; margin: 8px 0; font-weight: 700; }
+  .podio .valor { font-size: 20px; text-align: right; }
+  .podio small { display: block; font-weight: 400; font-size: 13px; opacity: .9; }
+  .grande { font-size: 30px; font-weight: 800; }
+  .lista-casa { margin: 10px 0; }
+  .lista-casa h4 { margin: 0; padding: 8px 12px; border-radius: 10px 10px 0 0; }
+  .lista-casa ol { margin: 0; padding: 4px 12px 8px 36px; background: var(--tarjeta); border: 1px solid var(--borde);
+    border-top: 0; border-radius: 0 0 10px 10px; }
+  .lista-casa li { padding: 3px 0; display: list-item; }
+  .lista-casa li span { float: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .imagen-previa { width: 100%; border: 1px solid var(--borde); border-radius: 10px; margin-top: 8px; }
+
+  /* Profesor */
+  .codigo { font-size: 48px; font-weight: 900; letter-spacing: 8px; text-align: center; margin: 6px 0; font-family: ui-monospace, Menlo, monospace; }
+  .enlace-quiz { text-align: center; font-size: 14px; word-break: break-all; color: var(--suave); }
+  .pregunta-form { border: 1px solid var(--borde); border-radius: 12px; padding: 10px 12px 12px; margin: 12px 0; background: #fff; }
+  .pregunta-form legend { font-weight: 700; padding: 0 6px; }
+  .alt { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .alt input[type=radio] { width: 26px; height: 26px; flex: none; accent-color: var(--bien); }
+  .alt input[type=text] { padding: 10px; }
+  .tabla { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .tabla td { padding: 8px 4px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
+  .tabla td:last-child { text-align: right; width: 44px; }
+  .borrar { background: none; padding: 6px 8px; color: var(--mal); font-size: 18px; }
+  .interruptor { display: flex; align-items: center; gap: 10px; font-weight: 400; margin: 10px 0; }
+  .interruptor input { width: 24px; height: 24px; flex: none; accent-color: var(--acento); }
+  .contadores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+  .contadores div { border-radius: 8px; padding: 6px 4px; text-align: center; font-size: 13px; font-weight: 700; }
+  pre.ejemplo { background: #fff; border: 1px dashed var(--borde); border-radius: 8px; padding: 10px; font-size: 14px; white-space: pre-wrap; }
+  .red { position: fixed; left: 0; right: 0; top: 0; background: var(--mal); color: #fff; text-align: center;
+    padding: 8px; font-weight: 700; z-index: 9; }
+</style>
+</head>
+<body>
+<div class="red" id="avisoRed" hidden>Sin conexión… reintentando</div>
+<main>
+
+<!-- ============ ALUMNO: ENTRAR ============ -->
+<section class="vista" id="vEntrar" hidden>
+  <h1>🪄 Quiz de clase</h1>
+  <p class="suave">Escribe el código que te dio tu profesor, el nombre de tu personaje y tu casa.</p>
+  <label for="codigo">Código del quiz</label>
+  <input type="text" id="codigo" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ej.: K7PX">
+  <label for="nombre">Nombre de tu personaje</label>
+  <input type="text" id="nombre" maxlength="30" autocomplete="off" placeholder="Ej.: Elara Moonwhistle">
+  <label>Tu casa</label>
+  <div class="casas" id="casas"></div>
+  <p class="error" id="errorEntrar"></p>
+  <button class="btn" id="btnEntrar">Empezar</button>
+  <p class="suave">Tienes un solo intento. Cada pregunta tiene un tiempo límite y no se puede volver atrás.</p>
+  <p class="centro"><button class="enlace" id="irProfe">Soy profesor/a →</button></p>
+</section>
+
+<!-- ============ ALUMNO: PREGUNTA ============ -->
+<section class="vista" id="vPregunta" hidden>
+  <div class="cabecera">
+    <span class="suave" id="pNumero"></span>
+    <span class="reloj" id="pReloj"></span>
+  </div>
+  <div class="barra" id="pBarra"><div></div></div>
+  <div class="enunciado" id="pTexto"></div>
+  <div id="pOpciones"></div>
+  <p class="aviso" id="pAviso"></p>
+</section>
+
+<!-- ============ ALUMNO: ESPERANDO ============ -->
+<section class="vista centro" id="vEsperando" hidden>
+  <h1>¡Terminaste!</h1>
+  <p id="eQuien"></p>
+  <div class="giro"></div>
+  <p><b>Esperando resultados…</b></p>
+  <p class="suave">Tu profesor los publicará cuando cierre el quiz. Puedes dejar esta página abierta o volver más tarde desde este mismo celular.</p>
+</section>
+
+<!-- ============ ALUMNO: RESULTADOS ============ -->
+<section class="vista" id="vResultados" hidden>
+  <h1>Resultados</h1>
+  <p class="suave" id="rCurso"></p>
+  <div class="tarjeta centro">
+    <div id="rQuien"></div>
+    <div class="grande" id="rPropio"></div>
+    <div class="suave">aciertos</div>
+  </div>
+  <div id="rCasas"></div>
+  <div id="rLista"></div>
+  <div id="rImagen"></div>
+  <button class="btn2" id="btnOtro">Entrar a otro quiz</button>
+</section>
+
+<!-- ============ PROFESOR: CONTRASEÑA ============ -->
+<section class="vista" id="vProfeLogin" hidden>
+  <h1>Profesores</h1>
+  <p class="suave">Escribe la contraseña de tu curso.</p>
+  <label for="clave">Contraseña</label>
+  <input type="password" id="clave" autocomplete="current-password" autocapitalize="none" spellcheck="false">
+  <p class="error" id="errorLogin"></p>
+  <button class="btn" id="btnLogin">Entrar</button>
+  <p class="centro"><button class="enlace" id="volverAlumno">← Soy alumno/a</button></p>
+</section>
+
+<!-- ============ PROFESOR: PANEL ============ -->
+<section class="vista" id="vProfe" hidden>
+  <div class="cabecera">
+    <h1 id="profeCurso"></h1>
+    <button class="enlace" id="btnSalir">Salir</button>
+  </div>
+
+  <div id="panel"></div>
+
+  <div id="crear" hidden>
+    <h2 id="crearTitulo">Nuevo quiz</h2>
+    <p class="error" id="avisoReemplazo" hidden>Ojo: al abrir este quiz se borra el que está abierto ahora (con sus respuestas).</p>
+
+    <details class="tarjeta">
+      <summary><b>Pegar todas las preguntas de una vez</b></summary>
+      <p class="suave">Escribe cada pregunta y debajo sus 3 alternativas con a), b), c). Marca la correcta con un asterisco *.</p>
+      <pre class="ejemplo">1. ¿Qué criatura vigila la cámara?
+a) Un hipogrifo
+b) Un dragón *
+c) Un escreguto
+
+2. ¿De qué color es la poción?
+a) Azul
+b) Verde *
+c) Roja</pre>
+      <textarea id="textoPegado" rows="8" placeholder="Pega aquí tus preguntas"></textarea>
+      <p class="error" id="errorPegado"></p>
+      <button class="btn2" id="btnLeerTexto">Pasar al formulario</button>
+    </details>
+
+    <div id="formPreguntas"></div>
+
+    <label for="segundos">Segundos por pregunta</label>
+    <select id="segundos"></select>
+
+    <p class="error" id="errorCrear"></p>
+    <button class="btn" id="btnAbrir">Abrir quiz y crear código</button>
+    <button class="btn2" id="btnCancelarNuevo" hidden>Cancelar</button>
+    <button class="enlace" id="btnLimpiar">Vaciar el formulario</button>
+  </div>
+</section>
+
+</main>
+
+<script>
+'use strict';
+// ------------------------------------------------------------ utilidades
+const $ = (id) => document.getElementById(id);
+const CASAS = ['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherin'];
+const COLORES = {
+  Gryffindor: ['#7f0909', '#ffd34e'], Hufflepuff: ['#eeb939', '#1a1a1a'],
+  Ravenclaw: ['#1b2a5c', '#d9b47a'], Slytherin: ['#1a472a', '#e0e0e0'],
+};
+const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+const guardado = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+function el(tag, props, ...hijos) {
+  const e = document.createElement(tag);
+  if (props) for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') e.className = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const h of hijos.flat()) if (h !== null && h !== undefined && h !== false) e.append(h.nodeType ? h : String(h));
+  return e;
+}
+const coma = (n) => String(n).replace('.', ',');
+function ver(id) {
+  document.querySelectorAll('.vista').forEach((v) => { v.hidden = v.id !== id; });
+  window.scrollTo(0, 0);
+}
+let temporizador = null;     // un solo temporizador de consulta activo a la vez
+function programar(fn, ms) { clearTimeout(temporizador); temporizador = setTimeout(fn, ms); }
+function parar() { clearTimeout(temporizador); temporizador = null; }
+
+async function api(ruta, datos, sesion) {
+  for (let intento = 0; ; intento++) {
+    try {
+      const ctrl = new AbortController();
+      const corte = setTimeout(() => ctrl.abort(), 20000);
+      const headers = { 'Content-Type': 'application/json' };
+      if (sesion) headers['X-Sesion'] = sesion;
+      const r = await fetch(ruta, { method: 'POST', headers, body: JSON.stringify(datos || {}), signal: ctrl.signal });
+      clearTimeout(corte);
+      const j = await r.json();
+      $('avisoRed').hidden = true;
+      if (r.status === 401) j.sinSesion = true;
+      return j;
+    } catch (e) {
+      $('avisoRed').hidden = false;
+      if (intento >= 6) return { error: 'Sin conexión. Revisa tu internet y vuelve a intentarlo.', red: true };
+      await esperar(1500 * (intento + 1));
+    }
+  }
+}
+
+// ------------------------------------------------------------ ALUMNO
+let alumno = null;        // { codigo, token }
+let casaElegida = null;
+const limpiarCodigo = (t) => String(t || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+function pintarCasas() {
+  const cont = $('casas');
+  cont.innerHTML = '';
+  for (const c of CASAS) {
+    cont.append(el('button', {
+      class: 'casa c-' + c, type: 'button', 'aria-pressed': String(casaElegida === c),
+      onclick: () => { casaElegida = c; pintarCasas(); },
+    }, c));
+  }
+}
+
+function mostrarEntrar(mensaje) {
+  parar();
+  pararReloj();
+  const ultimo = guardado.get('ultimoAlumno');
+  if (ultimo && !$('nombre').value) { $('nombre').value = ultimo.nombre || ''; casaElegida = ultimo.casa || null; }
+  pintarCasas();
+  $('errorEntrar').textContent = mensaje || '';
+  $('btnEntrar').disabled = false;
+  ver('vEntrar');
+}
+
+async function entrar() {
+  const codigo = limpiarCodigo($('codigo').value);
+  const nombre = $('nombre').value.trim();
+  const err = $('errorEntrar');
+  if (!codigo) return (err.textContent = 'Escribe el código del quiz.');
+  if (!nombre) return (err.textContent = 'Escribe el nombre de tu personaje.');
+  if (!casaElegida) return (err.textContent = 'Elige tu casa.');
+  err.textContent = '';
+  $('btnEntrar').disabled = true;
+  // Este celular ya entró a este quiz: retomar en vez de crear otro intento.
+  const previo = guardado.get('quiz_' + codigo);
+  if (previo) {
+    alumno = { codigo, token: previo };
+    guardado.set('quizActual', alumno);
+    if (await estadoAlumno(true)) return;
+  }
+  const r = await api('/api/alumno/entrar', { codigo, nombre, casa: casaElegida });
+  $('btnEntrar').disabled = false;
+  if (r.error) return (err.textContent = r.error);
+  alumno = { codigo: r.codigo, token: r.token };
+  guardado.set('quiz_' + r.codigo, r.token);
+  guardado.set('quizActual', alumno);
+  guardado.set('ultimoAlumno', { nombre, casa: casaElegida });
+  estadoAlumno();
+}
+
+// Pregunta al servidor en qué punto está el alumno y muestra la pantalla que toca.
+// Devuelve false si el intento ya no existe.
+async function estadoAlumno(desdeEntrar) {
+  if (!alumno) return false;
+  const yo = alumno;
+  const e = await api('/api/alumno/estado', { token: yo.token });
+  if (alumno !== yo) return true;              // mientras tanto cambió de quiz
+  if (e.error) { programar(() => estadoAlumno(), 3000); return true; }
+  if (e.fase === 'no-existe') {
+    guardado.del('quiz_' + yo.codigo);
+    guardado.del('quizActual');
+    alumno = null;
+    if (!desdeEntrar) mostrarEntrar('Tu intento anterior ya no existe (el quiz terminó o el profesor lo borró).');
+    return false;
+  }
+  if (e.fase === 'pregunta') mostrarPregunta(e);
+  else if (e.fase === 'esperando') {
+    pararReloj();
+    $('eQuien').textContent = `${e.nombre} · ${e.casa} · ${e.curso}`;
+    if ($('vEsperando').hidden) ver('vEsperando');
+    programar(() => estadoAlumno(), 4000);
+  } else if (e.fase === 'resultados') {
+    pararReloj();
+    mostrarResultadosAlumno(e);
+    programar(() => estadoAlumno(), 10000);   // por si el profesor activa la lista o la imagen
+  }
+  return true;
+}
+
+// ---- pregunta con cuenta atrás (el tiempo real lo controla el servidor)
+let relojId = null;
+let preguntaActual = null;
+function pararReloj() { clearInterval(relojId); relojId = null; }
+
+function mostrarPregunta(e) {
+  parar();
+  pararReloj();
+  const p = e.pregunta;
+  preguntaActual = { numero: p.numero, bloqueada: false };
+  $('pNumero').textContent = `Pregunta ${p.numero} de ${p.total}`;
+  $('pTexto').textContent = p.texto;
+  $('pAviso').textContent = '';
+  const cont = $('pOpciones');
+  cont.innerHTML = '';
+  p.opciones.forEach((texto, i) => {
+    cont.append(el('button', { class: 'opcion', type: 'button', onclick: (ev) => elegir(i, ev.currentTarget) },
+      el('b', null, 'ABC'[i]), el('span', null, texto)));
+  });
+  ver('vPregunta');
+  const total = p.segundos * 1000;
+  const fin = performance.now() + p.restanteMs;
+  const tic = () => {
+    const resta = Math.max(0, fin - performance.now());
+    const seg = Math.ceil(resta / 1000);
+    $('pReloj').textContent = seg + ' s';
+    $('pReloj').classList.toggle('poco', seg <= 5);
+    $('pBarra').classList.toggle('poco', seg <= 5);
+    $('pBarra').firstElementChild.style.width = (100 * resta / total) + '%';
+    if (resta <= 0) {
+      pararReloj();
+      if (!preguntaActual.bloqueada) {
+        preguntaActual.bloqueada = true;
+        cont.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+        $('pAviso').textContent = '⏰ ¡Se acabó el tiempo!';
+      }
+      programar(() => estadoAlumno(), 1800);
+    }
+  };
+  tic();
+  relojId = setInterval(tic, 100);
+}
+
+async function elegir(i, boton) {
+  if (!preguntaActual || preguntaActual.bloqueada) return;
+  preguntaActual.bloqueada = true;
+  pararReloj();
+  boton.classList.add('elegida');
+  $('pOpciones').querySelectorAll('button').forEach((b) => { b.disabled = true; });
+  $('pAviso').textContent = 'Enviando…';
+  const r = await api('/api/alumno/responder', { token: alumno.token, numero: preguntaActual.numero, opcion: i });
+  if (r.tarde) {
+    $('pAviso').textContent = '⏰ Llegó tarde: esta respuesta no cuenta.';
+    await esperar(1500);
+  } else {
+    $('pAviso').textContent = '✓ Respuesta enviada';
+    await esperar(500);
+  }
+  estadoAlumno();
+}
+
+// ---- resultados
+let ultimoResultadoAlumno = '';
+function mostrarResultadosAlumno(e) {
+  const firma = JSON.stringify([e.resultados, e.mostrarLista, e.imagenPermitida, e.propio]);
+  if (firma === ultimoResultadoAlumno && !$('vResultados').hidden) return;
+  ultimoResultadoAlumno = firma;
+  $('rCurso').textContent = e.curso;
+  $('rQuien').textContent = `${e.nombre} · ${e.casa}`;
+  $('rPropio').textContent = `${e.propio.aciertos}/${e.propio.total}`;
+  pintarCasasResultado($('rCasas'), e.resultados);
+  const lista = $('rLista');
+  lista.innerHTML = '';
+  if (e.mostrarLista && e.resultados.lista) pintarLista(lista, e.resultados);
+  const img = $('rImagen');
+  img.innerHTML = '';
+  if (e.imagenPermitida && e.resultados.lista) pintarZonaImagen(img, e.resultados);
+  if ($('vResultados').hidden) ver('vResultados');
+}
+
+function ordenCasas(r) {
+  const clave = r.modo === 'promedio' ? 'promedio' : 'suma';
+  return [...r.casas].sort((a, b) => b[clave] - a[clave]);
+}
+function valorCasa(c, modo) {
+  return modo === 'promedio'
+    ? { grande: coma(c.promedio), chico: 'promedio por alumno' }
+    : { grande: String(c.suma), chico: c.suma === 1 ? 'punto' : 'puntos' };
+}
+
+function pintarCasasResultado(cont, r) {
+  cont.innerHTML = '';
+  cont.append(el('h2', null, r.modo === 'promedio' ? 'Casas (promedio por alumno)' : 'Casas (suma de puntos)'));
+  const ol = el('ol', { class: 'podio' });
+  ordenCasas(r).forEach((c, i) => {
+    const v = valorCasa(c, r.modo);
+    ol.append(el('li', { class: 'c-' + c.casa },
+      el('span', null, `${i + 1}. ${c.casa}`, el('small', null, `${c.alumnos} ${c.alumnos === 1 ? 'alumno' : 'alumnos'}`)),
+      el('span', { class: 'valor' }, v.grande, el('small', null, v.chico))));
+  });
+  cont.append(ol);
+}
+
+function pintarLista(cont, r) {
+  cont.append(el('h2', null, 'Lista de participantes'));
+  for (const casa of CASAS) {
+    const suyos = r.lista.filter((a) => a.casa === casa);
+    if (!suyos.length) continue;
+    cont.append(el('div', { class: 'lista-casa' },
+      el('h4', { class: 'c-' + casa }, casa),
+      el('ol', null, suyos.map((a) => el('li', null, a.nombre, el('span', null, `${a.aciertos}/${a.total}`))))));
+  }
+}
+
+// ------------------------------------------------------------ IMAGEN DE RESULTADOS (PNG)
+// Se dibuja en el propio celular. Cuatro bloques (uno por casa) en 2 columnas;
+// caben de sobra 20 alumnos por casa (80 en total) con letra legible.
+function dibujarImagen(r) {
+  const W = 1080, M = 40, GAP = 28, COLW = (W - 2 * M - GAP) / 2;
+  const CAB = 104, FILA = 40, PIE_BLOQUE = 18;
+  const FUENTE = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+  const porCasa = {};
+  CASAS.forEach((c) => { porCasa[c] = r.lista.filter((a) => a.casa === c); });
+  const altoBloque = (c) => CAB + Math.max(1, porCasa[c].length) * FILA + PIE_BLOQUE;
+  const fila1 = Math.max(altoBloque(CASAS[0]), altoBloque(CASAS[1]));
+  const fila2 = Math.max(altoBloque(CASAS[2]), altoBloque(CASAS[3]));
+  const ENC = 228, PIE = 60;
+  const H = ENC + fila1 + GAP + fila2 + PIE;
+
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#f7f1e3'; g.fillRect(0, 0, W, H);
+  g.textBaseline = 'middle';
+
+  // Encabezado
+  g.fillStyle = '#2b2118';
+  g.textAlign = 'center';
+  g.font = `800 50px ${FUENTE}`;
+  g.fillText('Resultados del quiz', W / 2, 58);
+  g.font = `600 34px ${FUENTE}`;
+  g.fillText(recortar(g, r.curso, W - 2 * M), W / 2, 108);
+  const orden = ordenCasas(r);
+  const clave = r.modo === 'promedio' ? 'promedio' : 'suma';
+  const mejores = orden.filter((c) => c.alumnos > 0 && c[clave] === orden[0][clave] && c[clave] > 0);
+  g.font = `400 26px ${FUENTE}`;
+  g.fillStyle = '#6f6252';
+  const fecha = new Date(r.publicado || Date.now()).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+  const nombres = mejores.map((c) => c.casa);
+  const ganador = nombres.length === 1 ? `Gana ${nombres[0]}`
+    : nombres.length > 1 ? `Empate: ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}` : '';
+  const criterio = r.modo === 'promedio' ? 'por promedio' : 'por suma de puntos';
+  g.fillText(fecha, W / 2, 150);
+  if (ganador) {
+    g.font = `700 28px ${FUENTE}`;
+    g.fillStyle = '#2b2118';
+    g.fillText(recortar(g, `${ganador} (${criterio})`, W - 2 * M), W / 2, 192);
+  }
+
+  // Bloques de cada casa
+  CASAS.forEach((casa, i) => {
+    const x = M + (i % 2) * (COLW + GAP);
+    const y = ENC + (i < 2 ? 0 : fila1 + GAP);
+    const [fondo, texto] = COLORES[casa];
+    const c = r.casas.find((k) => k.casa === casa);
+    const alumnos = porCasa[casa];
+    const alto = altoBloque(casa);
+    // marco
+    g.fillStyle = '#fffaf0';
+    redondo(g, x, y, COLW, alto, 16); g.fill();
+    g.strokeStyle = fondo; g.lineWidth = 3; g.stroke();
+    // cabecera de la casa
+    g.fillStyle = fondo;
+    redondo(g, x, y, COLW, CAB, 16, true); g.fill();
+    g.fillStyle = texto;
+    g.textAlign = 'left';
+    g.font = `800 36px ${FUENTE}`;
+    g.fillText(casa, x + 18, y + 34);
+    g.textAlign = 'right';
+    g.font = `800 36px ${FUENTE}`;
+    g.fillText(`${c.suma}`, x + COLW - 18, y + 34);
+    g.font = `400 22px ${FUENTE}`;
+    g.textAlign = 'left';
+    g.fillText(`${c.alumnos} ${c.alumnos === 1 ? 'alumno' : 'alumnos'} · promedio ${coma(c.promedio)}`, x + 18, y + 78);
+    g.textAlign = 'right';
+    g.fillText('total', x + COLW - 18, y + 78);
+    // filas
+    g.font = `500 27px ${FUENTE}`;
+    if (!alumnos.length) {
+      g.fillStyle = '#8a7c69'; g.textAlign = 'left';
+      g.fillText('Sin participantes', x + 18, y + CAB + FILA / 2 + 4);
+    }
+    alumnos.forEach((a, j) => {
+      const fy = y + CAB + j * FILA + 4;
+      if (j % 2 === 1) { g.fillStyle = '#f1e8d4'; g.fillRect(x + 3, fy, COLW - 6, FILA); }
+      g.fillStyle = '#2b2118';
+      g.textAlign = 'right';
+      g.font = `800 27px ${FUENTE}`;
+      g.fillText(`${a.aciertos}/${a.total}`, x + COLW - 16, fy + FILA / 2);
+      g.textAlign = 'left';
+      g.font = `500 27px ${FUENTE}`;
+      g.fillText(recortar(g, `${j + 1}. ${a.nombre}`, COLW - 16 - 16 - 92), x + 16, fy + FILA / 2);
+    });
+  });
+
+  g.textAlign = 'center';
+  g.fillStyle = '#8a7c69';
+  g.font = `400 22px ${FUENTE}`;
+  const totalAlumnos = r.lista.length;
+  g.fillText(`${totalAlumnos} ${totalAlumnos === 1 ? 'participante' : 'participantes'} · ${r.total} preguntas · 1 punto por acierto`, W / 2, H - PIE / 2);
+  return cv;
+}
+function recortar(g, texto, ancho) {
+  if (g.measureText(texto).width <= ancho) return texto;
+  let t = texto;
+  while (t.length > 1 && g.measureText(t + '…').width > ancho) t = t.slice(0, -1);
+  return t + '…';
+}
+function redondo(g, x, y, w, h, r, soloArriba) {
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r);
+  if (soloArriba) { g.lineTo(x + w, y + h); g.lineTo(x, y + h); }
+  else {
+    g.lineTo(x + w, y + h - r); g.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    g.lineTo(x + r, y + h); g.quadraticCurveTo(x, y + h, x, y + h - r);
+  }
+  g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y);
+  g.closePath();
+}
+function nombreArchivo(r) {
+  const base = r.curso.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return `resultados-${base}.png`;
+}
+
+// Botones de descarga/compartir + vista previa (en iPhone se puede mantener pulsada para guardarla en Fotos).
+function pintarZonaImagen(cont, r) {
+  const cv = dibujarImagen(r);
+  const nombre = nombreArchivo(r);
+  cont.append(el('h2', null, 'Imagen de resultados'));
+  cont.append(el('button', {
+    class: 'btn', type: 'button',
+    onclick: () => cv.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = el('a', { href: url, download: nombre });
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }, 'image/png'),
+  }, '⬇️ Descargar imagen (PNG)'));
+  if (navigator.canShare) {
+    cv.toBlob((blob) => {
+      const archivo = new File([blob], nombre, { type: 'image/png' });
+      if (!navigator.canShare({ files: [archivo] })) return;
+      const b = el('button', {
+        class: 'btn2', type: 'button',
+        onclick: () => navigator.share({ files: [archivo], title: 'Resultados' }).catch(() => {}),
+      }, '📤 Compartir o guardar en Fotos');
+      cont.insertBefore(b, cont.querySelector('img'));
+    }, 'image/png');
+  }
+  cont.append(el('img', { class: 'imagen-previa', src: cv.toDataURL('image/png'), alt: 'Imagen con los resultados por casa' }));
+  cont.append(el('p', { class: 'suave' }, 'En iPhone también puedes mantener pulsada la imagen y elegir "Guardar en Fotos".'));
+}
+
+// ------------------------------------------------------------ PROFESOR
+let sesion = guardado.get('sesionProfe');
+let infoProfe = null;     // respuesta de /api/profe/estado
+let mostrandoNuevo = false;
+
+function irProfe() {
+  parar(); pararReloj();
+  if (sesion) return cargarProfe();
+  $('errorLogin').textContent = '';
+  ver('vProfeLogin');
+}
+
+async function login() {
+  const clave = $('clave').value;
+  if (!clave.trim()) return ($('errorLogin').textContent = 'Escribe la contraseña.');
+  $('btnLogin').disabled = true;
+  const r = await api('/api/profe/entrar', { clave });
+  $('btnLogin').disabled = false;
+  if (r.error) return ($('errorLogin').textContent = r.error);
+  sesion = r.sesion;
+  guardado.set('sesionProfe', sesion);
+  $('clave').value = '';
+  cargarProfe();
+}
+
+function salirProfe() {
+  sesion = null; guardado.del('sesionProfe'); infoProfe = null; clavePanel = ''; parar();
+  $('errorLogin').textContent = '';
+  ver('vProfeLogin');
+}
+
+async function profe(ruta, datos) {
+  const r = await api(ruta, datos, sesion);
+  if (r.sinSesion) { salirProfe(); $('errorLogin').textContent = r.error; return null; }
+  return r;
+}
+
+async function cargarProfe() {
+  const r = await profe('/api/profe/estado');
+  if (!r) return;
+  if (r.error) { programar(cargarProfe, 3000); return; }
+  const primera = !infoProfe;
+  infoProfe = r;
+  if (primera || $('vProfe').hidden) {
+    $('profeCurso').textContent = r.curso;
+    construirFormulario();
+    ver('vProfe');
+  }
+  pintarPanel();
+  programar(cargarProfe, 3000);
+}
+
+let clavePanel = '';       // código + estado del quiz que está dibujado
+let firmaResultados = '';
+function pintarPanel() {
+  const q = infoProfe.quiz;
+  $('crear').hidden = !!q && !mostrandoNuevo;
+  $('avisoReemplazo').hidden = !q;
+  $('btnCancelarNuevo').hidden = !q;
+  $('crearTitulo').textContent = q ? 'Abrir un quiz nuevo' : 'Nuevo quiz';
+  if (!q || mostrandoNuevo) { $('panel').innerHTML = ''; clavePanel = ''; firmaResultados = ''; return; }
+  if (clavePanel !== q.codigo + q.estado) {
+    clavePanel = q.codigo + q.estado;
+    firmaResultados = '';
+    construirPanel(q);
+  }
+  actualizarPanel(q);
+}
+
+function construirPanel(q) {
+  const panel = $('panel');
+  panel.innerHTML = '';
+  const enlace = `${location.origin}/?c=${q.codigo}`;
+  const publicado = q.estado === 'publicado';
+  const copiar = (texto, boton) => {
+    const listo = () => { const t = boton.textContent; boton.textContent = '✓ Copiado'; setTimeout(() => { boton.textContent = t; }, 1500); };
+    if (navigator.clipboard) navigator.clipboard.writeText(texto).then(listo, () => prompt('Copia esto:', texto));
+    else prompt('Copia esto:', texto);
+  };
+  panel.append(el('div', { class: 'tarjeta' },
+    el('div', { class: 'centro suave' }, publicado ? 'Quiz cerrado · resultados publicados' : 'Quiz abierto · comparte este código'),
+    el('div', { class: 'codigo' }, q.codigo),
+    el('div', { class: 'enlace-quiz' }, enlace),
+    publicado ? null : el('div', { class: 'fila' },
+      el('button', { class: 'btn2', type: 'button', onclick: (e) => copiar(q.codigo, e.currentTarget) }, 'Copiar código'),
+      el('button', { class: 'btn2', type: 'button', onclick: (e) => copiar(enlace, e.currentTarget) }, 'Copiar enlace')),
+    el('p', { class: 'suave centro', id: 'borraEn' })));
+
+  panel.append(el('div', { class: 'tarjeta' },
+    el('h3', { id: 'cuantos' }),
+    el('div', { class: 'contadores', id: 'contadores' }),
+    el('table', { class: 'tabla' }, el('tbody', { id: 'participantes' }))));
+
+  if (!publicado) {
+    panel.append(el('button', { class: 'btn', type: 'button', onclick: publicar }, 'Cerrar quiz y publicar resultados'));
+  }
+
+  // Ajustes de lo que ven los alumnos
+  const ajuste = (datos) => profe('/api/profe/ajustes', datos).then((r) => r && cargarProfe());
+  const modo = (valor, texto) => el('label', { class: 'interruptor' },
+    el('input', { type: 'radio', name: 'modo', value: valor, checked: q.modo === valor, onchange: () => ajuste({ modo: valor }) }), texto);
+  panel.append(el('div', { class: 'tarjeta' },
+    el('h3', null, 'Qué ven los alumnos al publicar'),
+    modo('suma', 'Puntos por casa: suma'),
+    modo('promedio', 'Puntos por casa: promedio por alumno'),
+    el('label', { class: 'interruptor' },
+      el('input', { type: 'checkbox', checked: q.mostrarLista, onchange: (e) => ajuste({ mostrarLista: e.target.checked }) }),
+      'Mostrar la lista individual (nombres y aciertos)'),
+    el('label', { class: 'interruptor' },
+      el('input', { type: 'checkbox', checked: q.imagenAlumnos, onchange: (e) => ajuste({ imagenAlumnos: e.target.checked }) }),
+      'Dejar que los alumnos descarguen la imagen')));
+
+  panel.append(el('div', { id: 'resultadosProfe' }));
+
+  panel.append(el('div', { class: 'tarjeta' },
+    el('button', { class: 'btn2', type: 'button', onclick: () => { mostrandoNuevo = true; pintarPanel(); window.scrollTo(0, 0); } }, 'Abrir un quiz nuevo'),
+    el('button', { class: 'btn2 btn-peligro', type: 'button', onclick: borrarQuiz }, 'Borrar este quiz'),
+    el('details', null, el('summary', { class: 'suave' }, 'Ver las preguntas de este quiz'),
+      el('ol', null, q.preguntas.map((p) => el('li', null, p.texto,
+        el('ul', null, p.opciones.map((o, i) => el('li', null, o, i === p.correcta ? ' ✅' : '')))))))));
+}
+
+function actualizarPanel(q) {
+  const ms = q.borraEnMs;
+  const hora = new Date(Date.now() + ms).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+  $('borraEn').textContent = q.estado === 'publicado'
+    ? `Los datos se borrarán solos a las ${hora}.`
+    : `Si no publicas, se borrará solo a las ${hora}.`;
+  const ps = q.participantes;
+  const enCurso = ps.filter((p) => !p.terminado).length;
+  $('cuantos').textContent = `${ps.length} de ${q.maxAlumnos} participantes` + (enCurso ? ` · ${enCurso} respondiendo` : '');
+  const cont = $('contadores');
+  cont.innerHTML = '';
+  CASAS.forEach((c) => {
+    const n = ps.filter((p) => p.casa === c).length;
+    cont.append(el('div', { class: 'c-' + c }, c.slice(0, 4) + '.', el('br'), `${n}/${q.maxPorCasa}`));
+  });
+  const tb = $('participantes');
+  tb.innerHTML = '';
+  if (!ps.length) tb.append(el('tr', null, el('td', { class: 'suave', colspan: 3, style: 'text-align:left' }, 'Todavía no entró nadie.')));
+  const total = q.preguntas.length;
+  ps.forEach((p) => {
+    tb.append(el('tr', null,
+      el('td', null, el('span', { class: 'punto', style: `background:${COLORES[p.casa][0]}` }), p.nombre),
+      el('td', { class: 'suave' }, p.terminado ? `✓ ${p.aciertos}/${total}` : `respondiendo ${p.respondidas}/${total}`),
+      el('td', null, el('button', { class: 'borrar', type: 'button', title: 'Borrar intento', onclick: () => borrarIntento(p) }, '🗑'))));
+  });
+  // Los resultados (y la imagen) solo se vuelven a dibujar si cambiaron.
+  const firma = JSON.stringify(q.resultados);
+  if (firma === firmaResultados) return;
+  firmaResultados = firma;
+  const zona = $('resultadosProfe');
+  zona.innerHTML = '';
+  if (q.resultados) {
+    const r = q.resultados;
+    const t = el('div', { class: 'tarjeta' });
+    pintarCasasResultado(t, r);
+    pintarLista(t, r);
+    zona.append(t);
+    const zi = el('div', { class: 'tarjeta' });
+    if (r.lista.length) pintarZonaImagen(zi, r); else zi.append(el('p', { class: 'suave' }, 'No hubo participantes, así que no hay imagen.'));
+    zona.append(zi);
+  }
+}
+
+async function publicar() {
+  const q = infoProfe.quiz;
+  const enCurso = q.participantes.filter((p) => !p.terminado).length;
+  let msg = '¿Cerrar el quiz y publicar los resultados? Ya no podrá entrar nadie más.';
+  if (enCurso) msg += `\n\n${enCurso} ${enCurso === 1 ? 'alumno aún no termina' : 'alumnos aún no terminan'}: lo que no respondieron contará como fallo.`;
+  if (!confirm(msg)) return;
+  const r = await profe('/api/profe/publicar');
+  if (r && r.error) alert(r.error);
+  cargarProfe();
+}
+
+async function borrarIntento(p) {
+  if (!confirm(`¿Borrar el intento de ${p.nombre} (${p.casa})?\n\nSus respuestas se pierden y podrá volver a entrar con ese nombre.`)) return;
+  const r = await profe('/api/profe/borrar-intento', { id: p.id });
+  if (r && r.error) alert(r.error);
+  cargarProfe();
+}
+
+async function borrarQuiz() {
+  if (!confirm('¿Borrar este quiz con todas sus respuestas? No se puede deshacer.')) return;
+  await profe('/api/profe/borrar-quiz');
+  mostrandoNuevo = false;
+  cargarProfe();
+}
+
+// ---- formulario para crear el quiz
+function construirFormulario() {
+  const n = infoProfe.numPreguntas;
+  const cont = $('formPreguntas');
+  if (cont.childElementCount === n) return;
+  cont.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const fs = el('fieldset', { class: 'pregunta-form' }, el('legend', null, `Pregunta ${i + 1}`),
+      el('textarea', { id: `t${i}`, rows: 2, maxlength: 300, placeholder: 'Escribe la pregunta' }));
+    for (let j = 0; j < 3; j++) {
+      fs.append(el('div', { class: 'alt' },
+        el('input', { type: 'radio', name: `c${i}`, id: `c${i}_${j}`, value: j, title: 'Marcar como correcta', 'aria-label': `Alternativa ${'ABC'[j]} es la correcta` }),
+        el('input', { type: 'text', id: `o${i}_${j}`, maxlength: 300, placeholder: `Alternativa ${'ABC'[j]}` })));
+    }
+    fs.append(el('div', { class: 'suave' }, 'Toca el círculo de la alternativa correcta.'));
+    cont.append(fs);
+  }
+  const sel = $('segundos');
+  sel.innerHTML = '';
+  const opciones = [...new Set([10, 15, 20, 25, 30, 45, 60, infoProfe.segundosPorDefecto])]
+    .filter((s) => s >= infoProfe.segundosMin && s <= infoProfe.segundosMax).sort((a, b) => a - b);
+  opciones.forEach((s) => sel.append(el('option', { value: s }, `${s} segundos`)));
+  sel.value = String(infoProfe.segundosPorDefecto);
+  cargarBorrador();
+}
+
+function leerFormulario() {
+  const n = infoProfe.numPreguntas;
+  const preguntas = [];
+  for (let i = 0; i < n; i++) {
+    const marcada = document.querySelector(`input[name=c${i}]:checked`);
+    preguntas.push({
+      texto: $(`t${i}`).value.trim(),
+      opciones: [0, 1, 2].map((j) => $(`o${i}_${j}`).value.trim()),
+      correcta: marcada ? Number(marcada.value) : null,
+    });
+  }
+  return preguntas;
+}
+function llenarFormulario(preguntas) {
+  preguntas.forEach((p, i) => {
+    if (!$(`t${i}`)) return;
+    $(`t${i}`).value = p.texto || '';
+    [0, 1, 2].forEach((j) => {
+      $(`o${i}_${j}`).value = (p.opciones && p.opciones[j]) || '';
+      $(`c${i}_${j}`).checked = p.correcta === j;
+    });
+  });
+}
+function guardarBorrador() {
+  if (infoProfe) guardado.set('borradorQuiz', { preguntas: leerFormulario(), segundos: $('segundos').value });
+}
+function cargarBorrador() {
+  const b = guardado.get('borradorQuiz');
+  if (!b) return;
+  llenarFormulario(b.preguntas || []);
+  if (b.segundos && [...$('segundos').options].some((o) => o.value === String(b.segundos))) $('segundos').value = String(b.segundos);
+}
+
+// Interpreta el texto pegado:
+//   1. ¿Pregunta?
+//   a) alternativa
+//   b) alternativa correcta *
+//   c) alternativa
+function leerTexto(texto) {
+  const lineas = texto.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const preguntas = [];
+  let actual = null;
+  for (let l of lineas) {
+    let marcada = false;
+    if (l.startsWith('*')) { marcada = true; l = l.slice(1).trim(); }
+    const m = l.match(/^([a-cA-C])\s*[).:\-]\s*(.*)$/);
+    if (m && actual) {
+      let t = m[2];
+      if (t.includes('*')) { marcada = true; t = t.replace(/\*/g, '').trim(); }
+      actual.opciones.push(t);
+      if (marcada) actual.correctas.push(actual.opciones.length - 1);
+    } else {
+      const t = l.replace(/^(p(regunta)?\s*)?\d+\s*[).:\-]\s*/i, '');
+      if (actual && actual.opciones.length === 0) actual.texto += ' ' + t;
+      else { actual = { texto: t, opciones: [], correctas: [] }; preguntas.push(actual); }
+    }
+  }
+  const n = infoProfe.numPreguntas;
+  const errores = [];
+  if (preguntas.length !== n) errores.push(`Encontré ${preguntas.length} ${preguntas.length === 1 ? 'pregunta' : 'preguntas'} y deben ser ${n}.`);
+  preguntas.forEach((p, i) => {
+    if (p.opciones.length !== 3) errores.push(`La pregunta ${i + 1} tiene ${p.opciones.length} alternativas (deben ser 3, con a), b) y c)).`);
+    if (p.correctas.length === 0) errores.push(`La pregunta ${i + 1} no tiene la correcta marcada con *.`);
+    if (p.correctas.length > 1) errores.push(`La pregunta ${i + 1} tiene más de una marcada con *.`);
+  });
+  return {
+    errores,
+    preguntas: preguntas.map((p) => ({ texto: p.texto, opciones: p.opciones.slice(0, 3), correcta: p.correctas.length === 1 ? p.correctas[0] : null })),
+  };
+}
+
+function validarFormulario(preguntas) {
+  for (let i = 0; i < preguntas.length; i++) {
+    const p = preguntas[i];
+    if (!p.texto) return `Falta el texto de la pregunta ${i + 1}.`;
+    if (p.opciones.some((o) => !o)) return `Faltan alternativas en la pregunta ${i + 1}.`;
+    if (p.correcta === null) return `Marca la alternativa correcta de la pregunta ${i + 1} (toca su círculo).`;
+  }
+  return '';
+}
+
+async function abrirQuiz() {
+  const preguntas = leerFormulario();
+  const error = validarFormulario(preguntas);
+  if (error) return ($('errorCrear').textContent = error);
+  if (infoProfe.quiz && !confirm('Ya hay un quiz abierto en tu curso. Si abres este, el anterior se borra con todas sus respuestas. ¿Seguir?')) return;
+  $('errorCrear').textContent = '';
+  $('btnAbrir').disabled = true;
+  const r = await profe('/api/profe/abrir', { preguntas, segundos: Number($('segundos').value) });
+  $('btnAbrir').disabled = false;
+  if (!r) return;
+  if (r.error) return ($('errorCrear').textContent = r.error);
+  mostrandoNuevo = false;
+  window.scrollTo(0, 0);
+  cargarProfe();
+}
+
+// ------------------------------------------------------------ arranque
+$('btnEntrar').addEventListener('click', entrar);
+$('irProfe').addEventListener('click', irProfe);
+$('volverAlumno').addEventListener('click', () => mostrarEntrar());
+$('btnLogin').addEventListener('click', login);
+$('clave').addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+$('btnSalir').addEventListener('click', salirProfe);
+$('btnAbrir').addEventListener('click', abrirQuiz);
+$('btnCancelarNuevo').addEventListener('click', () => { mostrandoNuevo = false; pintarPanel(); window.scrollTo(0, 0); });
+$('btnLimpiar').addEventListener('click', () => {
+  if (!confirm('¿Vaciar todas las preguntas del formulario?')) return;
+  llenarFormulario(Array.from({ length: infoProfe.numPreguntas }, () => ({ texto: '', opciones: [], correcta: null })));
+  guardarBorrador();
+});
+$('btnLeerTexto').addEventListener('click', () => {
+  const r = leerTexto($('textoPegado').value);
+  if (r.errores.length) { $('errorPegado').textContent = r.errores.join('\n'); return; }
+  $('errorPegado').textContent = '';
+  llenarFormulario(r.preguntas);
+  guardarBorrador();
+  $('textoPegado').closest('details').open = false;
+  $('formPreguntas').scrollIntoView({ behavior: 'smooth' });
+});
+$('formPreguntas').addEventListener('input', guardarBorrador);
+$('formPreguntas').addEventListener('change', guardarBorrador);
+$('segundos').addEventListener('change', guardarBorrador);
+$('btnOtro').addEventListener('click', () => {
+  guardado.del('quizActual');     // el código de ese quiz sigue recordado: no se puede repetir
+  alumno = null;
+  $('codigo').value = '';
+  mostrarEntrar();
+});
+$('codigo').addEventListener('input', (e) => { e.target.value = e.target.value.toUpperCase(); });
+
+(function iniciar() {
+  const params = new URLSearchParams(location.search);
+  const c = limpiarCodigo(params.get('c'));
+  if (params.has('profe')) return irProfe();
+  if (c) $('codigo').value = c;
+  const actual = guardado.get('quizActual');
+  if (actual && actual.token && (!c || c === actual.codigo)) {
+    alumno = actual;
+    estadoAlumno();     // retoma donde iba (o muestra la entrada si ese intento ya no existe)
+    return;
+  }
+  mostrarEntrar();
+})();
+</script>
+</body>
+</html>

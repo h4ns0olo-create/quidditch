@@ -1,5 +1,7 @@
 # Quidditch — juego para el evento
 
+> La carpeta `quiz/` es otro proyecto (quizzes de las clases) con su propia guía en `quiz/LEEME.md`.
+
 Cómo funciona (paso 3):
 - **El administrador** crea la sala con su contraseña, un código y las dos casas que juegan. Luego entra como
   **Invitado → Administración** (pide la contraseña) y desde ahí elige la duración (10, 15 o 20 min) y lanza la moneda.
