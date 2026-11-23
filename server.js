@@ -84,7 +84,7 @@ const AVATAR = {
   maquillaje: ['ninguno', 'natural', 'oscuro'],
   escoba: ['clasica', 'veloz', 'antigua'],
   escobaColor: ['clara', 'oscura', 'roja', 'negra', 'dorada'],
-  mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'conejo', 'murcielago', 'sapo', 'ratita', 'snitch'],
+  mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'conejo', 'murcielago', 'sapo', 'ratita', 'snitch', 'unicornio'],
 };
 // Colores posibles de cada mascota (el primero es el que sale si no se elige)
 const PELAJES = {
@@ -92,6 +92,7 @@ const PELAJES = {
   gato: ['negro', 'blanco', 'naranja', 'gris', 'siames', 'tricolor'],
   perro: ['dorado', 'crema', 'manchas', 'negro', 'chocolate', 'gris'],
   conejo: ['blanco', 'gris', 'negro', 'marron', 'manchas'],
+  unicornio: ['blanco', 'dorado'],
 };
 // Accesorios: se pueden llevar varios a la vez, pero en la cabeza solo uno
 const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];

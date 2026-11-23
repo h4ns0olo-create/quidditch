@@ -59,13 +59,15 @@ con ojos grandes o chico con ojos "de cazador" y mandíbula marcada), 16 peinado
 cualquiera puede usar cualquiera), piel, color de pelo, color de ojos, expresión, pecas, maquillaje (natural u oscuro;
 solo se ve en el retrato), accesorios combinables (gafas, bufanda, aretes en las dos orejas y **un** objeto de cabeza:
 gafas de vuelo, cinta deportiva, moño, flor, diadema, corona o laurel de campeón), uniforme del retrato (escolar o de quidditch), escoba (clásica, veloz o antigua) y su madera, mascota
-(lechuza, gato, perro, conejo, murciélago, sapo, ratita o snitch; la lechuza, el gato, el perro y el conejo tienen varios
+(lechuza, gato, perro, conejo, murciélago, sapo, ratita, snitch o unicornio; la lechuza, el gato, el perro y el conejo tienen varios
 colores; el gato, el perro y el conejo van en la punta
 de la escoba, el murciélago y la lechuza vuelan al lado) y aura. El avatar queda guardado en el celular para la próxima
 vez. En el campo todos llevan siempre el uniforme de
 quidditch del equipo.
 **Premios** (quedan guardados en el celular): escoba dorada (nivel 15 en la práctica), corona (ganar un duelo),
-aura dorada (jugador destacado), snitch mascota (atrapar la snitch) y laurel de campeón (ganar un partido oficial).
+aura dorada (jugador destacado), snitch mascota (atrapar la snitch), laurel de campeón (ganar un partido oficial),
+unicornio (nivel 60 en la práctica libre, cualquier posición) y unicornio dorado (nivel 100). Quien ya tenía esos
+niveles de antes recibe los premios al abrir la página.
 **Palco y capitanes**: comentaristas, espectadores y administración aparecen con su
 retrato en "🏟️ En el palco", debajo del estadio, y en la lista de invitados; los comentarios salen con la carita de quien
 los escribe. Quien activa la administración con la clave de capitanes lleva una insignia plateada con una "C" junto a su

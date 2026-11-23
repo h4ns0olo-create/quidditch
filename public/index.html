@@ -1038,7 +1038,10 @@
       negro: ['Negro', '#2f2b2b', '#5a5452', '#1c1a1a'], chocolate: ['Chocolate', '#6b4226', '#9a6a48', '#4e2f1a'], gris: ['Gris', '#8d9096', '#c5c8cc', '#62656b'] },
     conejo: { blanco: ['Blanco', '#f7f5f0', '#ffffff', '#e3ddd2'], gris: ['Gris clarito', '#c9ccd2', '#e8eaed', '#a3a7af'], negro: ['Negro', '#2e2c2e', '#4f4c4f', '#1c1b1c'],
       marron: ['Marrón', '#9a6a42', '#d2b08a', '#74492a'], manchas: ['Blanco con manchas', '#f7f5f0', '#ffffff', '#2e2c2e', '#2e2c2e'] },
+    unicornio: { blanco: ['Blanco', '#fbf8f3', '#ffffff', '#e6dccd'], dorado: ['Dorado', '#f2c14e', '#ffe9a3', '#c9932a'] },
   };
+  // Colores de mascota que son premio
+  const PREMIO_PELAJE = { unicornio: { dorado: 'unicornio_dorado' } };
   const pelajeDe = (av) => { const t = PELAJES[av.mascota]; return t ? (t[av.mascotaColor] || Object.values(t)[0]) : null; };
   let OM = '#2b1d16';   // contorno de las mascotas (más claro en las negras, para que se vean sobre la túnica)
   const ojitos = (x, y, r, color = '#1a1412', borde = '') => [-1, 1].map((l) => `<circle cx="${l * x}" cy="${y}" r="${r}" fill="${color}"${borde ? ` stroke="${borde}" stroke-width=".18"` : ''}/><circle cx="${l * x + r * .35}" cy="${y - r * .35}" r="${r * .35}" fill="#fff"/>`).join('');
@@ -1102,6 +1105,32 @@
     }
     return g;
   }
+  function dibujoUnicornio(id, [, c, cl, cd]) {
+    const dorado = id === 'dorado';
+    const crin = dorado ? ['#fff3c4', '#ffd36b', '#f6a93b'] : ['#f7a8c8', '#c8a8f0', '#9fd0f5'];
+    const cuerno = dorado ? ['#fff8e6', '#e0c78a'] : ['#f2c14e', '#b8862e'];
+    const cont = `stroke="${OM}" stroke-width=".3"`;
+    let g = '';
+    // cola de colores
+    g += crin.map((col, k) => `<path d="M2.6,${-1.4 - k * .5} Q${5.4 + k * .3},${-1.6 - k * .6} ${5 + k * .5},${-4.6 - k * .7}" fill="none" stroke="${col}" stroke-width="1.1" stroke-linecap="round"/>`).join('');
+    // cuerpo sentado y patas con pezuñas
+    g += `<path d="M-3.1,0 Q-3.8,-4.8 -1.8,-6 L1.8,-6 Q3.8,-4.8 3.1,0 Z" fill="${c}" ${cont}/>`;
+    g += [-1, 1].map((l) => `<rect x="${l * 1.2 - .6}" y="-3.2" width="1.2" height="3.2" rx=".5" fill="${c}" ${cont}/><rect x="${l * 1.2 - .6}" y="-.8" width="1.2" height=".8" rx=".3" fill="${dorado ? '#b8862e' : '#d9a441'}"/>`).join('');
+    // orejas
+    g += [-1, 1].map((l) => `<ellipse cx="${l * 1.45}" cy="-10.5" rx=".55" ry="1.15" transform="rotate(${l * 22} ${l * 1.45} -10.5)" fill="${c}" ${cont}/><ellipse cx="${l * 1.45}" cy="-10.4" rx=".25" ry=".7" transform="rotate(${l * 22} ${l * 1.45} -10.4)" fill="#f2b8c8"/>`).join('');
+    // cabeza alargada de caballo y hocico
+    g += `<ellipse cy="-8.1" rx="2.3" ry="2.6" fill="${c}" ${cont}/><ellipse cy="-6.3" rx="1.75" ry="1.25" fill="${dorado ? cl : '#f6e4e4'}" ${cont}/>`;
+    g += `<ellipse cx="-.6" cy="-6.2" rx=".22" ry=".3" fill="${OM}" opacity=".6"/><ellipse cx=".6" cy="-6.2" rx=".22" ry=".3" fill="${OM}" opacity=".6"/>`;
+    // cuerno en espiral
+    g += `<path d="M-.55,-10.3 L0,-13.7 L.55,-10.3 Z" fill="${cuerno[0]}" ${cont} stroke-linejoin="round"/><path d="M-.4,-11 L.45,-11.4 M-.28,-11.9 L.32,-12.2 M-.16,-12.8 L.2,-13" stroke="${cuerno[1]}" stroke-width=".22"/>`;
+    // crin a un lado y flequillo
+    g += [[-1.9, -10.1, .95, 0], [-2.6, -8.9, .95, 1], [-2.9, -7.5, .9, 2], [-2.9, -6.1, .85, 0], [-2.6, -4.9, .8, 1]].map(([x, y, r, k]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${crin[k]}" ${cont}/>`).join('');
+    g += `<path d="M-1.2,-10.4 Q.4,-11.2 1.1,-9.8 Q.2,-10.2 -.4,-9.4 Z" fill="${crin[1]}" ${cont}/>`;
+    // ojos con pestañas y mejillas
+    g += ojitos(.95, -8.3, .4) + [-1, 1].map((l) => `<path d="M${l * 1.25},-8.7 l${l * .45},-.35 M${l * 1.35},-8.45 l${l * .5},-.1" stroke="${OM}" stroke-width=".18" stroke-linecap="round"/><ellipse cx="${l * 1.5}" cy="-7.2" rx=".45" ry=".28" fill="#f49ab4" opacity=".7"/>`).join('');
+    if (dorado) g += [[-4.6, -9.6, .7], [4.4, -11, .6], [4.8, -7.2, .5]].map(([x, y, r]) => `<path d="M${x},${y - r} Q${x + r * .2},${y - r * .2} ${x + r},${y} Q${x + r * .2},${y + r * .2} ${x},${y + r} Q${x - r * .2},${y + r * .2} ${x - r},${y} Q${x - r * .2},${y - r * .2} ${x},${y - r} Z" fill="#fff6c9"/>`).join('');
+    return g;
+  }
   function dibujoMascota(av) {
     const p = pelajeDe(av);
     if (!p) return '';
@@ -1110,6 +1139,7 @@
     if (av.mascota === 'gato') return dibujoGato(id, p);
     if (av.mascota === 'conejo') return dibujoConejo(id, p);
     if (av.mascota === 'lechuza') return dibujoLechuza(id, p);
+    if (av.mascota === 'unicornio') return dibujoUnicornio(id, p);
     return dibujoPerro(id, p);
   }
 
@@ -1128,7 +1158,7 @@
     ['uniforme', 'Uniforme del retrato', [['escolar', '🎓 Escolar'], ['quidditch', '🧹 Quidditch']]],
     ['escoba', 'Escoba', [['clasica', 'Clásica'], ['veloz', 'Veloz'], ['antigua', 'Antigua']]],
     ['escobaColor', 'Madera', Object.entries(COLOR_ESCOBA).map(([k, c]) => [k, c, k === 'dorada' ? 'escoba_dorada' : null])],
-    ['mascota', 'Mascota', [['ninguna', 'Nada'], ['lechuza', '🦉 Lechuza'], ['gato', '🐈 Gato'], ['perro', '🐶 Perro'], ['conejo', '🐰 Conejo'], ['murcielago', '🦇 Murciélago'], ['sapo', '🐸 Sapo'], ['ratita', '🐭 Ratita'], ['snitch', '✨ Snitch', 'snitch_mascota']]],
+    ['mascota', 'Mascota', [['ninguna', 'Nada'], ['lechuza', '🦉 Lechuza'], ['gato', '🐈 Gato'], ['perro', '🐶 Perro'], ['conejo', '🐰 Conejo'], ['murcielago', '🦇 Murciélago'], ['sapo', '🐸 Sapo'], ['ratita', '🐭 Ratita'], ['snitch', '✨ Snitch', 'snitch_mascota'], ['unicornio', '🦄 Unicornio', 'unicornio']]],
     ['mascotaColor', 'Color de la mascota', []],
     ['aura', 'Aura', [[0, 'Sin aura'], [1, '✨ Aura dorada', 'aura']]],
   ];
@@ -1138,7 +1168,11 @@
     aura: { nombre: 'Aura dorada', como: 'Sé el jugador destacado de un partido' },
     snitch_mascota: { nombre: 'Snitch mascota', como: 'Atrapa la snitch en un partido o entrenamiento' },
     campeon: { nombre: 'Laurel de campeón', como: 'Gana un partido oficial' },
+    unicornio: { nombre: 'Unicornio', como: 'Llega al nivel 60 en la práctica libre (cualquier posición)' },
+    unicornio_dorado: { nombre: 'Unicornio dorado', como: 'Llega al nivel 100 en la práctica libre (cualquier posición)' },
   };
+  // Premios por nivel de la práctica libre
+  const premiosDeNivel = (nivel) => [[15, 'escoba_dorada'], [60, 'unicornio'], [100, 'unicornio_dorado']].filter(([n]) => nivel >= n).map(([, p]) => p);
   const AV_BASE = { genero: 'chica', piel: 1, pelo: 'liso', peloColor: 1, ojos: 0, expresion: 'seria', pecas: 0, maquillaje: 'ninguno', accesorios: [], uniforme: 'escolar', escoba: 'clasica', escobaColor: 'clara', mascota: 'ninguna', mascotaColor: '', aura: 0 };
   // Accesorios: se pueden combinar, pero en la cabeza solo uno a la vez
   const CABEZA = ['vuelo', 'cinta', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
@@ -1147,6 +1181,14 @@
   const azar = (arr) => arr[Math.floor(Math.random() * arr.length)];
   let premios = {};
   try { premios = JSON.parse(localStorage.getItem('quidditch_premios') || '{}') || {}; } catch {}
+  // Quien ya había llegado a esos niveles antes de que existieran los premios, los recibe igual
+  for (const pos of ['cazador', 'guardian', 'golpeador', 'buscador']) {
+    try {
+      const r = JSON.parse(localStorage.getItem('quidditch_practica_' + pos) || 'null');
+      for (const pr of premiosDeNivel(r && r.nivel || 0)) if (!premios[pr]) premios[pr] = Date.now();
+      localStorage.setItem('quidditch_premios', JSON.stringify(premios));
+    } catch {}
+  }
   const tiene = (premio) => !premio || !!premios[premio];
   function avatarAlAzar() {
     const a = {};
@@ -1163,7 +1205,7 @@
     if (Math.random() < (a.genero === 'chica' ? 0.4 : 0.15)) a.accesorios.push('aretes');
     if (Math.random() < 0.4) a.accesorios.push(azar(a.genero === 'chica' ? ['lazo', 'flor', 'diadema', 'vuelo', 'cinta'] : ['vuelo', 'cinta']));
     if (a.genero === 'chico') a.maquillaje = 'ninguno';
-    a.mascotaColor = PELAJES[a.mascota] ? azar(Object.keys(PELAJES[a.mascota])) : '';
+    a.mascotaColor = PELAJES[a.mascota] ? azar(Object.keys(PELAJES[a.mascota]).filter((c) => tiene((PREMIO_PELAJE[a.mascota] || {})[c]))) : '';
     return a;
   }
   // El avatar se guarda en el celular y sigue ahí la próxima vez que entres
@@ -1221,7 +1263,7 @@
     else if (av.escoba === 'antigua') s += `<path d="M-13,8 L-22,2.5 M-13,9 L-24.5,8.5 M-13,10 L-22.5,15.5 M-13,8.6 L-22,5.5 M-13,9.6 L-22,12.5" stroke="${paja}" stroke-width="1.7" stroke-linecap="round"/><path d="M-14,9 Q0,1 15,3.5" fill="none" stroke="${madera}" stroke-width="2.6" stroke-linecap="round"/>`;
     else s += `<path d="M-13,9 L-22,4.5 L-23.5,14.5 Z" fill="${paja}" stroke="#8a6420" stroke-width=".8"/><line x1="-14" y1="9" x2="15" y2="3" stroke="${madera}" stroke-width="2.6" stroke-linecap="round"/>`;
     // Mascota en la escoba (gato, sapo)
-    if (['gato', 'perro', 'conejo'].includes(av.mascota)) s += `<g transform="translate(15.6,4.3) scale(.58)">${dibujoMascota(av)}</g>`;
+    if (['gato', 'perro', 'conejo', 'unicornio'].includes(av.mascota)) s += `<g transform="translate(15.6,4.3) scale(.58)">${dibujoMascota(av)}</g>`;
     if (av.mascota === 'sapo') s += '<g transform="translate(11,1)"><ellipse cy="-1.4" rx="2.8" ry="1.9" fill="#4f9a3a"/><circle cx="-1.2" cy="-3" r=".9" fill="#4f9a3a"/><circle cx="1.2" cy="-3" r=".9" fill="#4f9a3a"/><circle cx="-1.2" cy="-3.1" r=".35" fill="#111"/><circle cx="1.2" cy="-3.1" r=".35" fill="#111"/></g>';
     // Pelo de atrás (largo, coletas, coleta, trenza)
     const pl = av.pelo;
@@ -1510,7 +1552,7 @@
       snitch: '<g transform="translate(98,82) scale(2.4)"><ellipse cx="-3" rx="3" ry="1" fill="#fff6d8"/><ellipse cx="3" rx="3" ry="1" fill="#fff6d8"/><circle r="1.9" fill="#f2c14e" stroke="#a8730f" stroke-width=".4"/></g>',
     }[av.mascota] || '';
     // 1,75 = cuánto más grande es esta cabeza que la del dibujo original
-    const sentada = ['lechuza', 'gato', 'perro', 'conejo'].includes(av.mascota) ? `<g transform="translate(167,195) scale(4.1)">${dibujoMascota(av)}</g>` : '';
+    const sentada = ['lechuza', 'gato', 'perro', 'conejo', 'unicornio'].includes(av.mascota) ? `<g transform="translate(167,195) scale(4.1)">${dibujoMascota(av)}</g>` : '';
     return s + `<g transform="translate(-5,-13) scale(1.75)">${h}${m}</g>` + sentada;
   }
   function retrato(av0, c, a, opc = {}) {
@@ -1556,7 +1598,7 @@
       if (k === 'mascotaColor') {
         const t = PELAJES[miAvatar.mascota];
         if (!t) return '';
-        ops = Object.entries(t).map(([id, p]) => [id, `<span class="pinta" style="background:${p[4] ? `linear-gradient(135deg, ${p[1]} 55%, ${p[4]} 55%)` : p[1]}"></span>${p[0]}`]);
+        ops = Object.entries(t).map(([id, p]) => [id, `<span class="pinta" style="background:${p[4] ? `linear-gradient(135deg, ${p[1]} 55%, ${p[4]} 55%)` : p[1]}"></span>${p[0]}`, (PREMIO_PELAJE[miAvatar.mascota] || {})[id]]);
       }
       if (k === 'pelo') {
         const primero = miAvatar.genero === 'chico' ? PELOS_CHICO : PELOS_CHICA;
@@ -2477,7 +2519,7 @@
     const prom = p.tiempos.length ? Math.round(p.tiempos.reduce((a, b) => a + b, 0) / p.tiempos.length) : null;
     let rec = null;
     try { rec = JSON.parse(localStorage.getItem('quidditch_practica_' + p.pos) || 'null'); } catch {}
-    if (p.nivel >= 15) desbloquear('escoba_dorada');
+    for (const pr of premiosDeNivel(p.nivel)) desbloquear(pr);
     const nuevoRecord = !rec || p.nivel > rec.nivel || (p.nivel === rec.nivel && mejor && (!rec.mejor || mejor < rec.mejor));
     if (nuevoRecord) try { localStorage.setItem('quidditch_practica_' + p.pos, JSON.stringify({ nivel: p.nivel, mejor })); } catch {}
     $('practica-resultado').innerHTML = `<h2>🎯 ${PRACTICAS[p.pos].nombre}: ¡práctica terminada!</h2>
