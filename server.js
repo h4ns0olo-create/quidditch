@@ -42,17 +42,17 @@ const RETOS = {
   pase:    { visual: 'barra',   ancho: 0.14, periodo: 1600, limite: 6000, boton: '¡PASAR!' },
   tiro:    { visual: 'barra',   ancho: 0.14, periodo: 1500, limite: 6000, boton: '¡LANZAR!' },
   atajar:  { visual: 'aguja',   ancho: 0.14, periodo: 1500, limite: 6000, boton: '¡ATAJAR!' },
-  bateo:   { visual: 'circulo', ancho: 0.12, periodo: 1400, limite: 6000, boton: '¡BATEAR!' },
-  repeler: { visual: 'circulo', ancho: 0.16, periodo: 1000, limite: 3000, boton: '¡REPELER!' },
+  bateo:   { visual: 'circulo', ancho: 0.18, periodo: 1900, limite: 6000, boton: '¡BATEAR!' },
+  repeler: { visual: 'circulo', ancho: 0.22, periodo: 1400, limite: 3000, boton: '¡REPELER!' },
 };
 // Posiciones de la zona: secuencia fija.
 const CENTROS = [0.5, 0.3, 0.7, 0.4, 0.62, 0.26, 0.74, 0.45, 0.56, 0.34, 0.68];
 const SNITCH = {
   pausas: [2600, 4100, 1900, 3400, 4600, 2200, 3800, 3000], // espera antes de que aparezca (secuencia fija)
-  ventanaMs: 600,        // tiempo que se deja ver la snitch la primera vez…
-  pasoMs: 50,            // …cada vez que se escapa, la siguiente dura esto menos…
-  ventanaMinMs: 300,     // …hasta este mínimo (partidos y entrenamientos)
-  ventanaMinDueloMs: 330, // en los duelos: de 0,6 s (primera ronda) a 0,33 s (última)
+  ventanaMs: 800,        // tiempo que se deja ver la snitch la primera vez…
+  pasoMs: 25,            // …cada vez que se escapa, la siguiente dura esto menos (poco a poco)…
+  ventanaMinMs: 400,     // …y nunca menos de 0,4 s (partidos y entrenamientos)
+  ventanaMinDueloMs: 400, // en los duelos: de 0,8 s (primera ronda) a 0,4 s (última)
   limiteMs: 3000,        // duelo de guardianes: tiempo para atajar tras el aviso
   minimoMs: 100,         // reacción más rápida que esto = imposible
   entreRondasMs: 2500,
@@ -611,7 +611,7 @@ function limpiarTimers(sala) {
   clearTimeout(sala.timerPosesion);
   if (sala.accion) { clearTimeout(sala.accion.timer); clearTimeout(sala.accion.timerRevisar); }
   sala.accion = null;
-  if (sala.snitch) { for (const t of ['timer', 'revisar', 'timerSenuelo', 'timerSenuelo2']) clearTimeout(sala.snitch[t]); }
+  if (sala.snitch) { for (const t of ['timer', 'revisar']) clearTimeout(sala.snitch[t]); pararPolillas(sala.snitch); }
   sala.snitch = null;
 }
 
@@ -663,8 +663,10 @@ function dificultad(sala) {
   return Math.max(0, Math.min(1, (Date.now() - sala.partido.inicio) / dur));
 }
 // La zona se achica (hasta ~55 %) y la marca acelera (hasta +25 %) a medida que avanza el partido.
+// El círculo de los golpeadores cambia menos: la zona baja como mucho un 25 % y la marca acelera un 15 %.
 function ajustar(cfg, f) {
-  return { ...cfg, ancho: cfg.ancho * (1 - 0.45 * f), periodo: Math.round(cfg.periodo / (1 + 0.25 * f)) };
+  const [menos, mas] = cfg.visual === 'circulo' ? [0.25, 0.15] : [0.45, 0.25];
+  return { ...cfg, ancho: cfg.ancho * (1 - menos * f), periodo: Math.round(cfg.periodo / (1 + mas * f)) };
 }
 
 function lanzarReto(sala, a, pid, clase, titulo, centroFijo, fFijo) {
@@ -1013,7 +1015,8 @@ function aparecerSnitch(sala, muerte) {
   registrar(sala, muerte ? '⚡ ¡La snitch anda cerca! El primero que la atrape gana.' : '✨ ¡La snitch anda cerca! Los buscadores la buscan…');
   enviarSnitch(sala);
   const pausa = SNITCH.pausas[sala.contadorPausas++ % SNITCH.pausas.length];
-  const extra = s.senuelos ? programarSenuelo(sala, s, pausa, (fase) => enviarSnitch(sala, null, { fase })) : 0;
+  const fPolillas = muerte ? 1 : Math.min(1, Math.max(dificultad(sala), (sala.aparicionesSnitch - 1) / 8));
+  const extra = s.senuelos ? programarSenuelo(sala, s, pausa, (fase) => enviarSnitch(sala, null, { fase }), fPolillas) : 0;
   s.timer = setTimeout(() => {
     if (sala.snitch !== s || s.estado !== 'espera') return;
     s.estado = 'senal';
@@ -1024,13 +1027,13 @@ function aparecerSnitch(sala, muerte) {
   difundir(sala);
 }
 
-// Tiempo que se deja ver la snitch en un partido: 0,6 s la primera vez; cada vez que se escapa, 0,05 s menos,
-// y algo menos a medida que avanza el reloj. Nunca menos de 0,3 s.
+// Tiempo que se deja ver la snitch en un partido: 0,8 s la primera vez; cada vez que se escapa, 0,025 s menos,
+// y algo menos a medida que avanza el reloj. Nunca menos de 0,4 s. La dificultad extra la ponen las polillas.
 function ventanaPartido(sala) {
   const v = SNITCH.ventanaMs - SNITCH.pasoMs * (sala.aparicionesSnitch - 1) - 100 * dificultad(sala);
   return Math.round(Math.max(SNITCH.ventanaMinMs, v));
 }
-// En los duelos: de 0,6 s (primera ronda) a 0,33 s (última ronda).
+// En los duelos: de 0,8 s (primera ronda) a 0,4 s (última ronda).
 function ventanaSnitch(f) {
   return Math.round(SNITCH.ventanaMs - (SNITCH.ventanaMs - SNITCH.ventanaMinDueloMs) * f);
 }
@@ -1047,17 +1050,29 @@ function programarSiguienteSnitch(sala) {
   if (Date.now() + hueco < sala.partido.fin - 2000) programar(sala, () => aparecerSnitch(sala, false), hueco);
 }
 
-// Señuelo: a mitad de la espera aparece una polilla dorada durante un momento. Tocarla cuenta como tocar antes.
+// Cuántas polillas salen antes de la snitch. Con la dificultad (f, de 0 a 1) salen más: 1, luego 2 y al final 3.
+// Algunas veces, sobre todo al principio, no sale ninguna (para que la primera cosa dorada no sea siempre polilla).
+function cuantasPolillas(i, f) {
+  if (!SENUELOS[i % SENUELOS.length]) return f >= 0.5 ? 1 : 0;
+  return Math.min(3, 1 + Math.floor(f * 2.2));
+}
+// Señuelos: durante la espera aparecen polillas doradas, una detrás de otra. Tocar una cuenta como tocar antes.
 // Devuelve cuánto se alarga la espera.
-function programarSenuelo(sala, estado, pausa, mandar) {
+function programarSenuelo(sala, estado, pausa, mandar, f) {
   const i = sala.contadorSenuelos || 0;
   sala.contadorSenuelos = i + 1;
-  if (!SENUELOS[i % SENUELOS.length]) return 0;
-  const t = Math.round(pausa * 0.5);
-  estado.timerSenuelo = setTimeout(() => { if (estado.estado === 'espera') mandar('senuelo'); }, t);
-  estado.timerSenuelo2 = setTimeout(() => { if (estado.estado === 'espera') mandar('espera'); }, t + SENUELO_MS);
-  return SENUELO_MS + 600;
+  const n = cuantasPolillas(i, f);
+  if (!n) return 0;
+  const PASO = SENUELO_MS + 500, ini = Math.round(pausa * 0.35);
+  estado.timersSenuelo = [];
+  for (let k = 0; k < n; k++) {
+    const t = ini + k * PASO;
+    estado.timersSenuelo.push(setTimeout(() => { if (estado.estado === 'espera') mandar('senuelo'); }, t));
+    estado.timersSenuelo.push(setTimeout(() => { if (estado.estado === 'espera') mandar('espera'); }, t + SENUELO_MS));
+  }
+  return n * PASO + 100;
 }
+const pararPolillas = (estado) => { for (const t of estado.timersSenuelo || []) clearTimeout(t); estado.timersSenuelo = []; };
 
 function enviarSnitch(sala, soloId, extra) {
   const s = sala.snitch;
@@ -1114,7 +1129,8 @@ function evaluarSnitch(sala, final) {
 }
 
 function limpiarSnitch(s) {
-  for (const t of ['timer', 'revisar', 'timerSenuelo', 'timerSenuelo2']) clearTimeout(s[t]);
+  for (const t of ['timer', 'revisar']) clearTimeout(s[t]);
+  pararPolillas(s);
 }
 
 function escaparSnitch(sala) {
@@ -1197,7 +1213,8 @@ function detenerDuelo(ws) {
 }
 
 function limpiarDuelo(d) {
-  for (const t of ['timer', 'revisar', 'timerSenuelo', 'timerSenuelo2']) clearTimeout(d[t]);
+  for (const t of ['timer', 'revisar']) clearTimeout(d[t]);
+  pararPolillas(d);
 }
 
 function enviarDuelo(sala, soloId, extra) {
@@ -1234,7 +1251,7 @@ function nuevaRondaDuelo(sala) {
   } else {
     d.ventana = ventanaSnitch(f);
     enviarDuelo(sala);
-    if (d.ronda >= 2) extra = programarSenuelo(sala, d, pausa, (fase) => enviarDuelo(sala, null, { fase }));
+    if (d.ronda >= 2) extra = programarSenuelo(sala, d, pausa, (fase) => enviarDuelo(sala, null, { fase }), f);
   }
   d.timer = setTimeout(() => {
     if (sala.duelo !== d || d.estado !== 'espera') return;

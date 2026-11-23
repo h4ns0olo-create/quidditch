@@ -17,7 +17,7 @@ Cómo funciona (paso 3):
   si el guardián ataja antes de que el cazador lance, es atajada; si el cazador lanza antes, es gol (10 puntos).
 - **Bludgers** (golpeadores, círculo): una cada 20 s por equipo contra quien lleva la quaffle; los golpeadores
   rivales tienen 3 s para repelerla.
-- **Snitch** (buscadores): aparece **solo un instante** (0,6 s la primera vez; cada vez que se escapa, la siguiente dura menos, hasta 0,3 s) y se va volando. El primero
+- **Snitch** (buscadores): aparece **solo un instante** (0,8 s la primera vez; cada vez que se escapa, la siguiente dura un poquito menos, nunca menos de 0,4 s) y se va volando. El primero
   que la toca a tiempo la atrapa: +150 y termina el partido (gana quien tenga más puntos). Si nadie la atrapa, vuelve a
   aparecer más tarde, hasta que alguien la atrape. Tocar antes (o tocar la polilla) hace que esa vez se te escape.
 - **Fin por tiempo:** gana quien tenga más puntos. Empate: muerte súbita de snitch.
@@ -46,12 +46,13 @@ confeti; escenas en cada minijuego; podio con el jugador destacado al final; y s
   Al final: ganador, reacción media y mejor tiempo de cada uno.
 - **🎯 Práctica libre** (botón en la portada, sin sala): cada uno practica el minijuego de su posición; 3 vidas, cada
   acierto sube de nivel y se guarda el récord en el celular. En la del buscador, la snitch se deja ver cada vez menos
-  (de 0,6 s hasta 0,2 s).
+  (de 0,8 s hasta 0,4 s, nunca menos).
 - **Dificultad que sube:** en partidos y entrenamientos la zona se achica y la marca acelera con el reloj; en los
-  duelos, ronda a ronda; en la práctica, nivel a nivel.
+  duelos, ronda a ronda; en la práctica, nivel a nivel. El círculo de los golpeadores tiene la zona verde más ancha,
+  va más lento y se pone difícil más despacio que los demás.
 - **Señuelos:** una polilla dorada (parecida a la snitch pero con alas anchas, sin bolita, más ámbar y sin iluminar el
   fondo). Tocarla pierde la ronda. Salen desde la 1.ª aparición de la snitch, desde la ronda 2 en los duelos y desde el
-  nivel 2 en la práctica.
+  nivel 2 en la práctica. Con la dificultad salen más polillas seguidas (1, luego 2 y hasta 3) en vez de acortar la snitch.
 
 **Personaliza tu avatar** (pasos 7 y 8): en la portada, "Personaliza tu avatar". Retrato ilustrado (estilo chica
 con ojos grandes o chico con ojos "de cazador" y mandíbula marcada), 16 peinados (9 pensados para chica y 7 para chico,

@@ -311,7 +311,7 @@ async function main() {
     const finAp1 = bB.recibir((m) => m.t === 'snitch' && m.fase === 'fin', 15000);
     bA.mandar({ t: 'snitch_tap', rondaId: ap1.rondaId, antes: true });
     const senB = await bB.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 15000);
-    comprobar(senB.ventana <= 600 && senB.ventana >= 300, `la snitch se deja ver solo ${senB.ventana} ms`);
+    comprobar(senB.ventana <= 800 && senB.ventana >= 400, `la snitch se deja ver solo ${senB.ventana} ms`);
     await esperar(senB.ventana + 300);
     bB.mandar({ t: 'snitch_tap', rondaId: senB.rondaId, ms: senB.ventana + 250 });
     const f1 = await finAp1;
@@ -411,7 +411,7 @@ async function main() {
     let finR = mae.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 15000);
     cho.mandar({ t: 'duelo_tap', rondaId: esperaD1.rondaId, antes: true });
     const senM1 = await mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000);
-    comprobar(senM1.ventana <= 600, `en el duelo la snitch también aparece solo un instante (${senM1.ventana} ms)`);
+    comprobar(senM1.ventana <= 800 && senM1.ventana >= 400, `en el duelo la snitch también aparece solo un instante (${senM1.ventana} ms)`);
     await esperar(330);
     mae.mandar({ t: 'duelo_tap', rondaId: senM1.rondaId, ms: 300 });
     comprobar((await finR).ganador === 'B', 'ronda 1: Cho se adelanta (se le escapa) y Maenor la atrapa');

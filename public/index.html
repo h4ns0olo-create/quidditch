@@ -2112,7 +2112,7 @@
       const rc = R((r.zonaIni + r.zonaFin) / 2);
       v.innerHTML = `<svg class="vis-svg" id="vis-toque" viewBox="0 0 240 240">
         <circle cx="120" cy="120" r="118" fill="rgba(255,255,255,.05)"/>
-        <circle cx="120" cy="120" r="${rc}" fill="none" stroke="#38d476" stroke-opacity=".22" stroke-width="${R(r.zonaFin) - R(r.zonaIni)}"/>
+        <circle cx="120" cy="120" r="${rc}" fill="none" stroke="#38d476" stroke-opacity=".42" stroke-width="${R(r.zonaFin) - R(r.zonaIni)}"/>
         <circle cx="120" cy="120" r="${rc}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="8 6"/>
         <circle id="vis-mov" cx="120" cy="120" r="30" fill="rgba(255,140,60,.15)" stroke="#ff9a4d" stroke-width="5"/>
         <circle cx="120" cy="120" r="13" fill="#2a2a2a" stroke="#777" stroke-width="2"/><circle cx="116" cy="116" r="4" fill="#666"/>
@@ -2389,7 +2389,7 @@
   const PRACTICAS = {
     cazador: { clase: 'tiro', visual: 'barra', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡LANZAR!', nombre: 'Cazador', ayuda: 'Por rapidez: acierta en lo verde lo antes posible.' },
     guardian: { clase: 'atajar', visual: 'aguja', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡ATAJAR!', nombre: 'Guardián', ayuda: 'Ataja con la aguja en lo verde.' },
-    golpeador: { clase: 'bateo', visual: 'circulo', ancho: 0.14, periodo: 1400, limite: 6000, boton: '¡BATEAR!', nombre: 'Golpeador', ayuda: 'Toca cuando el círculo encaje en el punteado.' },
+    golpeador: { clase: 'bateo', visual: 'circulo', ancho: 0.2, periodo: 1900, limite: 6000, boton: '¡BATEAR!', nombre: 'Golpeador', ayuda: 'Toca cuando el círculo encaje en el punteado.' },
     buscador: { nombre: 'Buscador', ayuda: 'Toca en cuanto aparezca la snitch. ¡Ojo con la polilla dorada!' },
   };
   const difP = () => Math.min(1.5, (practica.nivel - 1) / 15);
@@ -2409,7 +2409,9 @@
     if (!practica) return;
     if (practica.pos === 'buscador') return rondaSnitchPractica();
     const c = PRACTICAS[practica.pos], f = difP();
-    const ancho = c.ancho * (1 - 0.5 * f), periodo = Math.round(c.periodo / (1 + 0.5 * f));
+    // El círculo del golpeador se pone difícil más despacio que la barra y la aguja
+    const [menos, mas] = c.visual === 'circulo' ? [0.3, 0.3] : [0.5, 0.5];
+    const ancho = c.ancho * (1 - menos * f), periodo = Math.round(c.periodo / (1 + mas * f));
     const centro = 0.25 + Math.random() * 0.5;
     abrirReto({ id: 'local', clase: c.clase, visual: c.visual, titulo: `Nivel ${practica.nivel} · ${'❤️'.repeat(practica.vidas)}${'🖤'.repeat(3 - practica.vidas)}`,
       boton: c.boton, zonaIni: centro - ancho / 2, zonaFin: centro + ancho / 2, periodo, limite: c.limite, desde: 0, local: true });
@@ -2427,17 +2429,21 @@
   }
   function rondaSnitchPractica() {
     const f = difP(), id = 'P' + Date.now();
-    const limite = Math.max(200, 600 - 20 * (practica.nivel - 1)); // tiempo que se deja ver: 0,6 s y cada nivel menos (mínimo 0,2 s)
+    // Tiempo que se deja ver: 0,8 s y cada nivel un poquito menos, nunca menos de 0,4 s.
+    const limite = Math.max(400, 800 - 15 * (practica.nivel - 1));
     practica.limiteSnitch = limite;
     snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite });
     const pausa = 1500 + Math.random() * 3000;
-    const senuelo = practica.nivel >= 2 && Math.random() < Math.min(0.8, 0.45 + practica.nivel * 0.015);
+    // Polillas: desde el nivel 2. Cuanto más nivel, más polillas seguidas (hasta 3 desde el nivel 21).
+    const maxPolillas = practica.nivel < 2 ? 0 : practica.nivel <= 10 ? 1 : practica.nivel <= 20 ? 2 : 3;
+    const polillas = maxPolillas && Math.random() < 0.8 ? 1 + Math.floor(Math.random() * maxPolillas) : 0;
     const t = practica.timers;
-    if (senuelo) {
-      t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senuelo', rondaId: id }); }, pausa * 0.5));
-      t.push(setTimeout(() => { if (sn && sn.fase === 'senuelo') snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite }); }, pausa * 0.5 + 800));
+    for (let k = 0; k < polillas; k++) {
+      const ini = pausa * 0.35 + k * 1300;
+      t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senuelo', rondaId: id }); }, ini));
+      t.push(setTimeout(() => { if (sn && sn.fase === 'senuelo') snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite }); }, ini + 800));
     }
-    const tSenal = pausa + (senuelo ? 1400 : 0);
+    const tSenal = pausa + polillas * 1300;
     t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senal', rondaId: id, limite }); }, tSenal));
     t.push(setTimeout(() => { if (sn && !sn.enviado && (sn.fase === 'senal' || sn.fase === 'ida')) { sn.enviado = true; practicaSnitchTap(false, null); } }, tSenal + limite + 150));
   }
