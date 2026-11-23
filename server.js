@@ -77,7 +77,10 @@ const PAPELES_INVITADO = ['comentaristaA', 'comentaristaB', 'prefecto', 'adminis
 // Aspecto del jugador (se elige al entrar). Solo se aceptan estas opciones.
 const AVATAR = {
   genero: ['chica', 'chico'],
-  pelo: ['corto', 'largo', 'coletas', 'rizado', 'mono', 'rapado'],
+  pelo: ['liso', 'ondulado', 'rizos', 'melena', 'coletas2', 'coleta', 'trenza', 'flequillo', 'moño_alto',
+    'atras', 'ondulado_chico', 'punta', 'rizos_cerrados', 'greñas', 'raya', 'alborotado'],
+  expresion: ['seria', 'sonrisa'],
+  uniforme: ['escolar', 'quidditch'],
   sombrero: ['ninguno', 'mago', 'gorro', 'cuernos', 'aureola', 'lazo', 'corona', 'campeon'],
   accesorio: ['ninguno', 'gafas', 'antifaz', 'bufanda'],
   escoba: ['clasica', 'veloz', 'robusta', 'antigua'],
@@ -91,7 +94,8 @@ function limpiarAvatar(a) {
   const entero = (v, max) => (Number.isInteger(v) && v >= 0 && v <= max ? v : 0);
   r.piel = entero(x.piel, 5);
   r.peloColor = entero(x.peloColor, 8);
-  r.aura = x.aura ? 1 : 0;
+  r.ojos = entero(x.ojos, 5);
+  for (const k of ['aura', 'pecas', 'diadema', 'aretes']) r[k] = x[k] ? 1 : 0;
   return r;
 }
 // Partido oficial: 7 por lado. Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador).
