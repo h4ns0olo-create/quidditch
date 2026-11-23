@@ -298,7 +298,7 @@ async function main() {
     comprobar(c.texto === '¡Qué atajada increíble!' && c.casa === 'Slytherin', 'el comentario llega a los jugadores (con el color de su equipo)');
     comprobar((await obs.error({ t: 'comentar', texto: 'otro' })).msg.includes('Espera'), 'no se puede inundar con comentarios');
     comprobar((await S[0].error({ t: 'comentar', texto: 'hola' })).msg.includes('comentaristas'), 'un jugador no puede comentar');
-    comprobar((await I[3].error({ t: 'comentar', texto: 'hola' })).msg.includes('comentaristas'), 'un prefecto tampoco');
+    comprobar((await I[3].error({ t: 'comentar', texto: 'hola' })).msg.includes('comentaristas'), 'un espectador tampoco');
 
     console.log('\n12) Snitch: aparece solo un instante, desde la mitad del partido (50 s en la prueba)');
     const bA = en('A-buscador'), bB = en('B-buscador');

@@ -5,7 +5,7 @@ Cómo funciona (paso 3):
   **Invitado → Administración** (pide la contraseña) y desde ahí elige la duración (10, 15 o 20 min) y lanza la moneda.
 - **Entrada:** nombre, casa y código. Si tu casa no juega, no te deja entrar con ella (entra como Invitado).
   Con tu casa solo puedes elegir posiciones de tu equipo. Como Invitado: comentarista de cada equipo (máx. 2),
-  prefecto o administración.
+  espectador o administración.
 - **Una vez elegida la función no se puede cambiar.** Si alguien se equivoca: "Salir de la sala" (libera al instante)
   y volver a entrar. Si se desconecta sin querer, su plaza le espera 1 minuto. Durante el partido, si alguien se va,
   su plaza queda vacía hasta el final.
@@ -63,7 +63,7 @@ vuela al lado) y aura. Se elige cada vez que entras (no se guarda). En el campo 
 quidditch del equipo.
 **Premios** (quedan guardados en el celular): escoba dorada (nivel 15 en la práctica), corona (ganar un duelo),
 aura dorada (jugador destacado), snitch mascota (atrapar la snitch) y laurel de campeón (ganar un partido oficial).
-**Palco y capitanes**: comentaristas, prefectos (o espectadores en los entrenamientos) y administración aparecen con su
+**Palco y capitanes**: comentaristas, espectadores y administración aparecen con su
 retrato en "🏟️ En el palco", debajo del estadio, y en la lista de invitados; los comentarios salen con la carita de quien
 los escribe. Quien activa la administración con la clave de capitanes lleva una insignia plateada con una "C" junto a su
 nombre, en su retrato y en el pecho de su jugador en el campo.

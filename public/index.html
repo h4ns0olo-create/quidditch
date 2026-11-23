@@ -538,9 +538,9 @@
     ['guardian', 'Guardián', 'guardian'], ['buscador', 'Buscador', 'buscador'],
   ];
   const TIPOS = { cazador: 'Cazador', golpeador: 'Golpeador', guardian: 'Guardián', buscador: 'Buscador' };
-  const ICONO_PAPEL = { comentaristaA: '🎙️', comentaristaB: '🎙️', prefecto: '📋', administracion: '🔑' };
+  const ICONO_PAPEL = { comentaristaA: '🎙️', comentaristaB: '🎙️', prefecto: '👀', administracion: '🔑' };
   const nombrePapel = (papel) => papel === 'comentaristaA' ? `Comentarista de ${N('A')}`
-    : papel === 'comentaristaB' ? `Comentarista de ${N('B')}` : papel === 'prefecto' ? (entreno() ? 'Espectador' : 'Prefecto') : 'Administración';
+    : papel === 'comentaristaB' ? `Comentarista de ${N('B')}` : papel === 'prefecto' ? 'Espectador' : 'Administración';
 
   // Posiciones en el mapa del campo (equipo A a la izquierda; el B es simétrico).
   const COORD = {
@@ -892,7 +892,7 @@
     if (sala.log) {
       let extra = sala.accion ? `<div>⏳ ${esc(sala.accion.texto)}</div>` : '';
       if (sala.snitch) extra = `<div>✨ ¡La snitch anda cerca!${sala.snitch.estado === 'senal' ? ' ¡Ahí está!' : ''}</div>` + extra;
-      $('registro-sub').textContent = sala.tipo === 'duelo' ? 'Comentarios automáticos del duelo.' : entreno() ? 'En los entrenamientos todos ven las jugadas.' : 'Solo lo ven los invitados (comentaristas, prefectos y administración).';
+      $('registro-sub').textContent = sala.tipo === 'duelo' ? 'Comentarios automáticos del duelo.' : entreno() ? 'En los entrenamientos todos ven las jugadas.' : 'Solo lo ven los invitados (comentaristas, espectadores y administración).';
       $('registro').innerHTML = extra + sala.log.slice().reverse().map((l) => `<div>${esc(l.texto)}</div>`).join('');
     }
     if (sala.tipo !== 'duelo') for (const eq of ['A', 'B']) pintarEquipo(eq, mi);
@@ -1848,7 +1848,7 @@
         const q = ocupado(papel);
         h += `<button class="sec peq" data-invitado="${papel}" ${q ? 'disabled' : ''}>🎙️ ${esc(nombrePapel(papel))}${q ? ' (ocupado)' : ''}</button>`;
       }
-      h += `<button class="sec peq" data-invitado="prefecto">📋 ${nombrePapel('prefecto')}</button><button class="sec peq" data-invitado="administracion">🔑 Administración</button></div>`;
+      h += `<button class="sec peq" data-invitado="prefecto">👀 ${nombrePapel('prefecto')}</button><button class="sec peq" data-invitado="administracion">🔑 Administración</button></div>`;
       h += '<div class="aviso-fijo">⚠️ Después de elegir no podrás cambiar. Si te equivocas, sal de la sala y vuelve a entrar.</div>';
     }
     const sinNada = sala.participantes.filter((p) => !p.plaza && !p.invitado);

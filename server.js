@@ -178,7 +178,7 @@ const enJuego = (sala) => ['inicio', 'partido', 'muerte'].includes(sala.fase);
 function nombrePapel(sala, papel) {
   if (papel === 'comentaristaA') return `Comentarista de ${sala.nombres.A}`;
   if (papel === 'comentaristaB') return `Comentarista de ${sala.nombres.B}`;
-  if (papel === 'prefecto') return 'Prefecto';
+  if (papel === 'prefecto') return 'Espectador';   // (antes "Prefecto"; el nombre interno se mantiene)
   return 'Administración';
 }
 
@@ -319,7 +319,7 @@ function crearSala(ws, m) {
 }
 
 // Se entra con una casa (solo si esa casa juega: luego solo puede elegir posiciones de su equipo)
-// o como Invitado (solo puede elegir comentarista, prefecto o administración).
+// o como Invitado (solo puede elegir comentarista, espectador o administración).
 function entrar(ws, m) {
   if (ws.participante) return error(ws, 'Ya estás dentro de una sala.');
   const codigo = limpiarCodigo(m.codigo);
