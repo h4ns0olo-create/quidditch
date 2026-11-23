@@ -81,15 +81,14 @@ const AVATAR = {
     'atras', 'ondulado_chico', 'punta', 'rizos_cerrados', 'greñas', 'raya', 'alborotado'],
   expresion: ['seria', 'sonrisa'],
   uniforme: ['escolar', 'quidditch'],
-  fondo: ['liso', 'destellos', 'castillo', 'rayas'],
   maquillaje: ['ninguno', 'natural', 'oscuro', 'glam'],
   escoba: ['clasica', 'veloz', 'antigua'],
   escobaColor: ['clara', 'oscura', 'roja', 'negra', 'dorada'],
   mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'murcielago', 'sapo', 'ratita', 'snitch'],
 };
 // Accesorios: se pueden llevar varios a la vez, pero en la cabeza solo uno
-const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'mago', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
-const DE_CABEZA = ['mago', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
+const ACCESORIOS = ['gafas', 'bufanda', 'aretes', 'lazo', 'flor', 'diadema', 'corona', 'campeon'];
+const DE_CABEZA = ['lazo', 'flor', 'diadema', 'corona', 'campeon'];
 function limpiarAvatar(a) {
   const x = a && typeof a === 'object' ? a : {};
   const r = {};

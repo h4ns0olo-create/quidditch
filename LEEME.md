@@ -57,13 +57,12 @@ confeti; escenas en cada minijuego; podio con el jugador destacado al final; y s
 con ojos grandes o chico con ojos "de cazador" y mandíbula marcada), 16 peinados (9 pensados para chica y 7 para chico,
 cualquiera puede usar cualquiera), piel, color de pelo, color de ojos, expresión, pecas, maquillaje (natural, oscuro o
 glam; solo se ve en el retrato), accesorios combinables (gafas, bufanda, aretes en las dos orejas y **un** objeto de cabeza:
-sombrero de mago, lazo, flor, diadema, corona o sombrero de campeón), uniforme del retrato (escolar o de quidditch), fondo
-del retrato (liso, destellos, castillo o rayas de la casa), escoba (clásica, veloz o antigua) y su madera, mascota
+moño, flor, diadema, corona o laurel de campeón), uniforme del retrato (escolar o de quidditch), escoba (clásica, veloz o antigua) y su madera, mascota
 (lechuza, gato, perro, murciélago, sapo, ratita o snitch; el gato y el perro van en la punta de la escoba, el murciélago
 vuela al lado) y aura. Se elige cada vez que entras (no se guarda). En el campo todos llevan siempre el uniforme de
 quidditch del equipo.
 **Premios** (quedan guardados en el celular): escoba dorada (nivel 15 en la práctica), corona (ganar un duelo),
-aura dorada (jugador destacado), snitch mascota (atrapar la snitch) y sombrero de campeón (ganar un partido oficial).
+aura dorada (jugador destacado), snitch mascota (atrapar la snitch) y laurel de campeón (ganar un partido oficial).
 
 Todavía NO incluye: corrección del marcador por la administración.
 
