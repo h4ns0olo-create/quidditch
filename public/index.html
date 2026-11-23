@@ -284,6 +284,23 @@
   .tabla-duelo { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 8px; }
   .tabla-duelo th, .tabla-duelo td { padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: center; }
   .tabla-duelo td:first-child { text-align: left; }
+  .emblema svg.retrato { width: 100%; height: 100%; border-radius: 50%; display: block; }
+  .cabecera .emblema { width: 54px; height: 54px; overflow: hidden; padding: 0; }
+  .editor { margin-top: 14px; }
+  #btn-editor { display: flex; align-items: center; gap: 10px; justify-content: flex-start; }
+  #btn-editor-cara { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex: none; border: 2px solid var(--oro); background: rgba(0,0,0,.2); }
+  #btn-editor-cara svg { width: 100%; height: 100%; }
+  .editor-vista { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; margin: 12px 0; }
+  #ed-retrato svg { width: 100%; max-width: 170px; display: block; margin: 0 auto; border-radius: 50%; background: rgba(0,0,0,.25); }
+  #ed-jinete svg { width: 100%; max-width: 190px; display: block; margin: 0 auto; }
+  .ed-fila { margin: 10px 0; }
+  .ed-tit { display: block; font-weight: 800; font-size: .85rem; color: var(--suave); margin-bottom: 6px; }
+  .ed-ops { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ed-ops .elegida { outline: 3px solid var(--oro); outline-offset: 1px; }
+  .muestra { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); box-shadow: none; font-size: .8rem; }
+  .bloqueado { opacity: .5; }
+  .podio .foto { width: 58px; height: 58px; margin: 0 auto 2px; border-radius: 50%; overflow: hidden; border: 2px solid var(--oro); }
+  .podio .foto svg { width: 100%; height: 100%; }
   .formatos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .formatos button { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .formatos button small { font-weight: 600; font-size: .75rem; color: var(--suave); }
@@ -315,6 +332,14 @@
       <label>Tu casa</label>
       <div class="casas" id="casas-entrar" data-grupo="entrar"></div>
       <p class="suave" id="ayuda-casa">Si tu casa juega, entrarás en su equipo. Si solo vienes a mirar, elige <b>Invitado</b>.</p>
+      <div class="editor">
+        <button type="button" class="sec ancho" id="btn-editor" style="margin-top:0"><span id="btn-editor-cara"></span><span>✨ Personaliza tu jugador</span></button>
+        <div id="editor-cuerpo" class="oculto">
+          <div class="editor-vista"><div id="ed-retrato"></div><div id="ed-jinete"></div></div>
+          <div id="ed-opciones"></div>
+          <button type="button" class="sec ancho" id="ed-azar">🎲 Al azar</button>
+        </div>
+      </div>
       <label for="i-codigo">Código de la sala</label>
       <input id="i-codigo" maxlength="10" required placeholder="Ej.: FIESTA" autocapitalize="characters">
       <button class="ancho" type="submit">🧹 Entrar al estadio</button>
@@ -674,9 +699,11 @@
   $('f-entrar').addEventListener('submit', (e) => {
     e.preventDefault();
     if (!elegidas.entrar) return avisar('Elige tu casa o "Invitado".');
-    mandar({ t: 'entrar', nombre: $('i-nombre').value, casa: elegidas.entrar, codigo: $('i-codigo').value });
+    mandar({ t: 'entrar', nombre: $('i-nombre').value, casa: elegidas.entrar, codigo: $('i-codigo').value, avatar: miAvatar });
   });
   $('ir-admin').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-admin'); });
+  $('btn-editor').addEventListener('click', () => { $('editor-cuerpo').classList.toggle('oculto'); pintarEditor(); });
+  $('ed-azar').addEventListener('click', () => { miAvatar = avatarAlAzar(); pintarEditor(); });
   $('ir-practica').addEventListener('click', () => { $('practica-resultado').classList.add('oculto'); pintarPracticas(); mostrar('p-practica'); });
   $('practica-volver').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-inicio'); });
   $('volver-inicio').addEventListener('click', (e) => { e.preventDefault(); mostrar('p-inicio'); });
@@ -712,10 +739,16 @@
 
   // Botones que se pintan dinámicamente
   document.body.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-pasar],[data-tirar],[data-bludger],[data-invitado],[data-duracion],[data-empezar],[data-terminar],[data-nueva],[data-llave],[data-practica],[data-salir-practica],[data-duelo-pos],[data-duelo-rondas],[data-empezar-duelo],[data-detener-duelo]');
+    const b = e.target.closest('[data-casa-pick],[data-plaza],[data-pasar],[data-tirar],[data-bludger],[data-invitado],[data-duracion],[data-empezar],[data-terminar],[data-nueva],[data-llave],[data-practica],[data-salir-practica],[data-duelo-pos],[data-duelo-rondas],[data-empezar-duelo],[data-detener-duelo],[data-av]');
     if (!b) return;
     const d = b.dataset;
-    if (d.casaPick) { elegidas[d.grupo] = d.casaPick; pintarCasas(); }
+    if (d.av) {
+      if (d.premio) return avisar(`🔒 ${PREMIOS[d.premio].nombre}: se desbloquea si ${PREMIOS[d.premio].como.toLowerCase()}.`);
+      miAvatar[d.av] = /^\d+$/.test(d.val) ? Number(d.val) : d.val;
+      if (d.av === 'genero') miAvatar.pelo = d.val === 'chico' ? 'corto' : 'largo';
+      return pintarEditor();
+    }
+    if (d.casaPick) { elegidas[d.grupo] = d.casaPick; pintarCasas(); pintarEditor(); }
     else if (d.plaza) {
       const nombre = POSICIONES.find((x) => x[0] === d.plaza.split('-')[1])[1];
       if (confirm(`¿Ser ${nombre}? Después no podrás cambiar de posición.`)) mandar({ t: 'elegir_plaza', plaza: d.plaza });
@@ -779,7 +812,9 @@
     const raiz = document.documentElement.style;
     raiz.setProperty('--casa', casa.c); raiz.setProperty('--casa-acento', casa.a); raiz.setProperty('--casa-texto', casa.t);
     $('yo-emblema').setAttribute('style', vars(mi.casa));
-    $('yo-emblema').textContent = casa.emo;
+    const colYo = mi.equipo ? L(mi.equipo) : casa;
+    const fotoYo = retrato(mi.avatar, colYo.c, colYo.a);
+    if ($('yo-emblema').dataset.html !== fotoYo) { $('yo-emblema').innerHTML = fotoYo; $('yo-emblema').dataset.html = fotoYo; }
     $('yo-nombre').textContent = mi.nombre;
     $('yo-rol').innerHTML = miPapel(mi);
     $('sala-codigo').textContent = sala.codigo;
@@ -818,7 +853,7 @@
     if (mi.plaza) {
       const eq = mi.equipo, x = L(eq);
       const nom = POSICIONES.find((p) => p[0] === mi.plaza.split('-')[1])[1];
-      return `${mini(miTipo(mi), x.c, x.a)} ${nom} · ${x.emo} ${esc(N(eq))}${mi.admin ? ' · 🔑' : ''}`;
+      return `${mini(miTipo(mi), x.c, x.a, mi.avatar)} ${nom} · ${x.emo} ${esc(N(eq))}${mi.admin ? ' · 🔑' : ''}`;
     }
     const llave = mi.admin ? ' · 🔑' : '';
     if (sala.tipo === 'duelo') return `⚔️ Sala de duelos${llave}`;
@@ -857,6 +892,7 @@
     marcadorPrevio = { ...m };
   }
 
+  let premiosRevisados = null;
   function pintarFinal() {
     const el = $('panel-final');
     const r = sala.resultado;
@@ -876,9 +912,17 @@
       const alto = [96, 70, 52], medalla = ['🥇', '🥈', '🥉'];
       html += '<div class="podio">' + [1, 0, 2].filter((i) => top[i]).map((i) => {
         const x = top[i], tipo = POSICIONES.find((p) => p[0] === x.plaza.split('-')[1])[2], col = L(x.equipo);
-        return `<div class="col"><div style="font-size:1.6rem">${medalla[i]}</div>${mini(tipo, col.c, col.a)}<div class="nom">${esc(x.nombre)}</div><div class="base" style="height:${alto[i]}px;${VL(x.equipo)}">${i + 1}</div></div>`;
+        return `<div class="col"><div style="font-size:1.6rem">${medalla[i]}</div><div class="foto">${retrato(x.avatar, col.c, col.a)}</div><div class="nom">${esc(x.nombre)}</div><div class="base" style="height:${alto[i]}px;${VL(x.equipo)}">${i + 1}</div></div>`;
       }).join('') + '</div>';
       html += `<p>⭐ Jugador destacado: <b>${esc(top[0].nombre)}</b></p>`;
+    }
+    // Premios de este partido (una sola vez por partido)
+    const mi = persona(yo);
+    if (mi && premiosRevisados !== r.fin) {
+      premiosRevisados = r.fin;
+      if (top.length && top[0].nombre === mi.nombre) desbloquear('aura');
+      if (r.snitch && r.snitch.nombre === mi.nombre) desbloquear('snitch_mascota');
+      if (sala.tipo === 'oficial' && r.ganador && mi.equipo === r.ganador) desbloquear('campeon');
     }
     if (sala.stats && sala.stats.length) {
       html += '<div class="stats">';
@@ -897,7 +941,7 @@
           if (s.repelidas) partes.push(`🛡️ ${s.repelidas} repelida${s.repelidas === 1 ? '' : 's'}`);
           if (s.rondasSnitch) partes.push(`✨ ${s.rondasSnitch} ronda${s.rondasSnitch === 1 ? '' : 's'} de snitch`);
           if (s.snitch) partes.push('🏆 ¡atrapó la snitch!');
-          html += `<div class="stat"><b>${mini(tipo, x.c, x.a)} ${esc(s.nombre)}</b><div class="chips2">${partes.join(' · ') || 'sin jugadas'}</div></div>`;
+          html += `<div class="stat"><b>${mini(tipo, x.c, x.a, s.avatar)} ${esc(s.nombre)}</b><div class="chips2">${partes.join(' · ') || 'sin jugadas'}</div></div>`;
         }
       }
       html += '</div>';
@@ -924,25 +968,200 @@
     if (el.dataset.html !== h) { el.innerHTML = h; el.dataset.html = h; }
   }
 
-  // ---------- Jugador sobre escoba (dibujo). El equipo A mira a la derecha y el B a la izquierda.
-  function jinete(tipo, c, a, haciaIzq) {
-    const alas = tipo === 'buscador'
-      ? '<ellipse cx="-5" cy="-10" rx="7" ry="2.6" transform="rotate(-28 -5 -10)" fill="#fff6d8" stroke="#d9a520" stroke-width=".8"/><ellipse cx="-5" cy="-6" rx="5.5" ry="2.2" transform="rotate(12 -5 -6)" fill="#fff6d8" stroke="#d9a520" stroke-width=".8"/>' : '';
-    let acc = '';
-    if (tipo === 'cazador') acc = '<circle cx="10" cy="-5" r="4.2" fill="#c0492f" stroke="#fff" stroke-width="1"/>';
-    if (tipo === 'golpeador') acc = '<line x1="5" y1="-3" x2="13" y2="-15" stroke="#7a5230" stroke-width="3.4" stroke-linecap="round"/><line x1="11.5" y1="-12.5" x2="14" y2="-16.5" stroke="#5a3a1e" stroke-width="4.5" stroke-linecap="round"/>';
-    if (tipo === 'guardian') acc = '<circle cx="9" cy="-9" r="3.6" fill="#ead7ad" stroke="#7a5230" stroke-width="1"/><circle cx="9.5" cy="-1.5" r="3.6" fill="#ead7ad" stroke="#7a5230" stroke-width="1"/>';
-    return `<g${haciaIzq ? ' transform="scale(-1,1)"' : ''}>
-      ${alas}
-      <path d="M-13,9 L-22,4.5 L-23.5,14.5 Z" fill="#d8b25a" stroke="#8a6420" stroke-width=".8"/>
-      <line x1="-14" y1="9" x2="15" y2="3" stroke="#7a5230" stroke-width="2.6" stroke-linecap="round"/>
-      <path d="M-3,-4 Q-15,-2 -17,8 L-5,4 Z" fill="${c}" opacity=".75"/>
-      <path d="M-6,7 Q-8,-3 0,-6 Q7,-4 6,6 Z" fill="${c}" stroke="${a}" stroke-width="1.6"/>
-      <circle cx="1" cy="-10.5" r="4.6" fill="#f3d4b5" stroke="${a}" stroke-width="1"/>
-      ${acc}
-    </g>`;
+  // ---------- Aspecto del jugador (se elige cada vez que entras)
+  const PIELES = ['#f7dcc6', '#efc6a0', '#d9a074', '#b97a4f', '#8d5a3b', '#5e3b26'];
+  const PIELES_SOMBRA = ['#e9bfa2', '#ddaa80', '#c2875c', '#9e623b', '#73452b', '#47291a'];
+  const PELOS = ['#2b1d14', '#5a3a22', '#8a5a2b', '#c98e3c', '#ecd27f', '#b33a24', '#dcdcdc', '#4b6bd6', '#d35fd8'];
+  const COLOR_ESCOBA = { clara: '#c9935a', oscura: '#6b4226', roja: '#9c3b2a', negra: '#2e2a2a', dorada: '#e2b13c' };
+  const OPCIONES = [
+    ['genero', 'Estilo', [['chica', '👧 Chica'], ['chico', '👦 Chico']]],
+    ['piel', 'Piel', PIELES.map((c, i) => [i, c])],
+    ['pelo', 'Peinado', [['corto', 'Corto'], ['largo', 'Largo'], ['coletas', 'Coletas'], ['rizado', 'Rizado'], ['mono', 'Moño'], ['rapado', 'Rapado']]],
+    ['peloColor', 'Color de pelo', PELOS.map((c, i) => [i, c])],
+    ['sombrero', 'Sombrero', [['ninguno', 'Nada'], ['mago', '🧙 Mago'], ['gorro', '🧶 Gorro'], ['cuernos', '😈 Cuernitos'], ['aureola', '😇 Aureola'], ['lazo', '🎀 Lazo'], ['corona', '👑 Corona', 'corona'], ['campeon', '🏆 Campeón', 'campeon']]],
+    ['accesorio', 'Accesorio', [['ninguno', 'Nada'], ['gafas', '👓 Gafas'], ['antifaz', '🎭 Antifaz'], ['bufanda', '🧣 Bufanda']]],
+    ['escoba', 'Escoba', [['clasica', 'Clásica'], ['veloz', 'Veloz'], ['robusta', 'Robusta'], ['antigua', 'Antigua']]],
+    ['escobaColor', 'Madera', Object.entries(COLOR_ESCOBA).map(([k, c]) => [k, c, k === 'dorada' ? 'escoba_dorada' : null])],
+    ['mascota', 'Mascota', [['ninguna', 'Nada'], ['lechuza', '🦉 Lechuza'], ['gato', '🐈 Gato'], ['sapo', '🐸 Sapo'], ['ratita', '🐭 Ratita'], ['snitch', '✨ Snitch', 'snitch_mascota']]],
+    ['aura', 'Aura', [[0, 'Sin aura'], [1, '✨ Aura dorada', 'aura']]],
+  ];
+  const PREMIOS = {
+    escoba_dorada: { nombre: 'Escoba dorada', como: 'Llega al nivel 15 en la práctica libre' },
+    corona: { nombre: 'Corona', como: 'Gana un duelo' },
+    aura: { nombre: 'Aura dorada', como: 'Sé el jugador destacado de un partido' },
+    snitch_mascota: { nombre: 'Snitch mascota', como: 'Atrapa la snitch en un partido o entrenamiento' },
+    campeon: { nombre: 'Sombrero de campeón', como: 'Gana un partido oficial' },
+  };
+  const AV_BASE = { genero: 'chica', piel: 1, pelo: 'corto', peloColor: 1, sombrero: 'ninguno', accesorio: 'ninguno', escoba: 'clasica', escobaColor: 'clara', mascota: 'ninguna', aura: 0 };
+  const azar = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  let premios = {};
+  try { premios = JSON.parse(localStorage.getItem('quidditch_premios') || '{}') || {}; } catch {}
+  const tiene = (premio) => !premio || !!premios[premio];
+  function avatarAlAzar() {
+    const a = {};
+    for (const [k, , ops] of OPCIONES) {
+      const libres = ops.filter((o) => tiene(o[2]));
+      a[k] = k === 'sombrero' || k === 'accesorio' || k === 'mascota' || k === 'aura'
+        ? (Math.random() < 0.5 ? libres[0][0] : azar(libres)[0]) : azar(libres)[0];
+    }
+    a.pelo = a.genero === 'chico' ? azar(['corto', 'rizado', 'rapado']) : azar(['largo', 'coletas', 'rizado', 'mono', 'corto']);
+    return a;
   }
-  const mini = (tipo, c, a) => `<svg class="ico jin" viewBox="-25 -19 44 36">${jinete(tipo, c, a, false)}</svg>`;
+  let miAvatar = avatarAlAzar();
+  function desbloquear(premio) {
+    if (premios[premio] || !PREMIOS[premio]) return;
+    premios[premio] = Date.now();
+    try { localStorage.setItem('quidditch_premios', JSON.stringify(premios)); } catch {}
+    setTimeout(() => mostrarResultado(`🏅 ¡Premio desbloqueado: ${PREMIOS[premio].nombre}! Úsalo la próxima vez que entres.`, true), 2500);
+    pintarEditor();
+  }
+
+  // ---------- Jugador sobre escoba (dibujo para el campo). El equipo A mira a la derecha y el B a la izquierda.
+  function jinete(tipo, c, a, haciaIzq, av0) {
+    const av = { ...AV_BASE, ...(av0 || {}) };
+    const piel = PIELES[av.piel] || PIELES[1], pelo = PELOS[av.peloColor] || PELOS[1];
+    const madera = COLOR_ESCOBA[av.escobaColor] || COLOR_ESCOBA.clara, paja = av.escobaColor === 'dorada' ? '#f6dc8a' : '#d8b25a';
+    let s = '';
+    if (av.aura) s += '<circle cy="-4" r="17" fill="#f6dc8a" opacity=".28"><animate attributeName="r" values="15;19;15" dur="1.6s" repeatCount="indefinite"/></circle>';
+    if (tipo === 'buscador') s += '<ellipse cx="-5" cy="-10" rx="7" ry="2.6" transform="rotate(-28 -5 -10)" fill="#fff6d8" stroke="#d9a520" stroke-width=".8"/><ellipse cx="-5" cy="-6" rx="5.5" ry="2.2" transform="rotate(12 -5 -6)" fill="#fff6d8" stroke="#d9a520" stroke-width=".8"/>';
+    // Escoba (modelo + color)
+    if (av.escoba === 'veloz') s += `<path d="M-15,8.3 L-28,4.5 L-28,12 Z" fill="${paja}" stroke="#8a6420" stroke-width=".7"/><path d="M-16,8.3 L-27,6.5 M-16,8.6 L-27,9.8" stroke="#8a6420" stroke-width=".6"/><line x1="-16" y1="8.4" x2="17" y2="2.5" stroke="${madera}" stroke-width="2" stroke-linecap="round"/>`;
+    else if (av.escoba === 'robusta') s += `<path d="M-13,9 C-18,1.5 -27,3.5 -26,10 C-27,16.5 -18,17.5 -13,10 Z" fill="${paja}" stroke="#8a6420" stroke-width=".8"/><line x1="-14" y1="9.3" x2="15" y2="3.3" stroke="${madera}" stroke-width="3.6" stroke-linecap="round"/>`;
+    else if (av.escoba === 'antigua') s += `<path d="M-13,8 L-22,2.5 M-13,9 L-24.5,8.5 M-13,10 L-22.5,15.5 M-13,8.6 L-22,5.5 M-13,9.6 L-22,12.5" stroke="${paja}" stroke-width="1.7" stroke-linecap="round"/><path d="M-14,9 Q0,1 15,3.5" fill="none" stroke="${madera}" stroke-width="2.6" stroke-linecap="round"/>`;
+    else s += `<path d="M-13,9 L-22,4.5 L-23.5,14.5 Z" fill="${paja}" stroke="#8a6420" stroke-width=".8"/><line x1="-14" y1="9" x2="15" y2="3" stroke="${madera}" stroke-width="2.6" stroke-linecap="round"/>`;
+    // Mascota en la escoba (gato, sapo)
+    if (av.mascota === 'gato') s += '<g transform="translate(-10,4.5)"><path d="M3.5,-1 Q7,-3 6,-6" fill="none" stroke="#3a3a3a" stroke-width="1.2" stroke-linecap="round"/><ellipse cy="-1.6" rx="3" ry="2.2" fill="#3a3a3a"/><circle cx="-2.3" cy="-4.2" r="1.8" fill="#3a3a3a"/><path d="M-3.8,-5.2 L-3.6,-7.2 L-2.6,-5.8 Z M-1.6,-5.6 L-0.8,-7.2 L-0.6,-5.2 Z" fill="#3a3a3a"/><circle cx="-2.9" cy="-4.4" r=".35" fill="#f2c14e"/></g>';
+    if (av.mascota === 'sapo') s += '<g transform="translate(11,1)"><ellipse cy="-1.4" rx="2.8" ry="1.9" fill="#4f9a3a"/><circle cx="-1.2" cy="-3" r=".9" fill="#4f9a3a"/><circle cx="1.2" cy="-3" r=".9" fill="#4f9a3a"/><circle cx="-1.2" cy="-3.1" r=".35" fill="#111"/><circle cx="1.2" cy="-3.1" r=".35" fill="#111"/></g>';
+    // Pelo largo / coletas (detrás de la cabeza)
+    if (av.pelo === 'largo') s += `<path d="M-3.9,-11.5 Q-7,-4 -4.8,-1 L-0.8,-4 Q-2.6,-7.5 -1.8,-10.5 Z" fill="${pelo}"/>`;
+    if (av.pelo === 'coletas') s += `<circle cx="-5.2" cy="-9" r="2.1" fill="${pelo}"/><circle cx="-4" cy="-10.3" r=".7" fill="#e0457b"/>`;
+    // Capa y túnica (uniforme de quidditch: color del equipo)
+    s += `<path d="M-3,-4 Q-15,-2 -17,8 L-5,4 Z" fill="${c}" opacity=".75"/><path d="M-6,7 Q-8,-3 0,-6 Q7,-4 6,6 Z" fill="${c}" stroke="${a}" stroke-width="1.6"/>`;
+    if (av.accesorio === 'bufanda') s += `<path d="M-3,-6 L-9.5,-2.5 L-8.4,-0.6 L-2.4,-4.2 Z" fill="${c}" stroke="${a}" stroke-width=".7"/><path d="M-3.2,-6.6 Q1,-4.6 5,-6.6 L5,-4.8 Q1,-2.8 -3.2,-4.8 Z" fill="${a}" stroke="${c}" stroke-width=".7"/>`;
+    // Cabeza
+    s += `<circle cx="1" cy="-10.5" r="4.6" fill="${piel}" stroke="${a}" stroke-width="1"/>`;
+    // Pelo (encima)
+    if (av.pelo === 'rapado') s += `<path d="M-3.4,-11.6 A4.7,4.7 0 0 1 5.4,-12 Q1,-13.4 -3.4,-11.6 Z" fill="${pelo}" opacity=".9"/>`;
+    else s += `<path d="M-3.9,-10.2 A4.95,4.95 0 0 1 5.9,-10.6 Q4.6,-12.4 2,-12.6 Q-1.5,-12.4 -3.9,-10.2 Z" fill="${pelo}"/>`;
+    if (av.pelo === 'rizado') s += `<circle cx="-3" cy="-13" r="1.9" fill="${pelo}"/><circle cx="1" cy="-15" r="2.1" fill="${pelo}"/><circle cx="4.8" cy="-13.2" r="1.9" fill="${pelo}"/>`;
+    if (av.pelo === 'mono') s += `<circle cx="-3.3" cy="-14.2" r="2.3" fill="${pelo}"/>`;
+    // Accesorios en la cara
+    if (av.accesorio === 'gafas') s += '<circle cx="4.2" cy="-11" r="1.6" fill="none" stroke="#222" stroke-width=".8"/><line x1="2.6" y1="-11" x2="0" y2="-11.4" stroke="#222" stroke-width=".6"/>';
+    if (av.accesorio === 'antifaz') s += '<path d="M-0.6,-12.6 L6.2,-12.8 L6,-9.8 L-0.6,-10.4 Z" fill="#222"/><circle cx="4.3" cy="-11.3" r=".75" fill="#fff"/>';
+    // Sombrero
+    if (av.sombrero === 'mago' || av.sombrero === 'campeon') {
+      const f = av.sombrero === 'mago' ? '#3b2a6b' : '#e2b13c', b = av.sombrero === 'mago' ? '#f2c14e' : '#fff6d8';
+      s += `<path d="M-4,-13.2 L-0.5,-25 L5.6,-13.6 Z" fill="${f}" stroke="${b}" stroke-width=".6"/><ellipse cx="0.8" cy="-13.2" rx="6.6" ry="1.5" fill="${f}" stroke="${b}" stroke-width=".5"/><path d="M-0.5,-25 Q-3,-25 -3.5,-22.5" fill="none" stroke="${f}" stroke-width="1.2"/>`;
+      if (av.sombrero === 'campeon') s += '<path d="M1,-20 l.7,1.4 1.5,.2 -1.1,1 .3,1.5 -1.4,-.7 -1.4,.7 .3,-1.5 -1.1,-1 1.5,-.2 Z" fill="#fff"/>';
+    }
+    if (av.sombrero === 'gorro') s += '<path d="M-4.2,-11 Q1,-19 6.2,-11.2 Z" fill="#c94a4a"/><rect x="-4.4" y="-12.2" width="10.8" height="2" rx="1" fill="#f2f2f2"/><circle cx="1" cy="-17.8" r="1.7" fill="#f2f2f2"/>';
+    if (av.sombrero === 'corona') s += '<path d="M-3.4,-13.2 L-2.6,-17.6 L-0.6,-14.8 L1,-18.6 L2.6,-14.8 L4.6,-17.6 L5.4,-13.2 Z" fill="#f2c14e" stroke="#a8730f" stroke-width=".5"/><circle cx="1" cy="-15" r=".6" fill="#d12a5a"/>';
+    if (av.sombrero === 'cuernos') s += '<path d="M-1.6,-14.6 Q-4,-18.8 -1.2,-19.8 Q-1.8,-17.2 0,-15.2 Z M3.6,-14.8 Q6,-19 3.2,-20 Q3.8,-17.4 2,-15.3 Z" fill="#b3261e"/>';
+    if (av.sombrero === 'aureola') s += '<ellipse cx="1" cy="-18.4" rx="4.6" ry="1.3" fill="none" stroke="#f6dc8a" stroke-width="1.4"/>';
+    if (av.sombrero === 'lazo') s += '<g transform="translate(-2.6,-14.6)"><path d="M0,0 L-3,-2 L-3,2 Z M0,0 L3,-2 L3,2 Z" fill="#e0457b"/><circle r="1" fill="#c0325f"/></g>';
+    // Mascotas que vuelan o van en el hombro
+    if (av.mascota === 'ratita') s += '<g transform="translate(-2.2,-7.2)"><path d="M-2,0.6 Q-4.5,1.5 -5,-0.5" fill="none" stroke="#e79aa5" stroke-width=".6"/><ellipse rx="2.2" ry="1.4" fill="#9a9a9a"/><circle cx="1.2" cy="-1.3" r=".9" fill="#b7b7b7"/><circle cx="2" cy="-0.2" r=".3" fill="#111"/></g>';
+    if (av.mascota === 'lechuza') s += '<g transform="translate(14,-15)"><ellipse cx="-3" cy="0" rx="2.6" ry="1" fill="#8e6a44"><animate attributeName="ry" values="1.2;.3;1.2" dur=".35s" repeatCount="indefinite"/></ellipse><ellipse cx="3" cy="0" rx="2.6" ry="1" fill="#8e6a44"><animate attributeName="ry" values="1.2;.3;1.2" dur=".35s" repeatCount="indefinite"/></ellipse><ellipse rx="2.4" ry="3" fill="#b48a5a"/><ellipse cy="-.8" rx="1.8" ry="1.5" fill="#ead7ad"/><circle cx="-.7" cy="-.9" r=".45" fill="#111"/><circle cx=".7" cy="-.9" r=".45" fill="#111"/><path d="M-1.6,-2.6 L-1.2,-3.8 L-.6,-2.8 Z M1.6,-2.6 L1.2,-3.8 L.6,-2.8 Z" fill="#8e6a44"/><animateTransform attributeName="transform" type="translate" values="14,-15;14,-17;14,-15" dur="1.2s" repeatCount="indefinite"/></g>';
+    if (av.mascota === 'snitch') s += '<g transform="translate(14,-16)"><ellipse cx="-3" rx="3" ry="1" fill="#fff6d8"><animate attributeName="ry" values="1.2;.3;1.2" dur=".18s" repeatCount="indefinite"/></ellipse><ellipse cx="3" rx="3" ry="1" fill="#fff6d8"><animate attributeName="ry" values="1.2;.3;1.2" dur=".18s" repeatCount="indefinite"/></ellipse><circle r="1.9" fill="#f2c14e" stroke="#a8730f" stroke-width=".4"/><animateTransform attributeName="transform" type="translate" values="14,-16;16,-19;13,-17;14,-16" dur="1.4s" repeatCount="indefinite"/></g>';
+    // Detalle de la posición
+    if (tipo === 'cazador') s += '<circle cx="10" cy="-5" r="4.2" fill="#c0492f" stroke="#fff" stroke-width="1"/>';
+    if (tipo === 'golpeador') s += '<line x1="5" y1="-3" x2="13" y2="-15" stroke="#7a5230" stroke-width="3.4" stroke-linecap="round"/><line x1="11.5" y1="-12.5" x2="14" y2="-16.5" stroke="#5a3a1e" stroke-width="4.5" stroke-linecap="round"/>';
+    if (tipo === 'guardian') s += '<circle cx="9" cy="-9" r="3.6" fill="#ead7ad" stroke="#7a5230" stroke-width="1"/><circle cx="9.5" cy="-1.5" r="3.6" fill="#ead7ad" stroke="#7a5230" stroke-width="1"/>';
+    return `<g${haciaIzq ? ' transform="scale(-1,1)"' : ''}>${s}</g>`;
+  }
+  const mini = (tipo, c, a, av) => `<svg class="ico jin" viewBox="-28 -26 50 44">${jinete(tipo, c, a, false, av)}</svg>`;
+
+  // ---------- Retrato (busto) para la cabecera, el podio y el editor
+  function retrato(av0, c, a) {
+    const av = { ...AV_BASE, ...(av0 || {}) };
+    const piel = PIELES[av.piel] || PIELES[1], sombra = PIELES_SOMBRA[av.piel] || PIELES_SOMBRA[1], pelo = PELOS[av.peloColor] || PELOS[1];
+    const chica = av.genero === 'chica';
+    let s = `<circle cx="60" cy="58" r="60" fill="${c}" opacity=".35"/>`;
+    if (av.aura) s += '<circle cx="60" cy="52" r="46" fill="#f6dc8a" opacity=".35"/>';
+    // Pelo de atrás
+    if (av.pelo === 'largo') s += `<path d="M35,50 C33,27 48,20 60,20 C75,20 88,30 85,52 L89,94 C83,99 76,97 74,88 L72,62 L48,62 L46,88 C44,97 37,99 31,94 Z" fill="${pelo}"/>`;
+    if (av.pelo === 'coletas') s += `<circle cx="30" cy="66" r="10" fill="${pelo}"/><circle cx="90" cy="66" r="10" fill="${pelo}"/><circle cx="36" cy="58" r="3" fill="#e0457b"/><circle cx="84" cy="58" r="3" fill="#e0457b"/>`;
+    if (av.pelo === 'rizado') s += `<circle cx="60" cy="44" r="31" fill="${pelo}"/><circle cx="34" cy="58" r="10" fill="${pelo}"/><circle cx="86" cy="58" r="10" fill="${pelo}"/>`;
+    if (av.pelo === 'mono') s += `<circle cx="60" cy="19" r="11" fill="${pelo}"/>`;
+    // Hombros: uniforme de quidditch (color del equipo)
+    s += `<path d="M10,122 C12,96 32,85 60,85 C88,85 108,96 110,122 Z" fill="${c}"/>
+      <path d="M22,104 Q30,92 44,88 M98,104 Q90,92 76,88" fill="none" stroke="${a}" stroke-width="3" stroke-linecap="round"/>
+      <path d="M46,86 L60,104 L74,86" fill="none" stroke="${a}" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="51" y="70" width="18" height="20" rx="7" fill="${sombra}"/>`;
+    if (av.accesorio === 'bufanda') s += `<path d="M42,84 Q60,96 78,84 L80,92 Q60,104 40,92 Z" fill="${c}" stroke="${a}" stroke-width="2"/><path d="M48,88 L50,94 M56,90 L57,97 M64,90 L63,97 M72,88 L70,94" stroke="${a}" stroke-width="3"/><path d="M70,92 L76,118 L84,116 L78,90 Z" fill="${c}" stroke="${a}" stroke-width="2"/>`;
+    // Cara
+    s += `<ellipse cx="38.5" cy="55" rx="4.5" ry="6.5" fill="${piel}"/><ellipse cx="81.5" cy="55" rx="4.5" ry="6.5" fill="${piel}"/>
+      <ellipse cx="60" cy="52" rx="22" ry="25" fill="${piel}"/>
+      <ellipse cx="47" cy="64" rx="4.5" ry="2.4" fill="#f29a9a" opacity=".35"/><ellipse cx="73" cy="64" rx="4.5" ry="2.4" fill="#f29a9a" opacity=".35"/>`;
+    for (const x of [51, 69]) {
+      s += `<ellipse cx="${x}" cy="55" rx="4.4" ry="${chica ? 4 : 3.6}" fill="#fff"/><circle cx="${x + .4}" cy="55.4" r="2.8" fill="#4a2f1b"/><circle cx="${x + .4}" cy="55.4" r="1.3" fill="#111"/><circle cx="${x + 1.3}" cy="54.3" r=".9" fill="#fff"/>`;
+      if (chica) s += `<path d="M${x + (x < 60 ? -4.4 : 4.4)},54 l${x < 60 ? -2 : 2},-1.6" stroke="#2b1d14" stroke-width="1.2" stroke-linecap="round"/>`;
+    }
+    s += `<path d="M45,${chica ? 47.5 : 47} Q51,${chica ? 44.5 : 44.5} 56,${chica ? 47 : 47.5}" fill="none" stroke="${pelo}" stroke-width="${chica ? 1.6 : 2.6}" stroke-linecap="round"/>
+      <path d="M64,${chica ? 47 : 47.5} Q69,${chica ? 44.5 : 44.5} 75,${chica ? 47.5 : 47}" fill="none" stroke="${pelo}" stroke-width="${chica ? 1.6 : 2.6}" stroke-linecap="round"/>
+      <path d="M60,58 Q58,63 61.5,63.5" fill="none" stroke="${sombra}" stroke-width="1.6" stroke-linecap="round"/>`;
+    s += chica ? '<path d="M54.5,68.5 Q60,73.5 65.5,68.5 Q60,70.5 54.5,68.5 Z" fill="#d9776f" stroke="#b5544d" stroke-width="1"/>'
+      : '<path d="M54,68.5 Q60,72.5 66,68.5" fill="none" stroke="#a0524a" stroke-width="2" stroke-linecap="round"/>';
+    // Pelo de delante
+    const frente = {
+      corto: 'M37,52 C34,30 48,22 61,23 C77,24 87,36 83,53 C81,44 77,39 70,37 C64,42 52,42 44,41 C40,44 38,48 37,52 Z',
+      largo: 'M37,52 C36,30 49,23 61,23 C76,23 86,34 83,52 C80,42 72,36 62,36 C58,42 48,46 37,52 Z',
+      coletas: 'M37,52 C35,30 49,22 60,22 C72,22 86,30 83,52 C80,40 70,34 60,33 C50,34 40,40 37,52 Z',
+      rizado: 'M37,50 C37,32 48,26 60,26 C72,26 83,32 83,50 C80,40 72,36 60,36 C48,36 40,40 37,50 Z',
+      mono: 'M38,50 C37,30 49,24 60,24 C72,24 84,30 82,50 C78,38 70,32 60,32 C50,32 42,38 38,50 Z',
+      rapado: 'M39,44 C40,30 50,26 60,26 C71,26 80,30 81,44 C76,36 68,33 60,33 C52,33 44,36 39,44 Z',
+    }[av.pelo] || '';
+    s += `<path d="${frente}" fill="${pelo}" ${av.pelo === 'rapado' ? 'opacity=".85"' : ''}/>`;
+    if (av.pelo === 'rizado') for (let i = 0; i < 6; i++) s += `<circle cx="${41 + i * 7.6}" cy="${34 - Math.sin(i / 5 * Math.PI) * 6}" r="6" fill="${pelo}"/>`;
+    // Accesorios de la cara
+    if (av.accesorio === 'gafas') s += '<circle cx="51" cy="55" r="6.5" fill="none" stroke="#2a2a2a" stroke-width="2"/><circle cx="69" cy="55" r="6.5" fill="none" stroke="#2a2a2a" stroke-width="2"/><path d="M57.5,55 Q60,53.5 62.5,55 M44.5,54 L38,52.5 M75.5,54 L82,52.5" fill="none" stroke="#2a2a2a" stroke-width="1.8"/>';
+    if (av.accesorio === 'antifaz') s += '<path d="M38,51 Q60,44 82,51 L80,60 Q70,63 61,58 Q60,57 59,58 Q50,63 40,60 Z" fill="#222"/><ellipse cx="51" cy="55" rx="4" ry="3" fill="#fff"/><ellipse cx="69" cy="55" rx="4" ry="3" fill="#fff"/><circle cx="51.4" cy="55.4" r="1.8" fill="#4a2f1b"/><circle cx="69.4" cy="55.4" r="1.8" fill="#4a2f1b"/>';
+    // Sombrero
+    if (av.sombrero === 'mago' || av.sombrero === 'campeon') {
+      const f = av.sombrero === 'mago' ? '#3b2a6b' : '#e2b13c', b = av.sombrero === 'mago' ? '#f2c14e' : '#fff6d8';
+      s += `<path d="M38,34 Q58,10 52,-8 Q70,8 84,33 Z" fill="${f}"/><ellipse cx="60" cy="34" rx="31" ry="6" fill="${f}"/><path d="M40,31 Q60,25 81,31" fill="none" stroke="${b}" stroke-width="3"/>`;
+      s += av.sombrero === 'mago' ? '<path d="M62,16 l1.5,3 3.2,.4 -2.4,2.2 .6,3.2 -2.9,-1.6 -2.9,1.6 .6,-3.2 -2.4,-2.2 3.2,-.4 Z" fill="#f2c14e"/>'
+        : '<path d="M62,14 l2,4 4.4,.6 -3.2,3 .8,4.4 -4,-2.2 -4,2.2 .8,-4.4 -3.2,-3 4.4,-.6 Z" fill="#fff"/>';
+    }
+    if (av.sombrero === 'gorro') s += '<path d="M35,40 C35,15 85,15 85,40 Z" fill="#c94a4a"/><rect x="33" y="35" width="54" height="9" rx="4.5" fill="#f2f2f2"/><circle cx="60" cy="14" r="7" fill="#f2f2f2"/>';
+    if (av.sombrero === 'corona') s += '<path d="M40,32 L42,14 L51,24 L60,9 L69,24 L78,14 L80,32 Z" fill="#f2c14e" stroke="#a8730f" stroke-width="1.5"/><circle cx="60" cy="24" r="3" fill="#d12a5a"/><circle cx="48" cy="27" r="2" fill="#2f5cc0"/><circle cx="72" cy="27" r="2" fill="#23854c"/>';
+    if (av.sombrero === 'cuernos') s += '<path d="M44,30 Q34,14 44,8 Q42,18 50,27 Z M76,30 Q86,14 76,8 Q78,18 70,27 Z" fill="#b3261e"/>';
+    if (av.sombrero === 'aureola') s += '<ellipse cx="60" cy="12" rx="20" ry="5.5" fill="none" stroke="#f6dc8a" stroke-width="4"/>';
+    if (av.sombrero === 'lazo') s += '<g transform="translate(76,28) rotate(20)"><path d="M0,0 L-11,-7 L-11,7 Z M0,0 L11,-7 L11,7 Z" fill="#e0457b"/><circle r="3.5" fill="#c0325f"/></g>';
+    // Mascota al lado del hombro
+    if (av.mascota === 'lechuza') s += '<g transform="translate(97,92) scale(2.4)"><ellipse rx="2.4" ry="3" fill="#b48a5a"/><ellipse cy="-.8" rx="1.8" ry="1.5" fill="#ead7ad"/><circle cx="-.7" cy="-.9" r=".45" fill="#111"/><circle cx=".7" cy="-.9" r=".45" fill="#111"/><path d="M-1.6,-2.6 L-1.2,-3.8 L-.6,-2.8 Z M1.6,-2.6 L1.2,-3.8 L.6,-2.8 Z" fill="#8e6a44"/><path d="M-.3,-.2 L0,.4 L.3,-.2 Z" fill="#e8a33c"/></g>';
+    if (av.mascota === 'gato') s += '<g transform="translate(97,94) scale(2.4)"><ellipse cy="-1.6" rx="3" ry="2.2" fill="#3a3a3a"/><circle cx="0" cy="-4.2" r="1.9" fill="#3a3a3a"/><path d="M-1.6,-5.2 L-1.4,-7.2 L-.4,-5.8 Z M.4,-5.8 L1.4,-7.2 L1.6,-5.2 Z" fill="#3a3a3a"/><circle cx="-.6" cy="-4.3" r=".35" fill="#f2c14e"/><circle cx=".6" cy="-4.3" r=".35" fill="#f2c14e"/></g>';
+    if (av.mascota === 'sapo') s += '<g transform="translate(97,96) scale(2.6)"><ellipse cy="-1.4" rx="2.8" ry="1.9" fill="#4f9a3a"/><circle cx="-1.2" cy="-3" r=".9" fill="#4f9a3a"/><circle cx="1.2" cy="-3" r=".9" fill="#4f9a3a"/><circle cx="-1.2" cy="-3.1" r=".35" fill="#111"/><circle cx="1.2" cy="-3.1" r=".35" fill="#111"/></g>';
+    if (av.mascota === 'ratita') s += '<g transform="translate(88,84) scale(2.6)"><path d="M-2,0.6 Q-4.5,1.5 -5,-0.5" fill="none" stroke="#e79aa5" stroke-width=".6"/><ellipse rx="2.2" ry="1.4" fill="#9a9a9a"/><circle cx="1.2" cy="-1.3" r=".9" fill="#b7b7b7"/><circle cx="2" cy="-0.2" r=".3" fill="#111"/></g>';
+    if (av.mascota === 'snitch') s += '<g transform="translate(98,82) scale(2.4)"><ellipse cx="-3" rx="3" ry="1" fill="#fff6d8"/><ellipse cx="3" rx="3" ry="1" fill="#fff6d8"/><circle r="1.9" fill="#f2c14e" stroke="#a8730f" stroke-width=".4"/></g>';
+    return `<svg class="retrato" viewBox="0 -12 120 132" aria-hidden="true">${s}</svg>`;
+  }
+
+  // ---------- Editor del jugador (en la portada, antes de entrar)
+  function coloresMiCasa() {
+    const c = elegidas.entrar && CASAS[elegidas.entrar] ? CASAS[elegidas.entrar] : INVITADO;
+    return c;
+  }
+  function pintarEditor() {
+    const caja = $('ed-opciones');
+    if (!caja) return;
+    const col = coloresMiCasa();
+    $('btn-editor-cara').innerHTML = retrato(miAvatar, col.c, col.a);
+    $('ed-retrato').innerHTML = retrato(miAvatar, col.c, col.a);
+    $('ed-jinete').innerHTML = `<svg viewBox="-30 -28 52 46">${jinete(null, col.c, col.a, false, miAvatar)}</svg>`;
+    caja.innerHTML = OPCIONES.map(([k, titulo, ops]) => {
+      const color = k === 'piel' || k === 'peloColor' || k === 'escobaColor';
+      const botones = ops.map(([v, txt, premio]) => {
+        const bloqueado = !tiene(premio);
+        const sel = miAvatar[k] === v ? 'elegida' : '';
+        return color
+          ? `<button type="button" class="muestra ${sel} ${bloqueado ? 'bloqueado' : ''}" style="background:${txt}" data-av="${k}" data-val="${v}" ${bloqueado ? `data-premio="${premio}"` : ''} aria-label="${titulo}">${bloqueado ? '🔒' : ''}</button>`
+          : `<button type="button" class="sec peq ${sel} ${bloqueado ? 'bloqueado' : ''}" data-av="${k}" data-val="${v}" ${bloqueado ? `data-premio="${premio}"` : ''}>${bloqueado ? '🔒 ' : ''}${txt}</button>`;
+      }).join('');
+      return `<div class="ed-fila"><span class="ed-tit">${titulo}</span><div class="ed-ops">${botones}</div></div>`;
+    }).join('') + `<p class="suave" style="margin-top:10px">🏅 Premios: ${Object.keys(PREMIOS).filter((p) => premios[p]).length} de ${Object.keys(PREMIOS).length}. ${Object.entries(PREMIOS).filter(([p]) => !premios[p]).map(([, x]) => `${x.nombre}: ${x.como.toLowerCase()}`).join(' · ')}</p>`;
+  }
+
 
   // ---------- Campo: estadio fijo + capas que se actualizan (jugadores, quaffle y animaciones)
   let campoClave = '';
@@ -1018,7 +1237,7 @@
           s += `<g transform="translate(${x},${y})" opacity="${p && p.conectado ? 1 : .45}">`;
           if (brillan.has(ocupa)) s += '<circle r="20" fill="#f2c14e" opacity=".35"><animate attributeName="r" values="16;23;16" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values=".5;.15;.5" dur="1s" repeatCount="indefinite"/></circle>';
           if (ocupa === yo) s += `<circle r="20" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="3 3"><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="6s" repeatCount="indefinite"/></circle>`;
-          s += `<ellipse cy="15" rx="10" ry="2.4" fill="#000" opacity=".28"/><g class="flota" style="animation-delay:-${(x * 7 + y) % 1600}ms">${jinete(tipo, x0.c, x0.a, eq === 'B')}</g>`;
+          s += `<ellipse cy="15" rx="10" ry="2.4" fill="#000" opacity=".28"/><g class="flota" style="animation-delay:-${(x * 7 + y) % 1600}ms">${jinete(tipo, x0.c, x0.a, eq === 'B', p && p.avatar)}</g>`;
           s += `<text y="${ly - y}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" stroke="#0b1a10" stroke-width="3" paint-order="stroke">${esc(p ? p.nombre.slice(0, 9) : '')}</text></g>`;
         } else {
           const mio = puedoElegir && mi.lados.includes(eq);
@@ -1293,7 +1512,8 @@
         quien = '<span class="suave">Libre</span>';
         if (puedoElegir) boton = `<button class="peq" data-plaza="${plaza}">Ocupar</button>`;
       }
-      html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${mini(tipo, x.c, x.a)}${nombre}</span><span class="ocupa">${quien}</span>${boton}</div>`;
+      const avOc = ocupa && typeof ocupa === 'string' && persona(ocupa) ? persona(ocupa).avatar : null;
+      html += `<div class="plaza ${ocupa === yo ? 'mia' : ''}"><span class="pos">${mini(tipo, x.c, x.a, avOc)}${nombre}</span><span class="ocupa">${quien}</span>${boton}</div>`;
     }
     $('equipo-' + eq).innerHTML = html + '</div>';
   }
@@ -1511,7 +1731,8 @@
     const eq = mi && mi.equipo;
     const yoC = eq ? L(eq) : INVITADO, otroC = eq ? L(eq === 'A' ? 'B' : 'A') : INVITADO;
     const aros = (x) => [0, 1, 2].map((i) => `<line x1="${x + i * 22}" y1="${i === 1 ? 26 : 34}" x2="${x + i * 22}" y2="78" stroke="#e8c45a" stroke-width="2.5"/><circle cx="${x + i * 22}" cy="${i === 1 ? 18 : 26}" r="9" fill="none" stroke="#f2c14e" stroke-width="3.5"/>`).join('');
-    const j = (tipo, c, x, y, izq, esc2 = 1.5) => `<g transform="translate(${x},${y}) scale(${esc2})">${jinete(tipo, c.c, c.a, izq)}</g>`;
+    const yoAv = mi ? mi.avatar : miAvatar;
+    const j = (tipo, c, x, y, izq, esc2 = 1.5) => `<g transform="translate(${x},${y}) scale(${esc2})">${jinete(tipo, c.c, c.a, izq, c === yoC ? yoAv : null)}</g>`;
     let s = '';
     if (r.clase === 'pase') {
       s = j('cazador', yoC, 55, 50, false) + '<path d="M78,40 Q150,0 222,40" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 6" opacity=".8"/>' +
@@ -1662,6 +1883,7 @@
       } else zona.innerHTML = '<div class="grande esperando">Siguiente ronda…</div>';
     } else if (m.fase === 'fin') {
       sn.fase = 'fin'; sn.cerrando = true;
+      if (modo === 'duelo' && m.ganador && m.ganador === m.yo) desbloquear('corona');
       const txt = modo === 'duelo'
         ? (m.ganador ? (m.ganador === m.yo ? '🏆 ¡GANASTE EL DUELO!' : '😣 Perdiste el duelo') : '🤝 Duelo empatado')
         : (m.atrapada ? (m.ganador === m.yo ? '🏆 ¡ATRAPASTE LA SNITCH!<br>+150' : '😣 El otro buscador atrapó la snitch') : '💨 Pasó volando… nadie la atrapó');
@@ -1736,6 +1958,7 @@
       reto.resultado = true;
       const r = $('reto-resultado');
       const gane = m.ganador === m.yo;
+      if (m.fase === 'fin' && gane) desbloquear('corona');
       r.innerHTML = m.fase === 'fin'
         ? (m.ganador ? (gane ? '🏆 ¡GANASTE EL DUELO!' : '😣 Perdiste el duelo') : '🤝 Duelo empatado')
         : `${m.ganador ? (gane ? '🏆 ¡Ganaste la ronda!' : '😣 Perdiste la ronda') : '🤷 Nadie gana la ronda'}<div class="suave" style="font-size:.9rem;font-weight:600">${esc(m.motivo || '')}</div>`;
@@ -1831,6 +2054,7 @@
     const prom = p.tiempos.length ? Math.round(p.tiempos.reduce((a, b) => a + b, 0) / p.tiempos.length) : null;
     let rec = null;
     try { rec = JSON.parse(localStorage.getItem('quidditch_practica_' + p.pos) || 'null'); } catch {}
+    if (p.nivel >= 15) desbloquear('escoba_dorada');
     const nuevoRecord = !rec || p.nivel > rec.nivel || (p.nivel === rec.nivel && mejor && (!rec.mejor || mejor < rec.mejor));
     if (nuevoRecord) try { localStorage.setItem('quidditch_practica_' + p.pos, JSON.stringify({ nivel: p.nivel, mejor })); } catch {}
     $('practica-resultado').innerHTML = `<h2>🎯 ${PRACTICAS[p.pos].nombre}: ¡práctica terminada!</h2>
@@ -1860,9 +2084,9 @@
         : [0, 1, 2].map((i) => `<line x1="${128 + i * 22}" y1="${i === 1 ? 32 : 40}" x2="${128 + i * 22}" y2="92" stroke="#e8c45a" stroke-width="2.5"/><circle cx="${128 + i * 22}" cy="${i === 1 ? 24 : 32}" r="9" fill="none" stroke="#f2c14e" stroke-width="3.5"/>`).join('');
       h = `<h2>⚔️ Duelo de ${d.pos === 'buscador' ? 'buscadores' : 'guardianes'}</h2>
         <svg class="arena" viewBox="0 0 300 110">
-          <g transform="translate(62,60) scale(2.3)">${jinete(d.pos, c[0].c, c[0].a, false)}</g>
+          <g transform="translate(62,62) scale(2.1)">${jinete(d.pos, c[0].c, c[0].a, false, (persona(d.ids[0]) || {}).avatar)}</g>
           ${centro}
-          <g transform="translate(238,60) scale(2.3)">${jinete(d.pos, c[1].c, c[1].a, true)}</g>
+          <g transform="translate(238,62) scale(2.1)">${jinete(d.pos, c[1].c, c[1].a, true, (persona(d.ids[1]) || {}).avatar)}</g>
         </svg>
         <div class="arena-nombres sn-rondas"><span>${esc(d.nombres[0])} <span class="dots">${dots(d.victorias[0])}</span></span><span>${esc(d.nombres[1])} <span class="dots">${dots(d.victorias[1])}</span></span></div>
         <p style="text-align:center;font-weight:800">${d.ronda ? `Ronda ${d.ronda} · ` : ''}${estado}</p>`;
@@ -1899,6 +2123,7 @@
   // ---------- Arranque
   pintarBotonSonido();
   pintarPracticas();
+  pintarEditor();
   if (guardar.leer()) conectar();
 })();
 </script>

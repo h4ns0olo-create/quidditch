@@ -74,6 +74,26 @@ const POSICIONES = [
   { id: 'buscador', nombre: 'Buscador', tipo: 'buscador' },
 ];
 const PAPELES_INVITADO = ['comentaristaA', 'comentaristaB', 'prefecto', 'administracion'];
+// Aspecto del jugador (se elige al entrar). Solo se aceptan estas opciones.
+const AVATAR = {
+  genero: ['chica', 'chico'],
+  pelo: ['corto', 'largo', 'coletas', 'rizado', 'mono', 'rapado'],
+  sombrero: ['ninguno', 'mago', 'gorro', 'cuernos', 'aureola', 'lazo', 'corona', 'campeon'],
+  accesorio: ['ninguno', 'gafas', 'antifaz', 'bufanda'],
+  escoba: ['clasica', 'veloz', 'robusta', 'antigua'],
+  escobaColor: ['clara', 'oscura', 'roja', 'negra', 'dorada'],
+  mascota: ['ninguna', 'lechuza', 'gato', 'sapo', 'ratita', 'snitch'],
+};
+function limpiarAvatar(a) {
+  const x = a && typeof a === 'object' ? a : {};
+  const r = {};
+  for (const [k, ops] of Object.entries(AVATAR)) r[k] = ops.includes(x[k]) ? x[k] : ops[0];
+  const entero = (v, max) => (Number.isInteger(v) && v >= 0 && v <= max ? v : 0);
+  r.piel = entero(x.piel, 5);
+  r.peloColor = entero(x.peloColor, 8);
+  r.aura = x.aura ? 1 : 0;
+  return r;
+}
 // Partido oficial: 7 por lado. Entrenamiento: 5 por lado (2 cazadores, 1 golpeador, 1 guardián, 1 buscador).
 // Entrenamiento: 3 contra 3, 4 contra 4 (con buscador o con golpeador) o 5 contra 5.
 const POSICIONES_DE = {
@@ -221,7 +241,7 @@ function estadoPublico(sala, esInvitado) {
     duelo: dueloPublico(sala),
     actuando: actuando(sala),
     participantes: [...sala.participantes.values()].map((p) => ({
-      id: p.id, nombre: p.nombre, casa: p.casa, equipo: p.equipo, lados: p.lados, conectado: p.conectado, plaza: p.plaza, invitado: p.invitado, admin: p.admin,
+      id: p.id, nombre: p.nombre, casa: p.casa, avatar: p.avatar, equipo: p.equipo, lados: p.lados, conectado: p.conectado, plaza: p.plaza, invitado: p.invitado, admin: p.admin,
     })),
     plazas: sala.plazas,
     pelota: sala.pelota && { equipo: sala.pelota.equipo, portador: sala.pelota.portador, restaMs: Math.max(0, sala.pelota.limite - ahora) },
@@ -309,7 +329,7 @@ function entrar(ws, m) {
   }
   const p = {
     id: hex(6), token: hex(24),
-    nombre, casa: esInvitado ? null : m.casa, lados, equipo: lados.length === 1 ? lados[0] : null, plaza: null, invitado: null, admin: false,
+    nombre, casa: esInvitado ? null : m.casa, avatar: limpiarAvatar(m.avatar), lados, equipo: lados.length === 1 ? lados[0] : null, plaza: null, invitado: null, admin: false,
     ws: null, conectado: false, timerReserva: null, ultimoComentario: 0,
   };
   sala.participantes.set(p.id, p);
@@ -507,7 +527,7 @@ function empezar(ws, m) {
   for (const p of sala.participantes.values()) {
     if (p.plaza) {
       sala.stats[p.id] = {
-        nombre: p.nombre, equipo: p.equipo, plaza: p.plaza,
+        nombre: p.nombre, equipo: p.equipo, plaza: p.plaza, avatar: p.avatar,
         pases: 0, pasesBuenos: 0, tiros: 0, goles: 0, atajadas: 0, bludgers: 0, impactos: 0, repelidas: 0, rondasSnitch: 0, snitch: 0,
       };
     }

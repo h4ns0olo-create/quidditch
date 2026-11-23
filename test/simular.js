@@ -105,6 +105,13 @@ async function main() {
     comprobar(creada.codigo === 'FIESTA' && creada.equipos.A === 'Slytherin', 'sala FIESTA creada: Slytherin contra Gryffindor');
 
     console.log('\n2) Entrada: casa o Invitado');
+    const vestido = await nuevo('Vestido');
+    vestido.mandar({ t: 'entrar', nombre: 'Vestido', casa: 'Invitado', codigo: 'FIESTA', avatar: { sombrero: 'mago', mascota: 'lechuza', piel: 99, truco: 'x', escoba: 'cohete' } });
+    await vestido.recibir((m) => m.t === 'estado');
+    const av = vestido.estado.participantes.find((p) => p.nombre === 'Vestido').avatar;
+    comprobar(av.sombrero === 'mago' && av.mascota === 'lechuza' && av.piel === 0 && av.escoba === 'clasica' && !('truco' in av), 'el aspecto elegido se guarda y se ignoran valores raros');
+    vestido.mandar({ t: 'salir' });
+    await vestido.recibir((m) => m.t === 'fuera');
     const raven = await nuevo('Raven');
     const rR = await raven.entrar('FIESTA', 'Ravenclaw');
     comprobar(rR.t === 'error' && rR.codigo === 'casa_no_juega', `una casa que no juega es rechazada: "${rR.msg}"`);
@@ -115,6 +122,8 @@ async function main() {
     await esperar(200);
     comprobar(S[0].estado.participantes.length === 20, 'entran 20 participantes (7 + 7 + 6 invitados)');
     comprobar(S[0].estado.participantes.find((p) => p.id === S[0].id).equipo === 'A', 'quien entra con Slytherin queda en su equipo');
+    const conAvatar = S[0].estado.participantes.find((p) => p.id === S[0].id);
+    comprobar(conAvatar.avatar && conAvatar.avatar.escoba === 'clasica', 'cada participante tiene su aspecto (si no elige, el básico)');
     const extra = await nuevo('Extra');
     const r21 = await extra.entrar('FIESTA', 'Invitado');
     comprobar(r21.t === 'error' && r21.codigo === 'sala_llena', 'el 21.º es rechazado (sala llena)');

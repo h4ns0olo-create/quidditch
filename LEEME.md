@@ -53,6 +53,13 @@ confeti; escenas en cada minijuego; podio con el jugador destacado al final; y s
   fondo). Tocarla pierde la ronda. Salen desde la 1.ª aparición de la snitch, desde la ronda 2 en los duelos y desde el
   nivel 2 en la práctica.
 
+**Personaliza tu jugador** (paso 7): en la portada, "✨ Personaliza tu jugador": estilo chica o chico, piel, peinado,
+color de pelo, sombrero, accesorio, modelo y madera de la escoba, mascota (lechuza, gato, sapo, ratita) y aura.
+Se elige cada vez que entras (no se guarda). Se ve en el campo, en las listas, en tu retrato junto a tu nombre, en
+los duelos y en el podio. El uniforme de quidditch es igual para todos, del color del equipo.
+**Premios** (quedan guardados en el celular): escoba dorada (nivel 15 en la práctica), corona (ganar un duelo),
+aura dorada (jugador destacado), snitch mascota (atrapar la snitch) y sombrero de campeón (ganar un partido oficial).
+
 Todavía NO incluye: corrección del marcador por la administración.
 
 ## Probarlo en tu computadora (opcional)
