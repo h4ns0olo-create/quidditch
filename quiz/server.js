@@ -17,7 +17,8 @@ function entero(valor, porDefecto, min, max) {
   return Number.isInteger(n) && n >= min && n <= max ? n : porDefecto;
 }
 const PORT = Number(process.env.PORT) || 3000;
-const NUM_PREGUNTAS = entero(process.env.NUM_PREGUNTAS, 3, 1, 30);   // prototipo: 3 (luego serán 10)
+const MIN_PREGUNTAS = 5;                                             // cada quiz: de 5 a 10 preguntas
+const MAX_PREGUNTAS = 10;
 const SEGUNDOS_POR_DEFECTO = 20;                                     // segundos por pregunta
 const SEGUNDOS_MIN = entero(process.env.SEGUNDOS_MIN, 5, 1, 60);      // (las pruebas automáticas lo bajan)
 const SEGUNDOS_MAX = 60;
@@ -191,16 +192,16 @@ function resultados(q) {
     c.suma += it.aciertos;
     lista.push({ nombre: it.nombre, casa: it.casa, aciertos: it.aciertos, total });
   }
-  casas.forEach((c) => { c.promedio = c.alumnos ? Math.round((c.suma / c.alumnos) * 10) / 10 : 0; });
+  casas.forEach((c) => { c.promedio = c.alumnos ? Math.round((c.suma / c.alumnos) * 100) / 100 : 0; /* 2 decimales: evita empates falsos */ });
   lista.sort((a, b) => CASAS.indexOf(a.casa) - CASAS.indexOf(b.casa) ||
     b.aciertos - a.aciertos || a.nombre.localeCompare(b.nombre, 'es'));
-  return { curso: CURSOS[q.curso - 1], total, casas, lista, modo: q.modo, publicado: q.publicado };
+  return { curso: CURSOS[q.curso - 1], numCurso: q.curso, total, casas, lista, modo: q.modo, publicado: q.publicado };
 }
 
 // Comprueba las preguntas que manda el profesor.
 function validarPreguntas(lista) {
-  if (!Array.isArray(lista) || lista.length !== NUM_PREGUNTAS) {
-    return { error: `El quiz debe tener exactamente ${NUM_PREGUNTAS} preguntas.` };
+  if (!Array.isArray(lista) || lista.length < MIN_PREGUNTAS || lista.length > MAX_PREGUNTAS) {
+    return { error: `El quiz debe tener entre ${MIN_PREGUNTAS} y ${MAX_PREGUNTAS} preguntas.` };
   }
   const preguntas = [];
   for (let i = 0; i < lista.length; i++) {
@@ -263,7 +264,7 @@ function buscarAlumno(t) {
 function alumnoEstado(d) {
   const { q, it } = buscarAlumno(d.token);
   if (!q) return { fase: 'no-existe' };
-  const base = { curso: CURSOS[q.curso - 1], codigo: q.codigo, nombre: it.nombre, casa: it.casa };
+  const base = { curso: CURSOS[q.curso - 1], numCurso: q.curso, codigo: q.codigo, nombre: it.nombre, casa: it.casa };
   if (q.publicado) {
     const r = resultados(q);
     const verLista = q.mostrarLista || q.imagenAlumnos;
@@ -321,7 +322,7 @@ function profeEntrar(d, req) {
 
 function profeEstado(curso) {
   const q = quizzes.get(quizDeCurso.get(curso));
-  const r = { curso: CURSOS[curso - 1], numPreguntas: NUM_PREGUNTAS, segundosMin: SEGUNDOS_MIN,
+  const r = { curso: CURSOS[curso - 1], numCurso: curso, minPreguntas: MIN_PREGUNTAS, maxPreguntas: MAX_PREGUNTAS, segundosMin: SEGUNDOS_MIN,
     segundosMax: SEGUNDOS_MAX, segundosPorDefecto: SEGUNDOS_POR_DEFECTO, quiz: null };
   if (!q) return r;
   const ahora = Date.now();
@@ -352,7 +353,7 @@ function profeAbrir(curso, d) {
   const q = {
     codigo: nuevoCodigo(), curso, preguntas: v.preguntas, segundos,
     estado: 'abierto', creado: Date.now(), publicado: null,
-    modo: 'suma', mostrarLista: false, imagenAlumnos: false,
+    modo: 'promedio', mostrarLista: false, imagenAlumnos: false,   // promedio por defecto: es lo más justo
     intentos: new Map(), nombres: new Map(),
   };
   quizzes.set(q.codigo, q);
@@ -402,6 +403,11 @@ function profeBorrarQuiz(curso) {
 
 // ---------------------------------------------------------------- Servidor HTTP
 const PAGINA = path.join(__dirname, 'public', 'index.html');
+// Archivos fijos que usa la página: los dibujitos y las tipografías (guardadas aquí, sin depender de nadie).
+const ARCHIVOS = { '/dibujos.js': ['dibujos.js', 'text/javascript; charset=utf-8'] };
+for (const f of fs.readdirSync(path.join(__dirname, 'public', 'fuentes'))) {
+  if (f.endsWith('.woff2')) ARCHIVOS['/fuentes/' + f] = ['fuentes/' + f, 'font/woff2'];
+}
 
 function responder(res, codigo, datos) {
   const cuerpo = JSON.stringify(datos);
@@ -445,6 +451,12 @@ const server = http.createServer(async (req, res) => {
       fs.createReadStream(PAGINA).pipe(res);
       return;
     }
+    if (req.method === 'GET' && ARCHIVOS[url]) {
+      const [archivo, tipo] = ARCHIVOS[url];
+      res.writeHead(200, { 'Content-Type': tipo, 'Cache-Control': archivo.endsWith('.woff2') ? 'public, max-age=604800' : 'no-cache' });
+      fs.createReadStream(path.join(__dirname, 'public', archivo)).pipe(res);
+      return;
+    }
     if (url === '/salud') {
       return responder(res, 200, { ok: true, cursosConfigurados: CLAVES.porCurso.size, quizzesAbiertos: quizzes.size });
     }
@@ -465,5 +477,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Quiz de clases listo en el puerto ${PORT} (${NUM_PREGUNTAS} preguntas por quiz).`);
+  console.log(`Quiz de clases listo en el puerto ${PORT} (de ${MIN_PREGUNTAS} a ${MAX_PREGUNTAS} preguntas por quiz).`);
 });

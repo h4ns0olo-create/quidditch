@@ -35,6 +35,8 @@ const PREGUNTAS = [
   { texto: '¿Qué ingrediente calma una poción burbujeante?', opciones: ['Pluma de grifo', 'Raíz de valeriana', 'Polvo de luna'], correcta: 1 },
   { texto: '¿Qué hechizo enciende una varita?', opciones: ['Lumos', 'Nox', 'Accio'], correcta: 0 },
   { texto: '¿Cuántas patas tiene un escreguto de prueba?', opciones: ['Cuatro', 'Seis', 'Diez'], correcta: 2 },
+  { texto: '¿Qué planeta se observa en la clase de prueba?', opciones: ['Marte', 'Júpiter', 'Saturno'], correcta: 1 },
+  { texto: '¿Qué número es mágico en aritmancia?', opciones: ['Siete', 'Cuatro', 'Doce'], correcta: 0 },
 ];
 const correctaDe = (texto) => {
   for (const p of PREGUNTAS) if (p.texto === texto) return p.opciones[p.correcta];
@@ -70,7 +72,13 @@ async function main() {
     comprobar(e1.curso === 'Cuidado de criaturas mágicas' && e4.curso === 'Historia de la magia', 'cada profesor ve solo su curso');
 
     console.log('\n2. Abrir quizzes (varios a la vez)');
-    comprobar(!!(await post('/api/profe/abrir', { preguntas: PREGUNTAS.slice(0, 2), segundos: SEG }, s1)).error, 'rechaza un quiz con menos preguntas');
+    comprobar(/entre 5 y 10/.test((await post('/api/profe/abrir', { preguntas: PREGUNTAS.slice(0, 4), segundos: SEG }, s1)).error || ''), 'rechaza un quiz de 4 preguntas');
+    const once = Array.from({ length: 11 }, (_, i) => ({ ...PREGUNTAS[i % 5], texto: 'Pregunta ' + i }));
+    comprobar(/entre 5 y 10/.test((await post('/api/profe/abrir', { preguntas: once, segundos: SEG }, s1)).error || ''), 'rechaza un quiz de 11 preguntas');
+    const diez = once.slice(0, 10);
+    const a10 = await post('/api/profe/abrir', { preguntas: diez, segundos: SEG }, s1);
+    comprobar(!!a10.codigo && (await post('/api/profe/estado', {}, s1)).quiz.preguntas.length === 10, 'acepta un quiz de 10 preguntas');
+    comprobar((await post('/api/profe/estado', {}, s1)).quiz.modo === 'promedio', 'el modo por defecto es el promedio por alumno');
     const mala = JSON.parse(JSON.stringify(PREGUNTAS)); mala[1].correcta = null;
     comprobar(/correcta/.test((await post('/api/profe/abrir', { preguntas: mala, segundos: SEG }, s1)).error), 'rechaza una pregunta sin respuesta correcta');
     const a1 = await post('/api/profe/abrir', { preguntas: PREGUNTAS, segundos: SEG }, s1);
@@ -178,7 +186,7 @@ async function main() {
     comprobar(res.fase === 'resultados', 'los alumnos ven los resultados');
     comprobar(res.resultados.lista === null && res.mostrarLista === false && res.imagenPermitida === false, 'sin permiso no ven la lista ni la imagen');
     comprobar(res.resultados.modo === 'promedio', 'se muestra el modo elegido');
-    comprobar(res.propio.aciertos === esperado.get(alumnos[0].nombre) && res.propio.total === 3, `cada uno ve sus aciertos (${res.propio.aciertos}/3)`);
+    comprobar(res.propio.aciertos === esperado.get(alumnos[0].nombre) && res.propio.total === 5, `cada uno ve sus aciertos (${res.propio.aciertos}/5)`);
     const sinTerminar = await post('/api/alumno/estado', { token: alumnos[70].token });
     comprobar(sinTerminar.fase === 'resultados' && sinTerminar.propio.aciertos === 0, 'quien no terminó: lo que faltaba cuenta como fallo');
     comprobar(!!(await post('/api/alumno/entrar', { codigo: COD, nombre: 'Tardón', casa: 'Ravenclaw' })).error, 'después de publicar ya no se puede entrar');
@@ -189,7 +197,7 @@ async function main() {
     const sumaG = [...esperado].filter(([n]) => alumnos.find((a) => a.nombre === n).casa === 'Gryffindor').reduce((t, [, v]) => t + v, 0);
     const g = pr.casas.find((c) => c.casa === 'Gryffindor');
     comprobar(g.suma === sumaG, `la suma de Gryffindor cuadra (${g.suma})`);
-    comprobar(g.alumnos === 20 && g.promedio === Math.round((g.suma / 20) * 10) / 10, `promedio de Gryffindor: ${g.promedio}`);
+    comprobar(g.alumnos === 20 && g.promedio === Math.round((g.suma / 20) * 100) / 100, `promedio de Gryffindor: ${g.promedio}`);
     comprobar((await post('/api/profe/estado', {}, s4)).quiz.estado === 'abierto', 'el quiz del curso 4 sigue abierto');
 
     console.log('\n9. Reemplazo y borrado automático');

@@ -3,108 +3,184 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2b2118">
-<title>Quiz de clase</title>
+<meta name="theme-color" content="#e9dfc6">
+<title>Quiz de clase · Hogwarts</title>
+<link rel="preload" href="/fuentes/fell.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fuentes/crimson-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fuentes/caveat.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+  /* Tipografías guardadas en el propio proyecto (licencia libre OFL, ver fuentes/LICENCIAS.txt) */
+  @font-face { font-family: 'Fell'; src: url(/fuentes/fell.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'FellSC'; src: url(/fuentes/fell-versalitas.woff2) format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Caveat'; src: url(/fuentes/caveat.woff2) format('woff2'); font-weight: 400 500; font-display: swap; }
+  @font-face { font-family: 'Caveat'; src: url(/fuentes/caveat-negrita.woff2) format('woff2'); font-weight: 600 700; font-display: swap; }
+  @font-face { font-family: 'Crimson'; src: url(/fuentes/crimson-400.woff2) format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Crimson'; src: url(/fuentes/crimson-600.woff2) format('woff2'); font-weight: 600; font-display: swap; }
+  @font-face { font-family: 'Crimson'; src: url(/fuentes/crimson-700.woff2) format('woff2'); font-weight: 700 900; font-display: swap; }
+
   :root {
-    --fondo: #f4ecda; --tarjeta: #fffaf0; --tinta: #2b2118; --suave: #6f6252; --borde: #dccfb4;
-    --acento: #6b3fa0; --acento2: #4e2c78; --bien: #2f7d32; --mal: #b3261e;
+    --mesa: #e6dbc1; --papel: #fdfaf1; --raya: #cddcf0; --margen: #e7a3a3; --agujero: #e6dbc1;
+    --tinta: #2b2f5e; --tinta-suave: #5d6084; --lapiz: #6b6a7d; --borde: #dfd3b6;
+    --vino: #7a1f2b; --vino-osc: #5a141e; --dorado: #b8892b; --pizarra: #2f4a3c;
+    --bien: #2e6b34; --mal: #a3261e;
     --gry: #7f0909; --gry-t: #ffd34e; --huf: #eeb939; --huf-t: #1a1a1a;
     --rav: #1b2a5c; --rav-t: #d9b47a; --sly: #1a472a; --sly-t: #e0e0e0;
+    --titulo: 'Fell', 'Iowan Old Style', Georgia, serif;
+    --versalitas: 'FellSC', 'Fell', Georgia, serif;
+    --mano: 'Caveat', 'Segoe Print', 'Bradley Hand', cursive;
+    --texto: 'Crimson', Georgia, 'Noto Serif', serif;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--fondo); color: var(--tinta); }
-  body { font: 17px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
-  main { max-width: 520px; margin: 0 auto; padding: 16px 16px 48px; }
-  h1 { font-size: 26px; margin: 8px 0 4px; }
-  h2 { font-size: 21px; margin: 18px 0 8px; }
-  h3 { font-size: 18px; margin: 14px 0 6px; }
-  p { margin: 8px 0; }
-  .suave { color: var(--suave); font-size: 15px; }
-  .tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 14px; padding: 14px; margin: 12px 0; }
-  label { display: block; font-weight: 600; margin: 12px 0 6px; }
-  input[type=text], input[type=password], textarea, select {
-    width: 100%; font: inherit; font-size: 17px; padding: 12px; border: 1px solid var(--borde);
-    border-radius: 10px; background: #fff; color: var(--tinta);
+  html { background: var(--mesa); }
+  body { margin: 0; background: var(--mesa); color: var(--tinta);
+    font: 19px/1.45 var(--texto); -webkit-text-size-adjust: 100%; }
+
+  /* La hoja de cuaderno: rayas azules, margen rojo y agujeros de carpeta */
+  main {
+    position: relative; max-width: 560px; min-height: 100vh; margin: 0 auto;
+    padding: 14px 16px 56px 46px;
+    background-color: var(--papel);
+    background-image:
+      radial-gradient(circle at 15px 90px, var(--agujero) 0 7px, rgba(0,0,0,.08) 7.5px, transparent 8.5px),
+      linear-gradient(90deg, transparent 33px, var(--margen) 33px, var(--margen) 35px, transparent 35px),
+      repeating-linear-gradient(180deg, transparent 0 31px, var(--raya) 31px 32px);
+    background-size: 100% 220px, 100% 100%, 100% 32px;
+    background-position: 0 0, 0 0, 0 6px;
+    box-shadow: 0 0 0 1px #d8cca9, 0 6px 24px rgba(60,40,10,.18);
   }
-  textarea { min-height: 70px; resize: vertical; }
-  button { font: inherit; cursor: pointer; border: 0; border-radius: 12px; padding: 14px 16px; }
-  .btn { display: block; width: 100%; background: var(--acento); color: #fff; font-weight: 700; font-size: 18px; margin: 12px 0; }
-  .btn:active { background: var(--acento2); }
-  .btn:disabled { opacity: .55; }
-  .btn2 { display: block; width: 100%; background: transparent; color: var(--acento); border: 2px solid var(--acento); font-weight: 600; margin: 10px 0; }
-  .btn-peligro { background: transparent; color: var(--mal); border: 2px solid var(--mal); }
-  .enlace { background: none; color: var(--acento); text-decoration: underline; padding: 8px 0; font-size: 16px; }
-  .fila { display: flex; gap: 8px; }
-  .fila > * { flex: 1; }
-  .error { color: var(--mal); font-weight: 600; min-height: 1.4em; margin: 8px 0; white-space: pre-line; }
-  .ok { color: var(--bien); font-weight: 600; }
+  .membrete { font-family: var(--versalitas); color: var(--tinta-suave); font-size: 15px; letter-spacing: .5px;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .membrete svg { width: 26px; height: 26px; }
+  h1 { font-family: var(--titulo); font-weight: 400; font-size: 32px; line-height: 1.1; margin: 10px 0 6px; }
+  h2 { font-family: var(--versalitas); font-weight: 400; font-size: 23px; margin: 22px 0 8px; }
+  h3 { font-family: var(--versalitas); font-weight: 400; font-size: 20px; margin: 4px 0 8px; }
+  p { margin: 8px 0; }
+  .nota { font-family: var(--mano); font-size: 24px; line-height: 1.15; color: var(--tinta-suave); }
+  .suave { color: var(--lapiz); font-size: 16px; }
+  .centro { text-align: center; }
   [hidden] { display: none !important; }
 
+  /* Papelitos pegados con cinta */
+  .tarjeta { position: relative; background: #fffdf7; border: 1px solid var(--borde); border-radius: 4px;
+    padding: 18px 14px 14px; margin: 18px 0 14px; box-shadow: 0 2px 0 rgba(80,60,20,.06), 0 6px 14px rgba(80,60,20,.07); }
+  .tarjeta::before { content: ''; position: absolute; top: -10px; left: 50%; width: 86px; height: 20px; margin-left: -43px;
+    background: rgba(214, 196, 150, .55); transform: rotate(-2deg); border-left: 2px dotted rgba(255,255,255,.5); border-right: 2px dotted rgba(255,255,255,.5); }
+
+  label { display: block; font-family: var(--versalitas); font-size: 19px; margin: 14px 0 6px; }
+  input[type=text], input[type=password], textarea, select {
+    width: 100%; font: inherit; font-size: 19px; padding: 11px 12px; color: var(--tinta);
+    background: rgba(255,255,255,.85); border: 1.5px solid #cdbf9f; border-radius: 6px; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--tinta); outline-offset: 1px; }
+  #codigo { font-family: var(--titulo); font-size: 26px; letter-spacing: 6px; text-transform: uppercase; }
+  textarea { min-height: 64px; resize: vertical; }
+  button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; padding: 13px 16px; color: inherit; }
+  .btn { display: block; width: 100%; margin: 14px 0; background: var(--vino); color: #fbefd5;
+    font-family: var(--titulo); font-size: 22px; letter-spacing: .3px; box-shadow: 0 3px 0 var(--vino-osc); }
+  .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--vino-osc); }
+  .btn:disabled { opacity: .55; }
+  .btn2 { display: block; width: 100%; margin: 10px 0; background: transparent; color: var(--tinta);
+    border: 2px solid var(--tinta); font-family: var(--titulo); font-size: 19px; }
+  .btn-peligro { color: var(--mal); border-color: var(--mal); }
+  .enlace { background: none; color: var(--tinta); text-decoration: underline; padding: 8px 0;
+    font-family: var(--mano); font-size: 24px; }
+  .fila { display: flex; gap: 8px; }
+  .fila > * { flex: 1; }
+  .error { color: var(--mal); font-family: var(--mano); font-size: 23px; line-height: 1.15; min-height: 1em; margin: 8px 0; white-space: pre-line; }
+  .dibujo { display: inline-block; flex: none; line-height: 0; }
+  .dibujo svg { width: 100%; height: 100%; }
+
   /* Casas */
-  .casas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .casa { padding: 14px 6px; font-weight: 700; font-size: 16px; border: 3px solid transparent; opacity: .9; }
-  .casa[aria-pressed=true] { border-color: var(--tinta); opacity: 1; box-shadow: 0 0 0 2px #fff inset; }
+  .casas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .casa { display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-family: var(--titulo); font-size: 19px;
+    border: 3px solid transparent; border-radius: 10px; text-align: left; opacity: .88; }
+  .casa .dibujo { width: 44px; height: 44px; }
+  .casa[aria-pressed=true] { opacity: 1; border-color: var(--tinta); box-shadow: 0 0 0 3px #fff inset, 0 3px 0 rgba(0,0,0,.2); }
   .c-Gryffindor { background: var(--gry); color: var(--gry-t); }
   .c-Hufflepuff { background: var(--huf); color: var(--huf-t); }
   .c-Ravenclaw { background: var(--rav); color: var(--rav-t); }
   .c-Slytherin { background: var(--sly); color: var(--sly-t); }
-  .punto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+  /* Asignaturas (portada) */
+  .asignaturas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 8px; margin-top: 6px; }
+  .asignaturas div { text-align: center; font-family: var(--mano); font-size: 18px; line-height: 1.05; }
+  .asignaturas .dibujo { width: 52px; height: 52px; display: block; margin: 0 auto 2px; }
+
+  /* Cabecera de clase */
+  .clase { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+  .clase .dibujo { width: 54px; height: 54px; }
+  .clase small { display: block; font-family: var(--versalitas); font-size: 15px; color: var(--tinta-suave); }
+  .clase b { display: block; font-family: var(--titulo); font-weight: 400; font-size: 24px; line-height: 1.1; }
 
   /* Pregunta */
-  .cabecera { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .reloj { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .cabecera { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .numero { font-family: var(--mano); font-size: 26px; color: var(--tinta-suave); }
+  .reloj { display: flex; align-items: center; gap: 4px; font-family: var(--texto); font-weight: 700; font-size: 30px; font-variant-numeric: lining-nums tabular-nums; }
+  .reloj svg { width: 26px; height: 26px; }
   .reloj.poco { color: var(--mal); }
-  .barra { height: 10px; background: var(--borde); border-radius: 6px; overflow: hidden; margin: 8px 0 14px; }
-  .barra > div { height: 100%; background: var(--acento); width: 100%; }
+  .barra { height: 10px; background: #ece3cc; border-radius: 6px; overflow: hidden; margin: 6px 0 14px; border: 1px solid var(--borde); }
+  .barra > div { height: 100%; background: var(--tinta); width: 100%; }
   .barra.poco > div { background: var(--mal); }
-  .enunciado { font-size: 21px; font-weight: 700; margin: 10px 0 16px; overflow-wrap: anywhere; }
-  .opcion { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; background: var(--tarjeta);
-    color: var(--tinta); border: 2px solid var(--borde); margin: 10px 0; padding: 16px 14px; font-size: 18px; overflow-wrap: anywhere; }
-  .opcion b { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--acento); color: #fff;
-    display: inline-flex; align-items: center; justify-content: center; }
-  .opcion.elegida { border-color: var(--acento); background: #efe6fb; }
-  .opcion:disabled { opacity: .7; }
-  .aviso { text-align: center; font-weight: 700; min-height: 1.5em; }
+  .enunciado { font-family: var(--texto); font-weight: 600; font-size: 24px; line-height: 1.3; margin: 8px 0 16px; overflow-wrap: anywhere; }
+  .opcion { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; margin: 12px 0; padding: 14px 12px;
+    background: #fffdf7; border: 1.5px solid var(--borde); border-radius: 6px; font-size: 20px; overflow-wrap: anywhere;
+    box-shadow: 0 2px 0 rgba(80,60,20,.08); }
+  .opcion b { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 2.5px solid var(--tinta); color: var(--tinta);
+    display: inline-flex; align-items: center; justify-content: center; font-family: var(--titulo); font-weight: 400; font-size: 20px; }
+  .opcion.elegida { border-color: var(--tinta); background: #eef1fb; }
+  .opcion.elegida b { background: var(--tinta); color: #fff; }
+  .opcion:disabled { opacity: .75; }
+  .aviso { text-align: center; font-family: var(--mano); font-size: 26px; min-height: 1.3em; }
 
   /* Esperando */
-  .giro { width: 46px; height: 46px; border: 5px solid var(--borde); border-top-color: var(--acento); border-radius: 50%;
-    margin: 24px auto; animation: giro 1s linear infinite; }
-  @keyframes giro { to { transform: rotate(360deg); } }
-  .centro { text-align: center; }
+  .pluma { width: 70px; height: 70px; margin: 18px auto; animation: escribe 1.4s ease-in-out infinite; }
+  @keyframes escribe { 0%, 100% { transform: translateX(-10px) rotate(-6deg); } 50% { transform: translateX(10px) rotate(6deg); } }
 
   /* Resultados */
   .podio { list-style: none; padding: 0; margin: 0; }
-  .podio li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px;
-    border-radius: 12px; margin: 8px 0; font-weight: 700; }
-  .podio .valor { font-size: 20px; text-align: right; }
-  .podio small { display: block; font-weight: 400; font-size: 13px; opacity: .9; }
-  .grande { font-size: 30px; font-weight: 800; }
-  .lista-casa { margin: 10px 0; }
-  .lista-casa h4 { margin: 0; padding: 8px 12px; border-radius: 10px 10px 0 0; }
-  .lista-casa ol { margin: 0; padding: 4px 12px 8px 36px; background: var(--tarjeta); border: 1px solid var(--borde);
-    border-top: 0; border-radius: 0 0 10px 10px; }
-  .lista-casa li { padding: 3px 0; display: list-item; }
+  .podio li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; margin: 8px 0; }
+  .podio .dibujo { width: 42px; height: 42px; }
+  .podio .nombre-casa { flex: 1; font-family: var(--titulo); font-size: 21px; line-height: 1.1; }
+  .podio small { display: block; font-family: var(--texto); font-size: 14px; opacity: .9; }
+  .podio .valor { text-align: right; font-family: var(--texto); font-weight: 700; font-size: 26px; line-height: 1; font-variant-numeric: lining-nums; }
+  .explica { font-size: 16px; color: var(--tinta-suave); font-style: italic; }
+  .grande { font-family: var(--texto); font-weight: 700; font-size: 46px; line-height: 1; font-variant-numeric: lining-nums; }
+  .lista-casa { margin: 12px 0; }
+  .lista-casa h4 { display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 10px; border-radius: 6px 6px 0 0;
+    font-family: var(--titulo); font-weight: 400; font-size: 20px; }
+  .lista-casa h4 .dibujo { width: 30px; height: 30px; }
+  .lista-casa ol { margin: 0; padding: 4px 12px 8px 38px; background: #fffdf7; border: 1px solid var(--borde); border-top: 0; border-radius: 0 0 6px 6px; }
+  .lista-casa li { padding: 2px 0; border-bottom: 1px solid var(--raya); }
   .lista-casa li span { float: right; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .imagen-previa { width: 100%; border: 1px solid var(--borde); border-radius: 10px; margin-top: 8px; }
+  .imagen-previa { width: 100%; border: 1px solid var(--borde); border-radius: 4px; margin-top: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
 
   /* Profesor */
-  .codigo { font-size: 48px; font-weight: 900; letter-spacing: 8px; text-align: center; margin: 6px 0; font-family: ui-monospace, Menlo, monospace; }
-  .enlace-quiz { text-align: center; font-size: 14px; word-break: break-all; color: var(--suave); }
-  .pregunta-form { border: 1px solid var(--borde); border-radius: 12px; padding: 10px 12px 12px; margin: 12px 0; background: #fff; }
-  .pregunta-form legend { font-weight: 700; padding: 0 6px; }
+  .pizarra { background: var(--pizarra); color: #f3f1e8; border: 8px solid #7b5530; border-radius: 6px; padding: 12px; margin: 14px 0;
+    box-shadow: inset 0 0 30px rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.15); text-align: center; }
+  .pizarra .nota { color: #e8e4d4; font-size: 24px; }
+  .codigo { font-family: var(--mano); font-weight: 700; font-size: 64px; letter-spacing: 10px; line-height: 1.05; margin: 2px 0; }
+  .enlace-quiz { font-size: 14px; word-break: break-all; opacity: .85; }
+  .pizarra .btn2 { color: #f3f1e8; border-color: #f3f1e8; font-size: 17px; }
+  .pregunta-form { border: 1px solid var(--borde); border-radius: 6px; padding: 10px 12px 12px; margin: 14px 0; background: #fffdf7; }
+  .pregunta-form legend { font-family: var(--mano); font-size: 24px; padding: 0 6px; }
   .alt { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
   .alt input[type=radio] { width: 26px; height: 26px; flex: none; accent-color: var(--bien); }
-  .alt input[type=text] { padding: 10px; }
-  .tabla { width: 100%; border-collapse: collapse; font-size: 15px; }
-  .tabla td { padding: 8px 4px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
-  .tabla td:last-child { text-align: right; width: 44px; }
+  .alt input[type=text] { padding: 9px 10px; font-size: 18px; }
+  .tabla { width: 100%; border-collapse: collapse; font-size: 17px; table-layout: fixed; }
+  .tabla td { padding: 4px; border-bottom: 1px solid var(--raya); vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tabla td:nth-child(2) { width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+  .tabla td:last-child { text-align: right; width: 46px; padding: 0; text-overflow: clip; }
+  .punto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
   .borrar { background: none; padding: 6px 8px; color: var(--mal); font-size: 18px; }
-  .interruptor { display: flex; align-items: center; gap: 10px; font-weight: 400; margin: 10px 0; }
-  .interruptor input { width: 24px; height: 24px; flex: none; accent-color: var(--acento); }
+  .interruptor { display: flex; align-items: flex-start; gap: 10px; font-family: var(--texto); font-size: 18px; margin: 12px 0 4px; }
+  .interruptor input { width: 24px; height: 24px; flex: none; margin-top: 2px; accent-color: var(--vino); }
+  .interruptor small { display: block; color: var(--tinta-suave); font-size: 15px; line-height: 1.3; }
   .contadores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
-  .contadores div { border-radius: 8px; padding: 6px 4px; text-align: center; font-size: 13px; font-weight: 700; }
-  pre.ejemplo { background: #fff; border: 1px dashed var(--borde); border-radius: 8px; padding: 10px; font-size: 14px; white-space: pre-wrap; }
+  .contadores div { border-radius: 6px; padding: 4px; text-align: center; font-size: 14px; font-weight: 700; }
+  .contadores .dibujo { width: 28px; height: 28px; display: block; margin: 0 auto; }
+  .ejemplo-caja { background: #fff8e3; border: 1px dashed var(--dorado); border-radius: 6px; padding: 8px 10px; font-size: 16px; }
+  .consejo { font-family: var(--mano); font-size: 22px; line-height: 1.15; color: var(--vino); margin-top: 8px; }
+  pre.ejemplo { background: #fff; border: 1px dashed var(--borde); border-radius: 6px; padding: 10px; font-size: 15px; white-space: pre-wrap; font-family: var(--texto); }
+  summary { cursor: pointer; }
   .red { position: fixed; left: 0; right: 0; top: 0; background: var(--mal); color: #fff; text-align: center;
     padding: 8px; font-weight: 700; z-index: 9; }
 </style>
@@ -112,27 +188,31 @@
 <body>
 <div class="red" id="avisoRed" hidden>Sin conexión… reintentando</div>
 <main>
+<div class="membrete"><span class="dibujo" id="sello"></span>Cuaderno de Hogwarts</div>
 
 <!-- ============ ALUMNO: ENTRAR ============ -->
 <section class="vista" id="vEntrar" hidden>
-  <h1>🪄 Quiz de clase</h1>
-  <p class="suave">Escribe el código que te dio tu profesor, el nombre de tu personaje y tu casa.</p>
+  <h1>Quiz de clase</h1>
+  <p class="nota">Escribe el código que te dio tu profesor, el nombre de tu personaje y tu casa.</p>
   <label for="codigo">Código del quiz</label>
-  <input type="text" id="codigo" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ej.: K7PX">
+  <input type="text" id="codigo" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="K7PX">
   <label for="nombre">Nombre de tu personaje</label>
   <input type="text" id="nombre" maxlength="30" autocomplete="off" placeholder="Ej.: Elara Moonwhistle">
   <label>Tu casa</label>
   <div class="casas" id="casas"></div>
   <p class="error" id="errorEntrar"></p>
-  <button class="btn" id="btnEntrar">Empezar</button>
+  <button class="btn" id="btnEntrar">Empezar el quiz</button>
   <p class="suave">Tienes un solo intento. Cada pregunta tiene un tiempo límite y no se puede volver atrás.</p>
+  <h2>Asignaturas</h2>
+  <div class="asignaturas" id="asignaturas"></div>
   <p class="centro"><button class="enlace" id="irProfe">Soy profesor/a →</button></p>
 </section>
 
 <!-- ============ ALUMNO: PREGUNTA ============ -->
 <section class="vista" id="vPregunta" hidden>
+  <div class="clase" id="pClase"></div>
   <div class="cabecera">
-    <span class="suave" id="pNumero"></span>
+    <span class="numero" id="pNumero"></span>
     <span class="reloj" id="pReloj"></span>
   </div>
   <div class="barra" id="pBarra"><div></div></div>
@@ -143,19 +223,20 @@
 
 <!-- ============ ALUMNO: ESPERANDO ============ -->
 <section class="vista centro" id="vEsperando" hidden>
+  <div class="clase" id="eClase" style="justify-content:center"></div>
   <h1>¡Terminaste!</h1>
-  <p id="eQuien"></p>
-  <div class="giro"></div>
+  <p class="nota" id="eQuien"></p>
+  <div class="pluma" id="ePluma"></div>
   <p><b>Esperando resultados…</b></p>
   <p class="suave">Tu profesor los publicará cuando cierre el quiz. Puedes dejar esta página abierta o volver más tarde desde este mismo celular.</p>
 </section>
 
 <!-- ============ ALUMNO: RESULTADOS ============ -->
 <section class="vista" id="vResultados" hidden>
+  <div class="clase" id="rClase"></div>
   <h1>Resultados</h1>
-  <p class="suave" id="rCurso"></p>
   <div class="tarjeta centro">
-    <div id="rQuien"></div>
+    <div class="nota" id="rQuien"></div>
     <div class="grande" id="rPropio"></div>
     <div class="suave">aciertos</div>
   </div>
@@ -167,8 +248,8 @@
 
 <!-- ============ PROFESOR: CONTRASEÑA ============ -->
 <section class="vista" id="vProfeLogin" hidden>
-  <h1>Profesores</h1>
-  <p class="suave">Escribe la contraseña de tu curso.</p>
+  <h1>Sala de profesores</h1>
+  <p class="nota">Escribe la contraseña de tu asignatura.</p>
   <label for="clave">Contraseña</label>
   <input type="password" id="clave" autocomplete="current-password" autocapitalize="none" spellcheck="false">
   <p class="error" id="errorLogin"></p>
@@ -179,7 +260,7 @@
 <!-- ============ PROFESOR: PANEL ============ -->
 <section class="vista" id="vProfe" hidden>
   <div class="cabecera">
-    <h1 id="profeCurso"></h1>
+    <div class="clase" id="profeClase"></div>
     <button class="enlace" id="btnSalir">Salir</button>
   </div>
 
@@ -188,6 +269,7 @@
   <div id="crear" hidden>
     <h2 id="crearTitulo">Nuevo quiz</h2>
     <p class="error" id="avisoReemplazo" hidden>Ojo: al abrir este quiz se borra el que está abierto ahora (con sus respuestas).</p>
+    <p class="nota" id="crearAyuda"></p>
 
     <details class="tarjeta">
       <summary><b>Pegar todas las preguntas de una vez</b></summary>
@@ -201,12 +283,17 @@ c) Un escreguto
 a) Azul
 b) Verde *
 c) Roja</pre>
-      <textarea id="textoPegado" rows="8" placeholder="Pega aquí tus preguntas"></textarea>
+      <textarea id="textoPegado" rows="8" placeholder="Pega aquí tus preguntas (de 5 a 10)"></textarea>
       <p class="error" id="errorPegado"></p>
       <button class="btn2" id="btnLeerTexto">Pasar al formulario</button>
     </details>
 
     <div id="formPreguntas"></div>
+    <div class="fila">
+      <button class="btn2" id="btnMas" type="button">+ Añadir pregunta</button>
+      <button class="btn2" id="btnMenos" type="button">− Quitar la última</button>
+    </div>
+    <p class="suave centro" id="cuantasPreguntas"></p>
 
     <label for="segundos">Segundos por pregunta</label>
     <select id="segundos"></select>
@@ -220,11 +307,14 @@ c) Roja</pre>
 
 </main>
 
+<script src="/dibujos.js"></script>
 <script>
 'use strict';
 // ------------------------------------------------------------ utilidades
 const $ = (id) => document.getElementById(id);
 const CASAS = ['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherin'];
+const CURSOS = ['Cuidado de criaturas mágicas', 'Pociones (años mayores)', 'Pociones (años menores)', 'Historia de la magia',
+  'DCLAO', 'Encantamientos', 'Vuelo', 'Aparición', 'Aritmancia', 'Astronomía', 'Runas antiguas', 'Adivinación'];
 const COLORES = {
   Gryffindor: ['#7f0909', '#ffd34e'], Hufflepuff: ['#eeb939', '#1a1a1a'],
   Ravenclaw: ['#1b2a5c', '#d9b47a'], Slytherin: ['#1a472a', '#e0e0e0'],
@@ -240,16 +330,23 @@ function el(tag, props, ...hijos) {
   if (props) for (const [k, v] of Object.entries(props)) {
     if (k === 'class') e.className = v;
     else if (k === 'style') e.style.cssText = v;
+    else if (k === 'html') e.innerHTML = v;           // solo para los dibujos (texto fijo nuestro)
     else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
     else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v === true ? '' : v);
   }
   for (const h of hijos.flat()) if (h !== null && h !== undefined && h !== false) e.append(h.nodeType ? h : String(h));
   return e;
 }
+const dibujo = (nombre) => el('span', { class: 'dibujo', 'aria-hidden': 'true', html: dibujoSVG(nombre) });
 const coma = (n) => String(n).replace('.', ',');
+const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 function ver(id) {
   document.querySelectorAll('.vista').forEach((v) => { v.hidden = v.id !== id; });
   window.scrollTo(0, 0);
+}
+function pintarClase(cont, numCurso, curso, arriba) {
+  cont.innerHTML = '';
+  cont.append(dibujo(numCurso), el('div', null, el('small', null, arriba || 'Clase de'), el('b', null, curso)));
 }
 let temporizador = null;     // un solo temporizador de consulta activo a la vez
 function programar(fn, ms) { clearTimeout(temporizador); temporizador = setTimeout(fn, ms); }
@@ -276,6 +373,12 @@ async function api(ruta, datos, sesion) {
   }
 }
 
+// Explicación de cómo se cuentan los puntos (la ven profesores y alumnos)
+const EXPLICA_MODO = {
+  promedio: 'Promedio por alumno: los aciertos de la casa divididos entre los alumnos que participaron. Así gana la casa que más sabe, no la que tuvo más gente conectada.',
+  suma: 'Suma: cada acierto es un punto para su casa. Cuantos más alumnos participan, más puntos puede juntar la casa.',
+};
+
 // ------------------------------------------------------------ ALUMNO
 let alumno = null;        // { codigo, token }
 let casaElegida = null;
@@ -288,7 +391,7 @@ function pintarCasas() {
     cont.append(el('button', {
       class: 'casa c-' + c, type: 'button', 'aria-pressed': String(casaElegida === c),
       onclick: () => { casaElegida = c; pintarCasas(); },
-    }, c));
+    }, dibujo(c), c));
   }
 }
 
@@ -347,7 +450,8 @@ async function estadoAlumno(desdeEntrar) {
   if (e.fase === 'pregunta') mostrarPregunta(e);
   else if (e.fase === 'esperando') {
     pararReloj();
-    $('eQuien').textContent = `${e.nombre} · ${e.casa} · ${e.curso}`;
+    pintarClase($('eClase'), e.numCurso, e.curso);
+    $('eQuien').textContent = `${e.nombre} · ${e.casa}`;
     if ($('vEsperando').hidden) ver('vEsperando');
     programar(() => estadoAlumno(), 4000);
   } else if (e.fase === 'resultados') {
@@ -359,6 +463,7 @@ async function estadoAlumno(desdeEntrar) {
 }
 
 // ---- pregunta con cuenta atrás (el tiempo real lo controla el servidor)
+const RELOJ_ARENA = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 10 7 10 18M17 3c0 5-10 7-10 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 19h6l-3-3z" fill="currentColor"/></svg>`;
 let relojId = null;
 let preguntaActual = null;
 function pararReloj() { clearInterval(relojId); relojId = null; }
@@ -368,6 +473,7 @@ function mostrarPregunta(e) {
   pararReloj();
   const p = e.pregunta;
   preguntaActual = { numero: p.numero, bloqueada: false };
+  pintarClase($('pClase'), e.numCurso, e.curso);
   $('pNumero').textContent = `Pregunta ${p.numero} de ${p.total}`;
   $('pTexto').textContent = p.texto;
   $('pAviso').textContent = '';
@@ -380,11 +486,12 @@ function mostrarPregunta(e) {
   ver('vPregunta');
   const total = p.segundos * 1000;
   const fin = performance.now() + p.restanteMs;
+  const reloj = $('pReloj');
   const tic = () => {
     const resta = Math.max(0, fin - performance.now());
     const seg = Math.ceil(resta / 1000);
-    $('pReloj').textContent = seg + ' s';
-    $('pReloj').classList.toggle('poco', seg <= 5);
+    reloj.innerHTML = RELOJ_ARENA + seg + ' s';
+    reloj.classList.toggle('poco', seg <= 5);
     $('pBarra').classList.toggle('poco', seg <= 5);
     $('pBarra').firstElementChild.style.width = (100 * resta / total) + '%';
     if (resta <= 0) {
@@ -392,7 +499,7 @@ function mostrarPregunta(e) {
       if (!preguntaActual.bloqueada) {
         preguntaActual.bloqueada = true;
         cont.querySelectorAll('button').forEach((b) => { b.disabled = true; });
-        $('pAviso').textContent = '⏰ ¡Se acabó el tiempo!';
+        $('pAviso').textContent = '¡Se acabó el tiempo!';
       }
       programar(() => estadoAlumno(), 1800);
     }
@@ -410,7 +517,7 @@ async function elegir(i, boton) {
   $('pAviso').textContent = 'Enviando…';
   const r = await api('/api/alumno/responder', { token: alumno.token, numero: preguntaActual.numero, opcion: i });
   if (r.tarde) {
-    $('pAviso').textContent = '⏰ Llegó tarde: esta respuesta no cuenta.';
+    $('pAviso').textContent = 'Llegó tarde: esta respuesta no cuenta.';
     await esperar(1500);
   } else {
     $('pAviso').textContent = '✓ Respuesta enviada';
@@ -425,7 +532,7 @@ function mostrarResultadosAlumno(e) {
   const firma = JSON.stringify([e.resultados, e.mostrarLista, e.imagenPermitida, e.propio]);
   if (firma === ultimoResultadoAlumno && !$('vResultados').hidden) return;
   ultimoResultadoAlumno = firma;
-  $('rCurso').textContent = e.curso;
+  pintarClase($('rClase'), e.numCurso, e.curso);
   $('rQuien').textContent = `${e.nombre} · ${e.casa}`;
   $('rPropio').textContent = `${e.propio.aciertos}/${e.propio.total}`;
   pintarCasasResultado($('rCasas'), e.resultados);
@@ -438,24 +545,27 @@ function mostrarResultadosAlumno(e) {
   if ($('vResultados').hidden) ver('vResultados');
 }
 
+const claveModo = (r) => (r.modo === 'promedio' ? 'promedio' : 'suma');
 function ordenCasas(r) {
-  const clave = r.modo === 'promedio' ? 'promedio' : 'suma';
-  return [...r.casas].sort((a, b) => b[clave] - a[clave]);
+  const k = claveModo(r);
+  return [...r.casas].sort((a, b) => b[k] - a[k]);
 }
 function valorCasa(c, modo) {
   return modo === 'promedio'
-    ? { grande: coma(c.promedio), chico: 'promedio por alumno' }
+    ? { grande: coma(c.promedio), chico: 'promedio' }
     : { grande: String(c.suma), chico: c.suma === 1 ? 'punto' : 'puntos' };
 }
 
 function pintarCasasResultado(cont, r) {
   cont.innerHTML = '';
-  cont.append(el('h2', null, r.modo === 'promedio' ? 'Casas (promedio por alumno)' : 'Casas (suma de puntos)'));
+  cont.append(el('h2', null, r.modo === 'promedio' ? 'Casas · promedio por alumno' : 'Casas · suma de puntos'));
+  cont.append(el('p', { class: 'explica' }, EXPLICA_MODO[claveModo(r)]));
   const ol = el('ol', { class: 'podio' });
   ordenCasas(r).forEach((c, i) => {
     const v = valorCasa(c, r.modo);
     ol.append(el('li', { class: 'c-' + c.casa },
-      el('span', null, `${i + 1}. ${c.casa}`, el('small', null, `${c.alumnos} ${c.alumnos === 1 ? 'alumno' : 'alumnos'}`)),
+      dibujo(c.casa),
+      el('span', { class: 'nombre-casa' }, el('span', { style: 'font-family: var(--texto); font-weight: 700' }, `${i + 1}.º `), c.casa, el('small', null, plural(c.alumnos, 'alumno', 'alumnos'))),
       el('span', { class: 'valor' }, v.grande, el('small', null, v.chico))));
   });
   cont.append(ol);
@@ -467,107 +577,171 @@ function pintarLista(cont, r) {
     const suyos = r.lista.filter((a) => a.casa === casa);
     if (!suyos.length) continue;
     cont.append(el('div', { class: 'lista-casa' },
-      el('h4', { class: 'c-' + casa }, casa),
+      el('h4', { class: 'c-' + casa }, dibujo(casa), casa),
       el('ol', null, suyos.map((a) => el('li', null, a.nombre, el('span', null, `${a.aciertos}/${a.total}`))))));
   }
 }
 
 // ------------------------------------------------------------ IMAGEN DE RESULTADOS (PNG)
-// Se dibuja en el propio celular. Cuatro bloques (uno por casa) en 2 columnas;
-// caben de sobra 20 alumnos por casa (80 en total) con letra legible.
-function dibujarImagen(r) {
-  const W = 1080, M = 40, GAP = 28, COLW = (W - 2 * M - GAP) / 2;
-  const CAB = 104, FILA = 40, PIE_BLOQUE = 18;
-  const FUENTE = 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+// Se dibuja en el propio celular, como una hoja de cuaderno de Hogwarts.
+// Cuatro bloques (uno por casa) en 2 columnas: caben 20 alumnos por casa (80 en total) con letra legible.
+const cacheDibujos = {};
+function imagenDibujo(nombre, tam) {
+  const clave = nombre + '@' + tam;
+  if (!cacheDibujos[clave]) {
+    cacheDibujos[clave] = new Promise((ok) => {
+      const img = new Image();
+      img.onload = () => ok(img);
+      img.onerror = () => ok(null);
+      const svg = dibujoSVG(nombre).replace('width="64" height="64"', `width="${tam}" height="${tam}"`);
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+  }
+  return cacheDibujos[clave];
+}
+async function prepararImagen(r) {
+  try {
+    await Promise.all(['40px Fell', '40px FellSC', '40px Caveat', '700 40px Caveat', '40px Crimson', '700 40px Crimson']
+      .map((f) => document.fonts.load(f)));
+  } catch {}
+  const dib = {};
+  await Promise.all([[r.numCurso, 120], ...CASAS.map((c) => [c, 84]), ...CASAS.map((c) => [c + '@ban', 70])].map(async ([n, t]) => {
+    dib[n] = await imagenDibujo(String(n).replace('@ban', ''), t);
+  }));
+  return dibujarImagen(r, dib);
+}
+
+function dibujarImagen(r, dib) {
+  const W = 1080, IZQ = 104, DER = 40, GAP = 26, COLW = (W - IZQ - DER - GAP) / 2;
+  const CAB = 118, FILA = 42, PIE_BLOQUE = 18;
+  const TINTA = '#2b2f5e', SUAVE = '#5d6084';
   const porCasa = {};
   CASAS.forEach((c) => { porCasa[c] = r.lista.filter((a) => a.casa === c); });
   const altoBloque = (c) => CAB + Math.max(1, porCasa[c].length) * FILA + PIE_BLOQUE;
   const fila1 = Math.max(altoBloque(CASAS[0]), altoBloque(CASAS[1]));
   const fila2 = Math.max(altoBloque(CASAS[2]), altoBloque(CASAS[3]));
-  const ENC = 228, PIE = 60;
-  const H = ENC + fila1 + GAP + fila2 + PIE;
+  const ENC = 360, PIE = 76;
+  const H = ENC + fila1 + GAP + 14 + fila2 + PIE;
 
   const cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
   const g = cv.getContext('2d');
-  g.fillStyle = '#f7f1e3'; g.fillRect(0, 0, W, H);
+  // --- hoja de cuaderno
+  g.fillStyle = '#fdfaf1'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#cddcf0';
+  for (let y = 120; y < H; y += 42) g.fillRect(0, y, W, 2);
+  g.fillStyle = '#e7a3a3'; g.fillRect(76, 0, 3, H);
+  for (let y = 150; y < H - 40; y += 300) {
+    g.fillStyle = '#e6dbc1'; g.beginPath(); g.arc(36, y, 15, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 2; g.stroke();
+  }
   g.textBaseline = 'middle';
 
-  // Encabezado
-  g.fillStyle = '#2b2118';
-  g.textAlign = 'center';
-  g.font = `800 50px ${FUENTE}`;
-  g.fillText('Resultados del quiz', W / 2, 58);
-  g.font = `600 34px ${FUENTE}`;
-  g.fillText(recortar(g, r.curso, W - 2 * M), W / 2, 108);
-  const orden = ordenCasas(r);
-  const clave = r.modo === 'promedio' ? 'promedio' : 'suma';
-  const mejores = orden.filter((c) => c.alumnos > 0 && c[clave] === orden[0][clave] && c[clave] > 0);
-  g.font = `400 26px ${FUENTE}`;
-  g.fillStyle = '#6f6252';
-  const fecha = new Date(r.publicado || Date.now()).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
-  const nombres = mejores.map((c) => c.casa);
-  const ganador = nombres.length === 1 ? `Gana ${nombres[0]}`
-    : nombres.length > 1 ? `Empate: ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}` : '';
-  const criterio = r.modo === 'promedio' ? 'por promedio' : 'por suma de puntos';
-  g.fillText(fecha, W / 2, 150);
-  if (ganador) {
-    g.font = `700 28px ${FUENTE}`;
-    g.fillStyle = '#2b2118';
-    g.fillText(recortar(g, `${ganador} (${criterio})`, W - 2 * M), W / 2, 192);
-  }
+  // --- encabezado
+  const centro = IZQ + (W - IZQ - DER) / 2;
+  g.fillStyle = SUAVE; g.textAlign = 'center';
+  g.font = `28px FellSC, Fell, Georgia, serif`;
+  g.fillText('Colegio Hogwarts · Resultados del quiz', centro, 52);
+  if (dib[r.numCurso]) g.drawImage(dib[r.numCurso], IZQ, 82, 120, 120);
+  g.textAlign = 'left';
+  g.fillStyle = TINTA;
+  g.font = `52px Fell, Georgia, serif`;
+  g.fillText(recortar(g, r.curso, W - DER - IZQ - 140), IZQ + 140, 124);
+  g.font = `500 34px Caveat, cursive`;
+  g.fillStyle = SUAVE;
+  const fecha = new Date(r.publicado || Date.now()).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  g.fillText(fecha.charAt(0).toUpperCase() + fecha.slice(1), IZQ + 142, 176);
 
-  // Bloques de cada casa
+  // --- cinta con la casa ganadora
+  const orden = ordenCasas(r);
+  const k = claveModo(r);
+  const mejores = orden.filter((c) => c.alumnos > 0 && c[k] === orden[0][k] && c[k] > 0);
+  const by = 226, bh = 96;
+  const ganadora = mejores.length === 1 ? mejores[0].casa : null;
+  g.fillStyle = ganadora ? COLORES[ganadora][0] : TINTA;
+  redondo(g, IZQ, by, W - IZQ - DER, bh, 14); g.fill();
+  const colorTexto = ganadora ? COLORES[ganadora][1] : '#fdfaf1';
+  let tx = IZQ + 24;
+  if (ganadora && dib[ganadora + '@ban']) { g.drawImage(dib[ganadora + '@ban'], IZQ + 14, by + 13, 70, 70); tx = IZQ + 98; }
+  g.fillStyle = colorTexto; g.textAlign = 'left';
+  g.font = `44px Fell, Georgia, serif`;
+  const titular = ganadora ? `¡Gana ${ganadora}!`
+    : mejores.length > 1 ? `¡Empate entre ${mejores.map((c) => c.casa).join(', ').replace(/, ([^,]*)$/, ' y $1')}!` : 'Resultados por casa';
+  g.fillText(recortar(g, titular, W - DER - tx - 20), tx, by + 38);
+  g.font = `italic 24px Crimson, Georgia, serif`;
+  g.fillText(r.modo === 'promedio' ? 'Por promedio de aciertos por alumno (aciertos de la casa ÷ alumnos que participaron)' : 'Por suma de aciertos de cada casa', tx, by + 74, W - DER - tx - 20);
+
+  // --- bloques de cada casa
+  const puesto = {};
+  orden.forEach((c, i) => { puesto[c.casa] = c.alumnos ? 1 + orden.filter((o) => o[k] > c[k]).length : null; });
   CASAS.forEach((casa, i) => {
-    const x = M + (i % 2) * (COLW + GAP);
-    const y = ENC + (i < 2 ? 0 : fila1 + GAP);
+    const x = IZQ + (i % 2) * (COLW + GAP);
+    const y = ENC + (i < 2 ? 0 : fila1 + GAP + 14);
     const [fondo, texto] = COLORES[casa];
-    const c = r.casas.find((k) => k.casa === casa);
+    const c = r.casas.find((q) => q.casa === casa);
     const alumnos = porCasa[casa];
     const alto = altoBloque(casa);
-    // marco
-    g.fillStyle = '#fffaf0';
-    redondo(g, x, y, COLW, alto, 16); g.fill();
-    g.strokeStyle = fondo; g.lineWidth = 3; g.stroke();
+    // papel con sombra
+    g.save();
+    g.shadowColor = 'rgba(80,60,20,.18)'; g.shadowBlur = 12; g.shadowOffsetY = 4;
+    g.fillStyle = '#fffdf7'; redondo(g, x, y, COLW, alto, 8); g.fill();
+    g.restore();
+    g.strokeStyle = '#dfd3b6'; g.lineWidth = 1.5; redondo(g, x, y, COLW, alto, 8); g.stroke();
     // cabecera de la casa
-    g.fillStyle = fondo;
-    redondo(g, x, y, COLW, CAB, 16, true); g.fill();
-    g.fillStyle = texto;
-    g.textAlign = 'left';
-    g.font = `800 36px ${FUENTE}`;
-    g.fillText(casa, x + 18, y + 34);
+    g.fillStyle = fondo; redondo(g, x, y, COLW, CAB, 8, true); g.fill();
+    if (dib[casa]) g.drawImage(dib[casa], x + 10, y + 17, 84, 84);
+    g.fillStyle = texto; g.textAlign = 'left';
+    g.font = `40px Fell, Georgia, serif`;
+    g.fillText(casa, x + 100, y + 44);
+    g.font = `22px Crimson, Georgia, serif`;
+    g.fillText(plural(c.alumnos, 'alumno', 'alumnos'), x + 102, y + 86);
     g.textAlign = 'right';
-    g.font = `800 36px ${FUENTE}`;
-    g.fillText(`${c.suma}`, x + COLW - 18, y + 34);
-    g.font = `400 22px ${FUENTE}`;
-    g.textAlign = 'left';
-    g.fillText(`${c.alumnos} ${c.alumnos === 1 ? 'alumno' : 'alumnos'} · promedio ${coma(c.promedio)}`, x + 18, y + 78);
-    g.textAlign = 'right';
-    g.fillText('total', x + COLW - 18, y + 78);
-    // filas
-    g.font = `500 27px ${FUENTE}`;
+    const principal = r.modo === 'promedio' ? coma(c.promedio) : String(c.suma);
+    const secundario = r.modo === 'promedio' ? `promedio · total ${c.suma}` : `puntos · prom. ${coma(c.promedio)}`;
+    g.font = `700 46px Crimson, Georgia, serif`;
+    g.fillText(principal, x + COLW - 16, y + 44);
+    g.font = `20px Crimson, Georgia, serif`;
+    g.fillText(secundario, x + COLW - 16, y + 88);
+    // cinta adhesiva
+    g.save(); g.translate(x + COLW / 2, y + 2); g.rotate(-0.04);
+    g.fillStyle = 'rgba(214,196,150,.6)'; g.fillRect(-46, -12, 92, 22); g.restore();
+    // medalla del puesto
+    if (puesto[casa]) {
+      const mx = x + COLW - 6, my = y - 4;
+      const colorM = ['#d4a72c', '#a9b0b8', '#b87333', '#8c7f6a'][puesto[casa] - 1];
+      g.fillStyle = colorM; g.beginPath(); g.arc(mx, my, 24, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = '#fffdf7'; g.lineWidth = 3; g.stroke();
+      g.fillStyle = '#fff'; g.textAlign = 'center';
+      g.font = `700 22px Crimson, Georgia, serif`;
+      g.fillText(`${puesto[casa]}.º`, mx, my + 1);
+    }
+    // alumnos
     if (!alumnos.length) {
-      g.fillStyle = '#8a7c69'; g.textAlign = 'left';
-      g.fillText('Sin participantes', x + 18, y + CAB + FILA / 2 + 4);
+      g.fillStyle = '#8a8aa0'; g.textAlign = 'left';
+      g.font = `28px Caveat, cursive`;
+      g.fillText('Sin participantes', x + 18, y + CAB + FILA / 2 + 6);
     }
     alumnos.forEach((a, j) => {
-      const fy = y + CAB + j * FILA + 4;
-      if (j % 2 === 1) { g.fillStyle = '#f1e8d4'; g.fillRect(x + 3, fy, COLW - 6, FILA); }
-      g.fillStyle = '#2b2118';
+      const fy = y + CAB + j * FILA + 6;
+      if (j > 0) { g.fillStyle = '#e4ebf6'; g.fillRect(x + 12, fy, COLW - 24, 1.5); }
+      g.fillStyle = TINTA;
       g.textAlign = 'right';
-      g.font = `800 27px ${FUENTE}`;
+      g.font = `700 27px Crimson, Georgia, serif`;
       g.fillText(`${a.aciertos}/${a.total}`, x + COLW - 16, fy + FILA / 2);
       g.textAlign = 'left';
-      g.font = `500 27px ${FUENTE}`;
-      g.fillText(recortar(g, `${j + 1}. ${a.nombre}`, COLW - 16 - 16 - 92), x + 16, fy + FILA / 2);
+      g.fillStyle = SUAVE;
+      g.font = `27px Crimson, Georgia, serif`;
+      const num = `${j + 1}.`;
+      g.fillText(num, x + 16, fy + FILA / 2);
+      g.fillStyle = TINTA;
+      g.fillText(recortar(g, a.nombre, COLW - 16 - 54 - 86), x + 54, fy + FILA / 2);
     });
   });
 
   g.textAlign = 'center';
-  g.fillStyle = '#8a7c69';
-  g.font = `400 22px ${FUENTE}`;
-  const totalAlumnos = r.lista.length;
-  g.fillText(`${totalAlumnos} ${totalAlumnos === 1 ? 'participante' : 'participantes'} · ${r.total} preguntas · 1 punto por acierto`, W / 2, H - PIE / 2);
+  g.fillStyle = SUAVE;
+  g.font = `500 30px Caveat, cursive`;
+  g.fillText(`${plural(r.lista.length, 'participante', 'participantes')} · ${r.total} preguntas · 1 punto por acierto`, centro, H - PIE / 2);
   return cv;
 }
 function recortar(g, texto, ancho) {
@@ -594,10 +768,13 @@ function nombreArchivo(r) {
 }
 
 // Botones de descarga/compartir + vista previa (en iPhone se puede mantener pulsada para guardarla en Fotos).
-function pintarZonaImagen(cont, r) {
-  const cv = dibujarImagen(r);
-  const nombre = nombreArchivo(r);
+async function pintarZonaImagen(cont, r) {
   cont.append(el('h2', null, 'Imagen de resultados'));
+  const cargando = el('p', { class: 'nota' }, 'Dibujando la imagen…');
+  cont.append(cargando);
+  const cv = await prepararImagen(r);
+  cargando.remove();
+  const nombre = nombreArchivo(r);
   cont.append(el('button', {
     class: 'btn', type: 'button',
     onclick: () => cv.toBlob((blob) => {
@@ -606,19 +783,19 @@ function pintarZonaImagen(cont, r) {
       document.body.append(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     }, 'image/png'),
-  }, '⬇️ Descargar imagen (PNG)'));
+  }, 'Descargar imagen (PNG)'));
+  const img = el('img', { class: 'imagen-previa', src: cv.toDataURL('image/png'), alt: 'Imagen con los resultados por casa' });
   if (navigator.canShare) {
     cv.toBlob((blob) => {
       const archivo = new File([blob], nombre, { type: 'image/png' });
       if (!navigator.canShare({ files: [archivo] })) return;
-      const b = el('button', {
+      cont.insertBefore(el('button', {
         class: 'btn2', type: 'button',
         onclick: () => navigator.share({ files: [archivo], title: 'Resultados' }).catch(() => {}),
-      }, '📤 Compartir o guardar en Fotos');
-      cont.insertBefore(b, cont.querySelector('img'));
+      }, 'Compartir o guardar en Fotos'), img);
     }, 'image/png');
   }
-  cont.append(el('img', { class: 'imagen-previa', src: cv.toDataURL('image/png'), alt: 'Imagen con los resultados por casa' }));
+  cont.append(img);
   cont.append(el('p', { class: 'suave' }, 'En iPhone también puedes mantener pulsada la imagen y elegir "Guardar en Fotos".'));
 }
 
@@ -666,8 +843,8 @@ async function cargarProfe() {
   const primera = !infoProfe;
   infoProfe = r;
   if (primera || $('vProfe').hidden) {
-    $('profeCurso').textContent = r.curso;
-    construirFormulario();
+    pintarClase($('profeClase'), r.numCurso, r.curso, 'Profesor/a de');
+    prepararFormulario();
     ver('vProfe');
   }
   pintarPanel();
@@ -701,47 +878,61 @@ function construirPanel(q) {
     if (navigator.clipboard) navigator.clipboard.writeText(texto).then(listo, () => prompt('Copia esto:', texto));
     else prompt('Copia esto:', texto);
   };
-  panel.append(el('div', { class: 'tarjeta' },
-    el('div', { class: 'centro suave' }, publicado ? 'Quiz cerrado · resultados publicados' : 'Quiz abierto · comparte este código'),
+  panel.append(el('div', { class: 'pizarra' },
+    el('div', { class: 'nota' }, publicado ? 'Quiz cerrado · resultados publicados' : 'Código del quiz'),
     el('div', { class: 'codigo' }, q.codigo),
     el('div', { class: 'enlace-quiz' }, enlace),
     publicado ? null : el('div', { class: 'fila' },
       el('button', { class: 'btn2', type: 'button', onclick: (e) => copiar(q.codigo, e.currentTarget) }, 'Copiar código'),
-      el('button', { class: 'btn2', type: 'button', onclick: (e) => copiar(enlace, e.currentTarget) }, 'Copiar enlace')),
-    el('p', { class: 'suave centro', id: 'borraEn' })));
+      el('button', { class: 'btn2', type: 'button', onclick: (e) => copiar(enlace, e.currentTarget) }, 'Copiar enlace'))));
+  panel.append(el('p', { class: 'suave centro', id: 'borraEn' }));
 
   panel.append(el('div', { class: 'tarjeta' },
-    el('h3', { id: 'cuantos' }),
+    el('h3', { id: 'cuantos', style: 'font-family: var(--texto); font-weight: 700' }),
     el('div', { class: 'contadores', id: 'contadores' }),
+    el('p', { class: 'suave' }, '⏳ = respondiendo (preguntas contestadas) · ✓ = terminó (aciertos)'),
     el('table', { class: 'tabla' }, el('tbody', { id: 'participantes' }))));
 
   if (!publicado) {
     panel.append(el('button', { class: 'btn', type: 'button', onclick: publicar }, 'Cerrar quiz y publicar resultados'));
   }
 
-  // Ajustes de lo que ven los alumnos
+  // Cómo se cuentan los puntos y qué ven los alumnos
   const ajuste = (datos) => profe('/api/profe/ajustes', datos).then((r) => r && cargarProfe());
-  const modo = (valor, texto) => el('label', { class: 'interruptor' },
-    el('input', { type: 'radio', name: 'modo', value: valor, checked: q.modo === valor, onchange: () => ajuste({ modo: valor }) }), texto);
+  const modo = (valor, titulo, texto) => el('label', { class: 'interruptor' },
+    el('input', { type: 'radio', name: 'modo', value: valor, checked: q.modo === valor, onchange: () => ajuste({ modo: valor }) }),
+    el('span', null, el('b', null, titulo), el('small', null, texto)));
+  panel.append(el('div', { class: 'tarjeta' },
+    el('h3', null, '¿Cómo se cuentan los puntos de cada casa?'),
+    modo('promedio', 'Promedio por alumno (recomendado)',
+      'Se suman los aciertos de la casa y se dividen entre los alumnos que participaron. Así no gana la casa que tuvo más gente conectada, sino la que, en proporción, sabe más.'),
+    modo('suma', 'Suma de puntos',
+      'Cada acierto es un punto para su casa. Es justo solo si todas las casas tienen más o menos los mismos alumnos; si no, favorece a la casa con más gente.'),
+    el('details', null, el('summary', { class: 'suave' }, 'Ver un ejemplo'),
+      el('div', { class: 'ejemplo-caja' },
+        el('p', null, 'Gryffindor: 10 alumnos, 50 aciertos → suma 50, promedio 5.'),
+        el('p', null, 'Slytherin: 4 alumnos, 32 aciertos → suma 32, promedio 8.'),
+        el('p', null, 'Con la suma gana Gryffindor solo porque se conectaron más. Con el promedio gana Slytherin, porque cada uno de sus alumnos acertó más.'))),
+    el('p', { class: 'consejo', id: 'consejoModo' })));
+
   panel.append(el('div', { class: 'tarjeta' },
     el('h3', null, 'Qué ven los alumnos al publicar'),
-    modo('suma', 'Puntos por casa: suma'),
-    modo('promedio', 'Puntos por casa: promedio por alumno'),
+    el('p', { class: 'suave' }, 'Siempre ven los puntos de las casas y sus propios aciertos.'),
     el('label', { class: 'interruptor' },
       el('input', { type: 'checkbox', checked: q.mostrarLista, onchange: (e) => ajuste({ mostrarLista: e.target.checked }) }),
-      'Mostrar la lista individual (nombres y aciertos)'),
+      el('span', null, 'Mostrar la lista individual', el('small', null, 'Nombres y aciertos de todos los participantes.'))),
     el('label', { class: 'interruptor' },
       el('input', { type: 'checkbox', checked: q.imagenAlumnos, onchange: (e) => ajuste({ imagenAlumnos: e.target.checked }) }),
-      'Dejar que los alumnos descarguen la imagen')));
+      el('span', null, 'Dejar que descarguen la imagen', el('small', null, 'La imagen incluye los nombres y aciertos de todos.')))));
 
   panel.append(el('div', { id: 'resultadosProfe' }));
 
   panel.append(el('div', { class: 'tarjeta' },
     el('button', { class: 'btn2', type: 'button', onclick: () => { mostrandoNuevo = true; pintarPanel(); window.scrollTo(0, 0); } }, 'Abrir un quiz nuevo'),
     el('button', { class: 'btn2 btn-peligro', type: 'button', onclick: borrarQuiz }, 'Borrar este quiz'),
-    el('details', null, el('summary', { class: 'suave' }, 'Ver las preguntas de este quiz'),
+    el('details', null, el('summary', { class: 'suave' }, `Ver las ${q.preguntas.length} preguntas de este quiz`),
       el('ol', null, q.preguntas.map((p) => el('li', null, p.texto,
-        el('ul', null, p.opciones.map((o, i) => el('li', null, o, i === p.correcta ? ' ✅' : '')))))))));
+        el('ul', null, p.opciones.map((o, i) => el('li', null, o, i === p.correcta ? ' ✓ (correcta)' : '')))))))));
 }
 
 function actualizarPanel(q) {
@@ -755,10 +946,18 @@ function actualizarPanel(q) {
   $('cuantos').textContent = `${ps.length} de ${q.maxAlumnos} participantes` + (enCurso ? ` · ${enCurso} respondiendo` : '');
   const cont = $('contadores');
   cont.innerHTML = '';
-  CASAS.forEach((c) => {
-    const n = ps.filter((p) => p.casa === c).length;
-    cont.append(el('div', { class: 'c-' + c }, c.slice(0, 4) + '.', el('br'), `${n}/${q.maxPorCasa}`));
+  const porCasa = CASAS.map((c) => ps.filter((p) => p.casa === c).length);
+  CASAS.forEach((c, i) => {
+    cont.append(el('div', { class: 'c-' + c }, dibujo(c), `${porCasa[i]}/${q.maxPorCasa}`));
   });
+  // Consejo según cuántos alumnos tiene cada casa ahora mismo
+  const consejo = $('consejoModo');
+  if (consejo) {
+    const distintas = new Set(porCasa).size > 1;
+    consejo.textContent = !ps.length ? ''
+      : distintas ? `Ahora mismo las casas tienen distinto número de alumnos (${CASAS.map((c, i) => `${c.slice(0, 3)}. ${porCasa[i]}`).join(' · ')}): el promedio es lo más justo.`
+        : 'Ahora mismo todas las casas tienen los mismos alumnos: suma y promedio dan el mismo orden.';
+  }
   const tb = $('participantes');
   tb.innerHTML = '';
   if (!ps.length) tb.append(el('tr', null, el('td', { class: 'suave', colspan: 3, style: 'text-align:left' }, 'Todavía no entró nadie.')));
@@ -766,8 +965,8 @@ function actualizarPanel(q) {
   ps.forEach((p) => {
     tb.append(el('tr', null,
       el('td', null, el('span', { class: 'punto', style: `background:${COLORES[p.casa][0]}` }), p.nombre),
-      el('td', { class: 'suave' }, p.terminado ? `✓ ${p.aciertos}/${total}` : `respondiendo ${p.respondidas}/${total}`),
-      el('td', null, el('button', { class: 'borrar', type: 'button', title: 'Borrar intento', onclick: () => borrarIntento(p) }, '🗑'))));
+      el('td', { class: 'suave', title: p.terminado ? 'Terminó: aciertos' : 'Respondiendo: preguntas contestadas' }, p.terminado ? `✓ ${p.aciertos}/${total}` : `⏳ ${p.respondidas}/${total}`),
+      el('td', null, el('button', { class: 'borrar', type: 'button', title: 'Borrar intento', 'aria-label': `Borrar el intento de ${p.nombre}`, onclick: () => borrarIntento(p) }, '🗑'))));
   });
   // Los resultados (y la imagen) solo se vuelven a dibujar si cambiaron.
   const firma = JSON.stringify(q.resultados);
@@ -812,36 +1011,51 @@ async function borrarQuiz() {
   cargarProfe();
 }
 
-// ---- formulario para crear el quiz
-function construirFormulario() {
-  const n = infoProfe.numPreguntas;
-  const cont = $('formPreguntas');
-  if (cont.childElementCount === n) return;
-  cont.innerHTML = '';
-  for (let i = 0; i < n; i++) {
-    const fs = el('fieldset', { class: 'pregunta-form' }, el('legend', null, `Pregunta ${i + 1}`),
-      el('textarea', { id: `t${i}`, rows: 2, maxlength: 300, placeholder: 'Escribe la pregunta' }));
-    for (let j = 0; j < 3; j++) {
-      fs.append(el('div', { class: 'alt' },
-        el('input', { type: 'radio', name: `c${i}`, id: `c${i}_${j}`, value: j, title: 'Marcar como correcta', 'aria-label': `Alternativa ${'ABC'[j]} es la correcta` }),
-        el('input', { type: 'text', id: `o${i}_${j}`, maxlength: 300, placeholder: `Alternativa ${'ABC'[j]}` })));
-    }
-    fs.append(el('div', { class: 'suave' }, 'Toca el círculo de la alternativa correcta.'));
-    cont.append(fs);
-  }
+// ---- formulario para crear el quiz (de 5 a 10 preguntas, 3 alternativas cada una)
+const cantidadPreguntas = () => $('formPreguntas').childElementCount;
+
+function prepararFormulario() {
   const sel = $('segundos');
-  sel.innerHTML = '';
-  const opciones = [...new Set([10, 15, 20, 25, 30, 45, 60, infoProfe.segundosPorDefecto])]
-    .filter((s) => s >= infoProfe.segundosMin && s <= infoProfe.segundosMax).sort((a, b) => a - b);
-  opciones.forEach((s) => sel.append(el('option', { value: s }, `${s} segundos`)));
-  sel.value = String(infoProfe.segundosPorDefecto);
-  cargarBorrador();
+  if (!sel.options.length) {
+    const opciones = [...new Set([10, 15, 20, 25, 30, 45, 60, infoProfe.segundosPorDefecto])]
+      .filter((s) => s >= infoProfe.segundosMin && s <= infoProfe.segundosMax).sort((a, b) => a - b);
+    opciones.forEach((s) => sel.append(el('option', { value: s }, `${s} segundos`)));
+    sel.value = String(infoProfe.segundosPorDefecto);
+  }
+  $('crearAyuda').textContent = `Entre ${infoProfe.minPreguntas} y ${infoProfe.maxPreguntas} preguntas, cada una con 3 alternativas y una sola correcta.`;
+  if (!cantidadPreguntas()) {
+    const b = guardado.get('borradorQuiz');
+    const n = b && b.preguntas ? b.preguntas.length : infoProfe.minPreguntas;
+    ponerCantidad(n);
+    cargarBorrador();
+  }
+}
+
+function fieldsetPregunta(i) {
+  const fs = el('fieldset', { class: 'pregunta-form' }, el('legend', null, `Pregunta ${i + 1}`),
+    el('textarea', { id: `t${i}`, rows: 2, maxlength: 300, placeholder: 'Escribe la pregunta' }));
+  for (let j = 0; j < 3; j++) {
+    fs.append(el('div', { class: 'alt' },
+      el('input', { type: 'radio', name: `c${i}`, id: `c${i}_${j}`, value: j, title: 'Marcar como correcta', 'aria-label': `La alternativa ${'ABC'[j]} es la correcta` }),
+      el('input', { type: 'text', id: `o${i}_${j}`, maxlength: 300, placeholder: `Alternativa ${'ABC'[j]}` })));
+  }
+  fs.append(el('div', { class: 'suave' }, 'Toca el círculo de la alternativa correcta.'));
+  return fs;
+}
+
+function ponerCantidad(n) {
+  n = Math.max(infoProfe.minPreguntas, Math.min(infoProfe.maxPreguntas, n));
+  const cont = $('formPreguntas');
+  while (cont.childElementCount < n) cont.append(fieldsetPregunta(cont.childElementCount));
+  while (cont.childElementCount > n) cont.lastElementChild.remove();
+  $('btnMas').disabled = n >= infoProfe.maxPreguntas;
+  $('btnMenos').disabled = n <= infoProfe.minPreguntas;
+  $('cuantasPreguntas').textContent = `${n} preguntas (mínimo ${infoProfe.minPreguntas}, máximo ${infoProfe.maxPreguntas})`;
 }
 
 function leerFormulario() {
-  const n = infoProfe.numPreguntas;
   const preguntas = [];
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < cantidadPreguntas(); i++) {
     const marcada = document.querySelector(`input[name=c${i}]:checked`);
     preguntas.push({
       texto: $(`t${i}`).value.trim(),
@@ -852,6 +1066,7 @@ function leerFormulario() {
   return preguntas;
 }
 function llenarFormulario(preguntas) {
+  ponerCantidad(preguntas.length);
   preguntas.forEach((p, i) => {
     if (!$(`t${i}`)) return;
     $(`t${i}`).value = p.texto || '';
@@ -895,9 +1110,11 @@ function leerTexto(texto) {
       else { actual = { texto: t, opciones: [], correctas: [] }; preguntas.push(actual); }
     }
   }
-  const n = infoProfe.numPreguntas;
+  const { minPreguntas: min, maxPreguntas: max } = infoProfe;
   const errores = [];
-  if (preguntas.length !== n) errores.push(`Encontré ${preguntas.length} ${preguntas.length === 1 ? 'pregunta' : 'preguntas'} y deben ser ${n}.`);
+  if (preguntas.length < min || preguntas.length > max) {
+    errores.push(`Encontré ${plural(preguntas.length, 'pregunta', 'preguntas')} y deben ser entre ${min} y ${max}.`);
+  }
   preguntas.forEach((p, i) => {
     if (p.opciones.length !== 3) errores.push(`La pregunta ${i + 1} tiene ${p.opciones.length} alternativas (deben ser 3, con a), b) y c)).`);
     if (p.correctas.length === 0) errores.push(`La pregunta ${i + 1} no tiene la correcta marcada con *.`);
@@ -936,6 +1153,10 @@ async function abrirQuiz() {
 }
 
 // ------------------------------------------------------------ arranque
+$('sello').innerHTML = dibujoSVG(6);
+$('sello').setAttribute('aria-hidden', 'true');
+CURSOS.forEach((nombre, i) => $('asignaturas').append(el('div', null, dibujo(i + 1), nombre)));
+$('ePluma').innerHTML = dibujoSVG(4);
 $('btnEntrar').addEventListener('click', entrar);
 $('irProfe').addEventListener('click', irProfe);
 $('volverAlumno').addEventListener('click', () => mostrarEntrar());
@@ -943,10 +1164,16 @@ $('btnLogin').addEventListener('click', login);
 $('clave').addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
 $('btnSalir').addEventListener('click', salirProfe);
 $('btnAbrir').addEventListener('click', abrirQuiz);
+$('btnMas').addEventListener('click', () => { ponerCantidad(cantidadPreguntas() + 1); guardarBorrador(); $('formPreguntas').lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+$('btnMenos').addEventListener('click', () => {
+  const i = cantidadPreguntas() - 1;
+  if ($(`t${i}`).value.trim() && !confirm(`¿Quitar la pregunta ${i + 1}? Se borra lo que escribiste en ella.`)) return;
+  ponerCantidad(i); guardarBorrador();
+});
 $('btnCancelarNuevo').addEventListener('click', () => { mostrandoNuevo = false; pintarPanel(); window.scrollTo(0, 0); });
 $('btnLimpiar').addEventListener('click', () => {
   if (!confirm('¿Vaciar todas las preguntas del formulario?')) return;
-  llenarFormulario(Array.from({ length: infoProfe.numPreguntas }, () => ({ texto: '', opciones: [], correcta: null })));
+  llenarFormulario(Array.from({ length: infoProfe.minPreguntas }, () => ({ texto: '', opciones: [], correcta: null })));
   guardarBorrador();
 });
 $('btnLeerTexto').addEventListener('click', () => {

@@ -3,26 +3,32 @@
 Mini web para los quizzes de las clases del rol. Es un **proyecto y un servicio aparte** del Quidditch:
 vive en esta carpeta `quiz/` y en Render es otro servicio, con su propia dirección.
 
-## Qué hace este prototipo (paso 1)
-- **Profesor:** entra con la contraseña de su curso (solo ve su curso). Escribe las preguntas en el formulario
-  o pega todo el texto. Al abrir el quiz recibe un **código** y un **enlace** para compartir por Instagram.
-  Ve en directo quién entró y cuánto lleva. Puede **borrar un intento** hecho por error.
-  Cuando quiera, toca **Cerrar quiz y publicar resultados**.
+## Qué hace (versión 2)
+- **Aspecto:** hoja de cuaderno rayada de Hogwarts (margen rojo, agujeros de carpeta, notas a mano, papelitos
+  con cinta). Cada asignatura tiene su dibujito y cada casa su escudo con su animal (león, tejón, águila, serpiente).
+  Los dibujos están hechos a mano en `public/dibujos.js` y las tipografías van dentro de `public/fuentes/`
+  (licencia libre), así que no depende de ningún servicio externo.
+- **Profesor:** entra con la contraseña de su asignatura (solo ve la suya). Escribe **de 5 a 10 preguntas** en el
+  formulario (botones "+ Añadir pregunta" y "− Quitar la última") o pega todo el texto. Al abrir el quiz recibe un
+  **código** (en una pizarra) y un **enlace** para compartir por Instagram. Ve en directo quién entró y cuánto lleva.
+  Puede **borrar un intento** hecho por error. Cuando quiera, toca **Cerrar quiz y publicar resultados**.
 - **Alumno:** entra con el código, el nombre de su personaje y su casa. Responde a su ritmo, sin volver atrás,
   con tiempo por pregunta (por defecto 20 s). Las preguntas y las alternativas salen en otro orden para cada uno.
   Al terminar ve "Esperando resultados…" hasta que el profesor publica.
-- **Resultados:** puntos por casa en **suma** o **promedio por alumno** (elige el profesor). La lista con los nombres
-  solo si el profesor la activa. **Imagen PNG** con todos los alumnos por casa: el profesor siempre la puede
-  descargar; los alumnos solo si él lo permite.
+- **Cómo se cuentan los puntos de cada casa** (lo elige el profesor; la página se lo explica con un ejemplo):
+  - **Promedio por alumno (por defecto, recomendado):** aciertos de la casa ÷ alumnos que participaron. Así no gana
+    la casa que tuvo más gente conectada, sino la que, en proporción, sabe más.
+  - **Suma:** cada acierto es un punto para su casa. Solo es justo si las casas tienen más o menos los mismos alumnos.
+  Mientras el quiz está abierto, el panel avisa si las casas tienen distinto número de alumnos.
+- **Resultados:** la lista con los nombres solo si el profesor la activa. **Imagen PNG** (hoja de cuaderno con el
+  dibujito de la asignatura, la casa ganadora, medallas de 1.º a 4.º y todos los alumnos por casa, hasta 80):
+  el profesor siempre la puede descargar; los alumnos solo si él lo permite.
 - **Reglas:** 1 punto por acierto. Máximo 80 participantes y 20 por casa. Un nombre no se puede repetir en el
   mismo quiz (da igual mayúsculas o tildes) y el celular recuerda que ya respondió. El tiempo lo controla el
   servidor: recargar la página no lo reinicia y una respuesta tardía no cuenta. Un solo quiz activo por curso:
   abrir otro reemplaza al anterior. Varios cursos pueden tener quiz abierto a la vez.
 - **Borrado automático:** 30 minutos después de publicar, al abrir otro quiz en ese curso, o 3 horas después de
   abrirlo si nunca se publicó.
-
-En este prototipo cada quiz tiene **3 preguntas**. En el siguiente paso pasa a 10 (se cambia la variable
-`NUM_PREGUNTAS` en Render, o el número en `server.js`).
 
 ### Formato para pegar las preguntas
 ```
