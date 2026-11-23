@@ -49,10 +49,10 @@ const RETOS = {
 const CENTROS = [0.5, 0.3, 0.7, 0.4, 0.62, 0.26, 0.74, 0.45, 0.56, 0.34, 0.68];
 const SNITCH = {
   pausas: [2600, 4100, 1900, 3400, 4600, 2200, 3800, 3000], // espera antes de que aparezca (secuencia fija)
-  ventanaMs: 800,        // tiempo que se deja ver la snitch la primera vez…
-  pasoMs: 60,            // …cada vez que se escapa, la siguiente dura esto menos…
-  ventanaMinMs: 400,     // …hasta este mínimo (partidos y entrenamientos)
-  ventanaMinDueloMs: 450, // en los duelos: de 0,8 s (primera ronda) a 0,45 s (última)
+  ventanaMs: 600,        // tiempo que se deja ver la snitch la primera vez…
+  pasoMs: 50,            // …cada vez que se escapa, la siguiente dura esto menos…
+  ventanaMinMs: 300,     // …hasta este mínimo (partidos y entrenamientos)
+  ventanaMinDueloMs: 330, // en los duelos: de 0,6 s (primera ronda) a 0,33 s (última)
   limiteMs: 3000,        // duelo de guardianes: tiempo para atajar tras el aviso
   minimoMs: 100,         // reacción más rápida que esto = imposible
   entreRondasMs: 2500,
@@ -619,8 +619,8 @@ function ajustar(cfg, f) {
   return { ...cfg, ancho: cfg.ancho * (1 - 0.45 * f), periodo: Math.round(cfg.periodo / (1 + 0.25 * f)) };
 }
 
-function lanzarReto(sala, a, pid, clase, titulo, centroFijo) {
-  const cfg = ajustar(RETOS[clase], dificultad(sala));
+function lanzarReto(sala, a, pid, clase, titulo, centroFijo, fFijo) {
+  const cfg = ajustar(RETOS[clase], fFijo !== undefined ? fFijo : dificultad(sala));
   const centro = centroFijo !== undefined ? centroFijo : CENTROS[sala.contadorRetos++ % CENTROS.length];
   const r = {
     id: hex(4), pid, clase, titulo, ...cfg,
@@ -811,8 +811,9 @@ function tirar(ws) {
     guardian ? `${p.nombre} lanza a la meta… ${nG} intenta atajar.` : `${p.nombre} lanza a la meta… ¡no hay guardián!`);
   // Misma zona y velocidad para los dos: gana quien acierte primero.
   const centro = CENTROS[sala.contadorRetos++ % CENTROS.length];
-  lanzarReto(sala, a, p.id, 'tiro', '¡Lanza a la meta!', centro);
-  if (guardian) lanzarReto(sala, a, guardian, 'atajar', `¡${p.nombre} lanza! Ataja el tiro`, centro);
+  const f = dificultad(sala); // la misma dificultad para los dos
+  lanzarReto(sala, a, p.id, 'tiro', '¡Lanza a la meta!', centro, f);
+  if (guardian) lanzarReto(sala, a, guardian, 'atajar', `¡${p.nombre} lanza! Ataja el tiro`, centro, f);
   programarFin(sala, a, RETOS.tiro.limite);
   registrar(sala, a.texto);
   difundir(sala);
@@ -944,7 +945,7 @@ function impactoBludger(sala, d, motivo) {
 }
 
 // ---------------------------------------------------------------- Snitch (buscadores)
-// Desde la mitad del partido, la snitch aparece de vez en cuando SOLO UN INSTANTE (0,8 s y cada vez menos, hasta 0,4 s)
+// Desde la mitad del partido, la snitch aparece de vez en cuando SOLO UN INSTANTE (0,6 s y cada vez menos, hasta 0,3 s)
 // y se va volando. Los buscadores ven "atento…"; cuando aparece, el primero que la toca a tiempo la atrapa:
 // +150 y se acaba el partido. Si nadie la atrapa, vuelve a aparecer más tarde, hasta que alguien la atrape.
 // Tocar antes de tiempo (o tocar la polilla) hace que esa vez se te escape, pero el otro todavía puede atraparla.
@@ -957,7 +958,7 @@ function aparecerSnitch(sala, muerte) {
   }
   sala.aparicionesSnitch = (sala.aparicionesSnitch || 0) + 1;
   const s = sala.snitch = {
-    muerte, senuelos: muerte || sala.aparicionesSnitch >= 2, busc, estado: 'espera', rondaId: hex(4),
+    muerte, senuelos: true, busc, estado: 'espera', rondaId: hex(4),
     taps: { A: null, B: null }, senalEn: 0, ventana: ventanaPartido(sala), timer: null, revisar: null,
   };
   animar(sala, { tipo: 'snitch', fase: 'aparece' });
@@ -975,13 +976,13 @@ function aparecerSnitch(sala, muerte) {
   difundir(sala);
 }
 
-// Tiempo que se deja ver la snitch en un partido: 0,8 s la primera vez; cada vez que se escapa, 0,06 s menos,
-// y algo menos a medida que avanza el reloj. Nunca menos de 0,4 s.
+// Tiempo que se deja ver la snitch en un partido: 0,6 s la primera vez; cada vez que se escapa, 0,05 s menos,
+// y algo menos a medida que avanza el reloj. Nunca menos de 0,3 s.
 function ventanaPartido(sala) {
   const v = SNITCH.ventanaMs - SNITCH.pasoMs * (sala.aparicionesSnitch - 1) - 100 * dificultad(sala);
   return Math.round(Math.max(SNITCH.ventanaMinMs, v));
 }
-// En los duelos: de 0,8 s (primera ronda) a 0,45 s (última ronda).
+// En los duelos: de 0,6 s (primera ronda) a 0,33 s (última ronda).
 function ventanaSnitch(f) {
   return Math.round(SNITCH.ventanaMs - (SNITCH.ventanaMs - SNITCH.ventanaMinDueloMs) * f);
 }
@@ -1103,7 +1104,7 @@ function atraparSnitch(sala, eq, ms) {
 
 // ---------------------------------------------------------------- Duelos (buscador o guardián)
 // El capitán elige a dos aspirantes. En cada ronda los dos reciben el mismo reto a la vez y cada ronda es más difícil.
-//  - Buscador: "espera…", aparece la snitch y gana quien toca primero (desde la ronda 3 hay señuelos).
+//  - Buscador: "espera…", aparece la snitch y gana quien toca primero (desde la ronda 2 hay señuelos).
 //  - Guardián: la aguja se mueve; tras el aviso "¡TIRO!" gana quien ataja primero con la aguja en lo verde.
 //  Tocar antes de la señal pierde la ronda.
 const NOMBRE_DUELO = { buscador: 'buscadores', guardian: 'guardianes' };
@@ -1185,7 +1186,7 @@ function nuevaRondaDuelo(sala) {
   } else {
     d.ventana = ventanaSnitch(f);
     enviarDuelo(sala);
-    if (d.ronda >= 3) extra = programarSenuelo(sala, d, pausa, (fase) => enviarDuelo(sala, null, { fase }));
+    if (d.ronda >= 2) extra = programarSenuelo(sala, d, pausa, (fase) => enviarDuelo(sala, null, { fase }));
   }
   d.timer = setTimeout(() => {
     if (sala.duelo !== d || d.estado !== 'espera') return;

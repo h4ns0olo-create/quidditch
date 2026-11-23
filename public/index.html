@@ -1791,11 +1791,11 @@
   }
   function rondaSnitchPractica() {
     const f = difP(), id = 'P' + Date.now();
-    const limite = Math.max(250, 800 - 20 * (practica.nivel - 1)); // tiempo que se deja ver: 0,8 s y cada nivel menos (mínimo 0,25 s)
+    const limite = Math.max(200, 600 - 20 * (practica.nivel - 1)); // tiempo que se deja ver: 0,6 s y cada nivel menos (mínimo 0,2 s)
     practica.limiteSnitch = limite;
     snitchMensaje({ modo: 'practica', fase: 'espera', rondaId: id, limite });
     const pausa = 1500 + Math.random() * 3000;
-    const senuelo = practica.nivel >= 3 && Math.random() < Math.min(0.7, 0.35 + practica.nivel * 0.01);
+    const senuelo = practica.nivel >= 2 && Math.random() < Math.min(0.8, 0.45 + practica.nivel * 0.015);
     const t = practica.timers;
     if (senuelo) {
       t.push(setTimeout(() => { if (sn && sn.fase === 'espera') snitchMensaje({ modo: 'practica', fase: 'senuelo', rondaId: id }); }, pausa * 0.5));

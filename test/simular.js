@@ -301,7 +301,7 @@ async function main() {
     const finAp1 = bB.recibir((m) => m.t === 'snitch' && m.fase === 'fin', 15000);
     bA.mandar({ t: 'snitch_tap', rondaId: ap1.rondaId, antes: true });
     const senB = await bB.recibir((m) => m.t === 'snitch' && m.fase === 'senal', 15000);
-    comprobar(senB.ventana <= 800 && senB.ventana >= 400, `la snitch se deja ver solo ${senB.ventana} ms`);
+    comprobar(senB.ventana <= 600 && senB.ventana >= 300, `la snitch se deja ver solo ${senB.ventana} ms`);
     await esperar(senB.ventana + 300);
     bB.mandar({ t: 'snitch_tap', rondaId: senB.rondaId, ms: senB.ventana + 250 });
     const f1 = await finAp1;
@@ -400,7 +400,7 @@ async function main() {
     let finR = mae.recibir((m) => m.t === 'duelo' && m.fase === 'ronda', 15000);
     cho.mandar({ t: 'duelo_tap', rondaId: esperaD1.rondaId, antes: true });
     const senM1 = await mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000);
-    comprobar(senM1.ventana <= 800, `en el duelo la snitch también aparece solo un instante (${senM1.ventana} ms)`);
+    comprobar(senM1.ventana <= 600, `en el duelo la snitch también aparece solo un instante (${senM1.ventana} ms)`);
     await esperar(330);
     mae.mandar({ t: 'duelo_tap', rondaId: senM1.rondaId, ms: 300 });
     comprobar((await finR).ganador === 'B', 'ronda 1: Cho se adelanta (se le escapa) y Maenor la atrapa');
@@ -411,9 +411,9 @@ async function main() {
     mae.mandar({ t: 'duelo_tap', rondaId: sen2b.rondaId, ms: 380 });
     cho.mandar({ t: 'duelo_tap', rondaId: sen1.rondaId, ms: 250 });
     comprobar((await finR).ganador === 'A', 'ronda 2: gana Cho, que reaccionó antes');
-    // Ronda 3: hay señuelo (polilla). Cho la toca y esa vez se le escapa; Maenor atrapa la snitch.
-    const senR3 = await cho.recibir((m) => m.t === 'duelo' && (m.fase === 'senuelo' || m.fase === 'senal'), 12000);
-    comprobar(senR3.fase === 'senuelo', 'desde la ronda 3 aparece la polilla dorada (señuelo) antes que la snitch');
+    comprobar(cho.mensajes.some((m) => m.t === 'duelo' && m.fase === 'senuelo' && m.ronda === 2), 'desde la ronda 2 aparece la polilla dorada (señuelo) antes que la snitch');
+    // Ronda 3: Cho se adelanta y esa vez se le escapa; Maenor atrapa la snitch.
+    const senR3 = await cho.recibir((m) => m.t === 'duelo' && m.fase === 'espera' && m.ronda === 3, 12000);
     const finDueloP = miraD.recibir((m) => m.t === 'estado' && m.sala.duelo && m.sala.duelo.estado === 'fin', 12000);
     cho.mandar({ t: 'duelo_tap', rondaId: senR3.rondaId, antes: true });
     const senM3 = await mae.recibir((m) => m.t === 'duelo' && m.fase === 'senal', 12000);
@@ -421,7 +421,7 @@ async function main() {
     mae.mandar({ t: 'duelo_tap', rondaId: senM3.rondaId, ms: 350 });
     await finDueloP;
     const resD = miraD.estado.duelo.resultado;
-    comprobar(resD.ganador === 1 && miraD.estado.log.some((l) => l.texto.includes('Cho se adelantó')), 'tocar la polilla hace que se te escape: Maenor gana el duelo 2-1');
+    comprobar(resD.ganador === 1 && miraD.estado.log.some((l) => l.texto.includes('Cho se adelantó')), 'adelantarse hace que se te escape: Maenor gana el duelo 2-1');
     comprobar(resD.stats[0].mejor === 250 && resD.stats[1].mejor === 300, 'resultado con el mejor tiempo de reacción de cada uno');
     // Duelo de guardianes
     jefeD.mandar({ t: 'empezar_duelo', a: cho.id, b: mae.id, pos: 'guardian', rondas: 3 });
