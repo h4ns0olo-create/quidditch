@@ -287,6 +287,20 @@
   .emblema svg.retrato { width: 100%; height: 100%; border-radius: 50%; display: block; }
   .cabecera .emblema { width: 54px; height: 54px; overflow: hidden; padding: 0; }
   .editor { margin-top: 14px; }
+  /* Caritas de los invitados (palco, lista y comentarios) e insignia de capitán */
+  .carita { display: inline-block; width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex: none; vertical-align: middle; margin-right: 6px;
+    border: 1.5px solid rgba(255,255,255,.25); background: rgba(0,0,0,.2); }
+  .carita svg { width: 100%; height: 100%; display: block; }
+  .carita.media { width: 38px; height: 38px; margin: 0; border-color: var(--c, var(--oro)); }
+  .carita.grande { width: 50px; height: 50px; margin: 0; border: 2px solid var(--c, var(--oro)); }
+  .palco { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); }
+  .palco-tit { font-weight: 800; font-size: .85rem; color: var(--suave); margin-bottom: 8px; }
+  .palco-fila { display: flex; flex-wrap: wrap; gap: 10px 8px; }
+  .palco-p { display: flex; flex-direction: column; align-items: center; width: 74px; text-align: center; font-size: .72rem; gap: 4px; }
+  .palco-n { line-height: 1.2; overflow-wrap: anywhere; }
+  .palco-papel { color: var(--suave); font-size: .66rem; }
+  .banner-fila { display: flex; gap: 10px; align-items: center; }
+  .insignia { width: 1.05em; height: 1.15em; vertical-align: -.2em; margin-left: 3px; }
   #btn-editor { display: flex; align-items: center; gap: 10px; justify-content: flex-start; }
   #btn-editor-cara { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex: none; border: 2px solid var(--oro); background: rgba(0,0,0,.2); }
   #btn-editor-cara svg { width: 100%; height: 100%; }
@@ -333,7 +347,7 @@
       <div class="casas" id="casas-entrar" data-grupo="entrar"></div>
       <p class="suave" id="ayuda-casa">Si tu casa juega, entrarás en su equipo. Si solo vienes a mirar, elige <b>Invitado</b>.</p>
       <div class="editor">
-        <button type="button" class="sec ancho" id="btn-editor" style="margin-top:0"><span id="btn-editor-cara"></span><span>✨ Personaliza tu jugador</span></button>
+        <button type="button" class="sec ancho" id="btn-editor" style="margin-top:0"><span id="btn-editor-cara"></span><span>Personaliza tu avatar</span></button>
         <div id="editor-cuerpo" class="oculto">
           <div class="editor-vista"><div id="ed-retrato"></div><div id="ed-jinete"></div></div>
           <div id="ed-opciones"></div>
@@ -439,6 +453,7 @@
   <div class="panel campo">
     <div id="campo"></div>
     <div class="leyenda" id="leyenda"></div>
+    <div class="palco oculto" id="palco"></div>
   </div>
 
   <div class="panel equipo" id="equipo-A"></div>
@@ -630,6 +645,7 @@
     }
     if (m.t === 'estado') {
       sala = m.sala;
+      for (const p of sala.participantes) if (p.capitan) p.avatar = { ...p.avatar, _capitan: 1 };
       const ahora = performance.now();
       bludgerListo = { A: ahora + sala.bludgerEsperaMs.A, B: ahora + sala.bludgerEsperaMs.B };
       posesionHasta = sala.pelota ? ahora + sala.pelota.restaMs : 0;
@@ -804,7 +820,35 @@
 
   // ---------- Pintar la sala
   const persona = (id) => sala.participantes.find((p) => p.id === id);
-  const etiqueta = (p) => `<span class="punto" style="background:${k(p.casa).c}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}${p.admin ? ' 🔑' : ''}</span>`;
+  // Insignia plateada de capitán (como la del uniforme en los libros)
+  const INSIGNIA = '<svg class="insignia" viewBox="0 0 20 22" aria-label="Capitán"><path d="M10,1 L18.5,4 L18.5,10 Q18.5,17 10,21 Q1.5,17 1.5,10 L1.5,4 Z" fill="#cfd5dc" stroke="#6b7580" stroke-width="1.4"/><path d="M10,3 L16.5,5.4 L16.5,8 Q10,6 3.5,8 L3.5,5.4 Z" fill="#fff" opacity=".55"/><text x="10" y="15.6" text-anchor="middle" font-size="10.5" font-weight="900" font-family="Georgia,serif" fill="#3a4250">C</text></svg>';
+  const marcaDe = (p) => p.capitan ? INSIGNIA : p.admin ? ' 🔑' : '';
+  const etiqueta = (p) => `<span class="punto" style="background:${k(p.casa).c}"></span><span class="${p.conectado ? '' : 'desc'}">${esc(p.nombre)}${marcaDe(p)}</span>`;
+  // Carita (retrato redondo) de cualquier participante, guardada para no redibujarla en cada actualización
+  const cacheCaras = new Map();
+  function colorDe(p) {
+    if (p.invitado === 'comentaristaA') return L('A');
+    if (p.invitado === 'comentaristaB') return L('B');
+    return p.equipo ? L(p.equipo) : k(p.casa);
+  }
+  function cara(p, uso, clase = '') {
+    const col = colorDe(p), letra = p.casa ? p.casa[0] : '★';
+    const clave = uso + JSON.stringify(p.avatar) + col.c + col.a;
+    if (!cacheCaras.has(clave)) {
+      if (cacheCaras.size > 300) cacheCaras.clear();
+      cacheCaras.set(clave, retrato(p.avatar, col.c, col.a, { marco: false, letra, uso: uso + '-' + p.id }));
+    }
+    return `<span class="carita ${clase}" style="--c:${col.c}">${cacheCaras.get(clave)}</span>`;
+  }
+  const ORDEN_PAPEL = ['comentaristaA', 'comentaristaB', 'prefecto', 'administracion'];
+  function pintarPalco() {
+    const el = $('palco');
+    const gente = sala.participantes.filter((p) => p.invitado).sort((x, y) => ORDEN_PAPEL.indexOf(x.invitado) - ORDEN_PAPEL.indexOf(y.invitado));
+    const html = gente.length ? `<div class="palco-tit">🏟️ En el palco</div><div class="palco-fila">${gente.map((p) =>
+      `<div class="palco-p">${cara(p, 'palco', 'grande')}<span class="palco-n ${p.conectado ? '' : 'desc'}">${esc(p.nombre)}${marcaDe(p)}</span><span class="palco-papel">${ICONO_PAPEL[p.invitado]} ${esc(nombrePapel(p.invitado))}</span></div>`).join('')}</div>` : '';
+    el.classList.toggle('oculto', !html);
+    if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
+  }
   const miTipo = (mi) => mi.plaza ? POSICIONES.find((x) => x[0] === mi.plaza.split('-')[1])[2] : null;
   const jugando = () => ['inicio', 'partido', 'muerte'].includes(sala.fase);
   const seg = (ms) => (ms / 1000).toFixed(2).replace('.', ',') + ' s';
@@ -841,6 +885,7 @@
       pintarFinal();
       pintarJugada(mi);
       pintarCampo(mi);
+      pintarPalco();
     }
     $('panel-comentar').classList.toggle('oculto', !(mi.invitado && mi.invitado.startsWith('comentarista')));
     $('panel-registro').classList.toggle('oculto', !sala.log);
@@ -859,9 +904,9 @@
     if (mi.plaza) {
       const eq = mi.equipo, x = L(eq);
       const nom = POSICIONES.find((p) => p[0] === mi.plaza.split('-')[1])[1];
-      return `${mini(miTipo(mi), x.c, x.a, mi.avatar)} ${nom} · ${x.emo} ${esc(N(eq))}${mi.admin ? ' · 🔑' : ''}`;
+      return `${mini(miTipo(mi), x.c, x.a, mi.avatar)} ${nom} · ${x.emo} ${esc(N(eq))}${mi.capitan ? ' · Capitán' + INSIGNIA : mi.admin ? ' · 🔑' : ''}`;
     }
-    const llave = mi.admin ? ' · 🔑' : '';
+    const llave = mi.capitan ? ' · Capitán' + INSIGNIA : mi.admin ? ' · 🔑' : '';
     if (sala.tipo === 'duelo') return `⚔️ Sala de duelos${llave}`;
     if (mi.invitado) return `${ICONO_PAPEL[mi.invitado]} ${esc(nombrePapel(mi.invitado))}${llave}`;
     if (mi.lados.length) return `${esc(mi.casa)} · elige tu posición${llave}`;
@@ -991,7 +1036,7 @@
     ['ojos', 'Color de ojos', IRIS_MUESTRA.map((c, i) => [i, c])],
     ['expresion', 'Expresión', [['seria', '😐 Seria'], ['sonrisa', '😊 Sonrisa']]],
     ['pecas', 'Pecas', [[0, 'No'], [1, 'Sí']]],
-    ['maquillaje', 'Maquillaje', [['ninguno', 'Ninguno'], ['natural', '🌸 Natural'], ['oscuro', '🖤 Oscuro'], ['glam', '✨ Glam']]],
+    ['maquillaje', 'Maquillaje', [['ninguno', 'Ninguno'], ['natural', '🌸 Natural'], ['oscuro', '🖤 Oscuro']]],
     ['accesorios', 'Accesorios (puedes elegir varios; en la cabeza, solo uno)', [['gafas', '👓 Gafas'], ['bufanda', '🧣 Bufanda'], ['aretes', '💎 Aretes'],
       ['vuelo', '🥽 Gafas de vuelo'], ['cinta', '🎽 Cinta deportiva'], ['lazo', '🎀 Moño'], ['flor', '🌺 Flor'], ['diadema', '👸 Diadema'], ['corona', '👑 Corona', 'corona'], ['campeon', '🏆 Laurel de campeón', 'campeon']], true],
     ['uniforme', 'Uniforme del retrato', [['escolar', '🎓 Escolar'], ['quidditch', '🧹 Quidditch']]],
@@ -1090,6 +1135,7 @@
     // Capa y túnica (uniforme de quidditch: color del equipo)
     s += `<path d="M-3,-4 Q-15,-2 -17,8 L-5,4 Z" fill="${c}" opacity=".75"/><path d="M-6,7 Q-8,-3 0,-6 Q7,-4 6,6 Z" fill="${c}" stroke="${a}" stroke-width="1.6"/>`;
     if (lleva(av, 'bufanda')) s += `<path d="M-3,-6 L-9.5,-2.5 L-8.4,-0.6 L-2.4,-4.2 Z" fill="${c}" stroke="${a}" stroke-width=".7"/><path d="M-3.2,-6.6 Q1,-4.6 5,-6.6 L5,-4.8 Q1,-2.8 -3.2,-4.8 Z" fill="${a}" stroke="${c}" stroke-width=".7"/>`;
+    if (av._capitan) s += '<path d="M2.6,-3.4 L4.6,-2.7 L4.6,-1.3 Q4.6,.4 2.6,1.3 Q.6,.4 .6,-1.3 L.6,-2.7 Z" fill="#dfe4ea" stroke="#4a525c" stroke-width=".45"/>';
     // Cabeza
     s += `<circle cx="1" cy="-10.5" r="4.6" fill="${piel}" stroke="${a}" stroke-width="1"/>`;
     // Pelo (encima)
@@ -1271,15 +1317,13 @@
       <path d="M66.5,78.6 Q78,75.4 94,78.2" fill="none" stroke="${peloOsc}" stroke-width="4.4" stroke-linecap="round"/>`;
     }
     // Maquillaje (solo en el retrato): sombra de ojos y, en el oscuro, delineado con colita
-    const MAQ = { natural: ['#c98a7a', .45, '#c96a6a'], oscuro: ['#2a1420', .85, '#5a1e2a'], glam: ['#d9a14a', .65, '#c2183a'] }[o.maquillaje];
+    const MAQ = { natural: ['#c98a7a', .45, '#c96a6a'], oscuro: ['#2a1420', .85, '#5a1e2a'] }[o.maquillaje];
     if (MAQ) {
       const sombraOjos = chica ? 'M67.5,86 Q80,73 94.5,83 Q81,66 67.5,86 Z' : 'M69.5,85.5 Q80,79.5 93,85.6 Q80,73 69.5,85.5 Z';
       ojo = `<path d="${sombraOjos}" fill="${MAQ[0]}" opacity="${MAQ[1]}" filter="url(#${P('suave')})"/>` + ojo;
       if (o.maquillaje === 'oscuro') ojo += `<path d="M70,85.5 L62.5,81.5" stroke="#1a0f12" stroke-width="2.2" stroke-linecap="round"/>`;
-      if (o.maquillaje === 'glam') ojo += '<circle cx="80" cy="79" r="1.1" fill="#fff6d8" opacity=".9"/><circle cx="86" cy="80.5" r=".7" fill="#fff" opacity=".9"/>';
     }
     s += ojo + `<g transform="translate(200,0) scale(-1,1)">${ojo}</g>`;
-    if (o.maquillaje === 'glam') s += `<ellipse cx="74" cy="96" rx="6" ry="3" fill="#fff" opacity=".25" filter="url(#${P('suave')})"/><ellipse cx="126" cy="96" rx="6" ry="3" fill="#fff" opacity=".25" filter="url(#${P('suave')})"/>`;
     // nariz y boca
     s += `<path d="M100,92 Q97,101 101,103" fill="none" stroke="${sombra}" stroke-width="1.6" stroke-linecap="round"/><circle cx="101.5" cy="99" r="1" fill="#fff" opacity=".6"/>`;
     const labios = MAQ ? MAQ[2] : '#d46a68';
@@ -1394,6 +1438,7 @@
     if (av.aura) fondo += '<circle cx="100" cy="82" r="78" fill="#f6dc8a" opacity=".3"/><circle cx="100" cy="82" r="60" fill="#fff6d8" opacity=".25"/>';
     o.fondoExtra = fondo;
     o.extra = extrasRetrato(av, c, a);
+    if (av._capitan) o.extra += '<g transform="translate(54,160) scale(1.15)"><path d="M10,1 L18.5,4 L18.5,10 Q18.5,17 10,21 Q1.5,17 1.5,10 L1.5,4 Z" fill="#cfd5dc" stroke="#4a525c" stroke-width="1.3"/><path d="M10,3 L16.5,5.4 L16.5,8 Q10,6 3.5,8 L3.5,5.4 Z" fill="#fff" opacity=".6"/><text x="10" y="15.6" text-anchor="middle" font-size="10.5" font-weight="900" font-family="Georgia,serif" fill="#3a4250">C</text></g>';
     return retratoBase(o, hashTexto(JSON.stringify([av, c, a, opc])));
   }
 
@@ -1787,7 +1832,7 @@
   function pintarInvitados(mi) {
     if (sala.tipo === 'duelo') {
       let h = '<h2>👥 En la sala</h2><p class="suave">Todos pueden mirar los duelos. Solo el capitán elige quién se enfrenta.</p>';
-      h += sala.participantes.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="ocupa">${etiqueta(p)}</span></div>`).join('');
+      h += sala.participantes.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="ocupa">${cara(p, 'lista')}${etiqueta(p)}</span></div>`).join('');
       if (!mi.admin) h += `<div class="aviso-fijo" style="color:var(--suave)">🔑 ¿Eres el administrador o capitán? <button class="sec peq" data-llave>Activar administración</button></div>`;
       $('panel-invitados').innerHTML = h;
       return;
@@ -1796,7 +1841,7 @@
     const ocupado = (papel) => invitados.find((p) => p.invitado === papel);
     let h = entreno() ? '<h2>👀 Invitados</h2><p class="suave">Miran el entrenamiento.</p>'
       : '<h2>👀 Invitados</h2><p class="suave">Miran el partido. Los dos comentaristas (uno por equipo) escriben lo que pasa para todos.</p>';
-    h += invitados.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="pos ancha">${ICONO_PAPEL[p.invitado]} ${esc(nombrePapel(p.invitado))}</span><span class="ocupa">${etiqueta(p)}</span></div>`).join('');
+    h += invitados.map((p) => `<div class="plaza ${p.id === yo ? 'mia' : ''}"><span class="pos ancha">${ICONO_PAPEL[p.invitado]} ${esc(nombrePapel(p.invitado))}</span><span class="ocupa">${cara(p, 'lista')}${etiqueta(p)}</span></div>`).join('');
     if (!mi.lados.length && !mi.invitado) {
       h += '<p style="margin-top:10px"><b>Elige tu papel:</b></p><div class="chips">';
       for (const papel of entreno() ? [] : ['comentaristaA', 'comentaristaB']) {
@@ -1911,7 +1956,8 @@
     const b = document.createElement('div');
     b.className = 'banner';
     b.setAttribute('style', `--c:${k(c.casa).c}`);
-    b.innerHTML = `<div class="de">🎙️ ${esc(c.nombre)}</div><div>${esc(c.texto)}</div>`;
+    const quien = sala && c.id ? persona(c.id) : null;
+    b.innerHTML = `<div class="banner-fila">${quien ? cara(quien, 'banner', 'media') : ''}<div><div class="de">🎙️ ${esc(c.nombre)}</div><div>${esc(c.texto)}</div></div></div>`;
     const quitar = () => { b.classList.add('sale'); setTimeout(() => b.remove(), 350); };
     b.addEventListener('click', quitar);
     cont.appendChild(b);

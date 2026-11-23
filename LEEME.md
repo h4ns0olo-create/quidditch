@@ -53,16 +53,20 @@ confeti; escenas en cada minijuego; podio con el jugador destacado al final; y s
   fondo). Tocarla pierde la ronda. Salen desde la 1.ª aparición de la snitch, desde la ronda 2 en los duelos y desde el
   nivel 2 en la práctica.
 
-**Personaliza tu jugador** (pasos 7 y 8): en la portada, "✨ Personaliza tu jugador". Retrato ilustrado (estilo chica
+**Personaliza tu avatar** (pasos 7 y 8): en la portada, "Personaliza tu avatar". Retrato ilustrado (estilo chica
 con ojos grandes o chico con ojos "de cazador" y mandíbula marcada), 16 peinados (9 pensados para chica y 7 para chico,
-cualquiera puede usar cualquiera), piel, color de pelo, color de ojos, expresión, pecas, maquillaje (natural, oscuro o
-glam; solo se ve en el retrato), accesorios combinables (gafas, bufanda, aretes en las dos orejas y **un** objeto de cabeza:
+cualquiera puede usar cualquiera), piel, color de pelo, color de ojos, expresión, pecas, maquillaje (natural u oscuro;
+solo se ve en el retrato), accesorios combinables (gafas, bufanda, aretes en las dos orejas y **un** objeto de cabeza:
 gafas de vuelo, cinta deportiva, moño, flor, diadema, corona o laurel de campeón), uniforme del retrato (escolar o de quidditch), escoba (clásica, veloz o antigua) y su madera, mascota
 (lechuza, gato, perro, murciélago, sapo, ratita o snitch; el gato y el perro van en la punta de la escoba, el murciélago
 vuela al lado) y aura. Se elige cada vez que entras (no se guarda). En el campo todos llevan siempre el uniforme de
 quidditch del equipo.
 **Premios** (quedan guardados en el celular): escoba dorada (nivel 15 en la práctica), corona (ganar un duelo),
 aura dorada (jugador destacado), snitch mascota (atrapar la snitch) y laurel de campeón (ganar un partido oficial).
+**Palco y capitanes**: comentaristas, prefectos (o espectadores en los entrenamientos) y administración aparecen con su
+retrato en "🏟️ En el palco", debajo del estadio, y en la lista de invitados; los comentarios salen con la carita de quien
+los escribe. Quien activa la administración con la clave de capitanes lleva una insignia plateada con una "C" junto a su
+nombre, en su retrato y en el pecho de su jugador en el campo.
 
 Todavía NO incluye: corrección del marcador por la administración.
 

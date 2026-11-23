@@ -109,7 +109,7 @@ async function main() {
     vestido.mandar({ t: 'entrar', nombre: 'Vestido', casa: 'Invitado', codigo: 'FIESTA', avatar: { accesorios: ['gafas', 'mago', 'vuelo', 'cinta', 'antifaz', 'gafas', 'bufanda'], mascota: 'murcielago', maquillaje: 'glam', fondo: 'castillo', piel: 99, truco: 'x', escoba: 'robusta' } });
     await vestido.recibir((m) => m.t === 'estado');
     const av = vestido.estado.participantes.find((p) => p.nombre === 'Vestido').avatar;
-    comprobar(av.mascota === 'murcielago' && av.maquillaje === 'glam' && !('fondo' in av) && av.piel === 0 && av.escoba === 'clasica' && !('truco' in av), 'el aspecto elegido se guarda y se ignoran valores raros (la escoba robusta ya no existe)');
+    comprobar(av.mascota === 'murcielago' && av.maquillaje === 'ninguno' && !('fondo' in av) && av.piel === 0 && av.escoba === 'clasica' && !('truco' in av), 'el aspecto elegido se guarda y se ignoran valores raros (la escoba robusta y el maquillaje glam ya no existen)');
     comprobar(JSON.stringify(av.accesorios) === JSON.stringify(['gafas', 'vuelo', 'bufanda']), 'accesorios: gafas y bufanda juntos, en la cabeza solo uno, sin antifaz ni sombrero de mago');
     vestido.mandar({ t: 'salir' });
     await vestido.recibir((m) => m.t === 'fuera');
@@ -371,6 +371,7 @@ async function main() {
     e2.mandar({ t: 'empezar', duracion: 10 });
     await e1.recibir((m) => m.t === 'estado' && m.sala.fase === 'partido', 3000);
     comprobar(e1.estado.fase === 'partido' && !!e1.estado.pelota, 'un capitán que juega activa la administración con su clave y empieza el entrenamiento');
+    comprobar(e1.estado.participantes.find((p) => p.id === e2.id).capitan === true && e1.estado.participantes.find((p) => p.id === e1.id).capitan === false, 'quien usa la clave de capitanes lleva la insignia de capitán (los demás no)');
 
     console.log('\n15b) Tamaños de entrenamiento: 3 contra 3 y 4 contra 4');
     for (const [codigo, formato, n, tiene] of [['TRES', 'e3', 3, null], ['CUATROB', 'e4b', 4, 'buscador'], ['CUATROG', 'e4g', 4, 'golpeador1']]) {

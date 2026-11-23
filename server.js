@@ -81,7 +81,7 @@ const AVATAR = {
     'atras', 'ondulado_chico', 'punta', 'rizos_cerrados', 'greñas', 'raya', 'alborotado'],
   expresion: ['seria', 'sonrisa'],
   uniforme: ['escolar', 'quidditch'],
-  maquillaje: ['ninguno', 'natural', 'oscuro', 'glam'],
+  maquillaje: ['ninguno', 'natural', 'oscuro'],
   escoba: ['clasica', 'veloz', 'antigua'],
   escobaColor: ['clara', 'oscura', 'roja', 'negra', 'dorada'],
   mascota: ['ninguna', 'lechuza', 'gato', 'perro', 'murcielago', 'sapo', 'ratita', 'snitch'],
@@ -254,7 +254,7 @@ function estadoPublico(sala, esInvitado) {
     duelo: dueloPublico(sala),
     actuando: actuando(sala),
     participantes: [...sala.participantes.values()].map((p) => ({
-      id: p.id, nombre: p.nombre, casa: p.casa, avatar: p.avatar, equipo: p.equipo, lados: p.lados, conectado: p.conectado, plaza: p.plaza, invitado: p.invitado, admin: p.admin,
+      id: p.id, nombre: p.nombre, casa: p.casa, avatar: p.avatar, equipo: p.equipo, lados: p.lados, conectado: p.conectado, plaza: p.plaza, invitado: p.invitado, admin: p.admin, capitan: !!p.capitan,
     })),
     plazas: sala.plazas,
     pelota: sala.pelota && { equipo: sala.pelota.equipo, portador: sala.pelota.portador, restaMs: Math.max(0, sala.pelota.limite - ahora) },
@@ -293,6 +293,10 @@ function difundir(sala) {
 // La contraseña de administración sirve para todo; la de capitanes, solo en entrenamientos.
 function esClaveAdmin(tipo, clave) {
   return clave === ADMIN_PASSWORD || (tipo !== 'oficial' && !!CAPITAN_PASSWORD && clave === CAPITAN_PASSWORD);
+}
+// Quien entra con la clave de capitanes (y no con la de administración) lleva la insignia plateada de capitán.
+function esClaveCapitan(clave) {
+  return !!CAPITAN_PASSWORD && clave === CAPITAN_PASSWORD && clave !== ADMIN_PASSWORD;
 }
 
 function crearSala(ws, m) {
@@ -467,6 +471,7 @@ function serInvitado(ws, m) {
   }
   if (papel === 'administracion') {
     if (!p.admin && !esClaveAdmin(sala.tipo, m.clave)) return error(ws, 'Contraseña incorrecta.', 'clave_mala');
+    if (!p.admin && esClaveCapitan(m.clave)) p.capitan = true;
     p.admin = true;
   }
   p.invitado = papel;
@@ -484,7 +489,8 @@ function adminLogin(ws, m) {
       ? 'La clave de capitanes solo sirve en los entrenamientos.' : 'Contraseña incorrecta.', 'clave_mala');
   }
   p.admin = true;
-  registrar(sala, `🔑 ${p.nombre} ahora también administra la sala.`);
+  p.capitan = esClaveCapitan(m.clave);
+  registrar(sala, p.capitan ? `🛡️ ${p.nombre} es capitán y ahora también administra la sala.` : `🔑 ${p.nombre} ahora también administra la sala.`);
   difundir(sala);
 }
 
@@ -1333,7 +1339,7 @@ function comentar(ws, m) {
   if (Date.now() - p.ultimoComentario < 1500) return error(ws, 'Espera un segundo antes del siguiente comentario.');
   p.ultimoComentario = Date.now();
   const equipo = p.invitado === 'comentaristaA' ? 'A' : 'B';
-  const c = { h: Date.now(), nombre: p.nombre, casa: sala.equipos[equipo], texto };
+  const c = { h: Date.now(), id: p.id, nombre: p.nombre, casa: sala.equipos[equipo], texto };
   sala.comentarios.push(c);
   if (sala.comentarios.length > 200) sala.comentarios.shift();
   const msg = JSON.stringify({ t: 'comentario', ...c });
