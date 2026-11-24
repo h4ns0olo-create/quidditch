@@ -217,6 +217,7 @@
     background: #fff; border-radius: 4px; box-shadow: 0 0 12px #fff; will-change: transform; }
   .vis-svg { width: 100%; max-width: 300px; margin: 0 auto; display: block; }
   #btn-tap { font-family: var(--titulo); font-size: 1.7rem; font-weight: 900; padding: 26px; border-radius: 20px; }
+  #btn-tap.espera { opacity: .55; }
   #btn-tap.enviado { background: rgba(255,255,255,.12); color: var(--texto); box-shadow: none; }
   .cuenta { color: var(--suave); font-size: 1.05rem; }
   .cuenta.urgente { color: var(--rojo); font-weight: 800; }
@@ -2252,7 +2253,7 @@
   const AYUDAS = {
     pase: 'Toca cuando la marca blanca esté en la zona verde.',
     tiro: '¡Rápido! Toca en la zona verde antes de que el guardián ataje.',
-    atajar: '¡Rápido! Toca cuando la aguja esté en la zona verde, antes de que el cazador lance.',
+    atajar: '¡Rápido! Toca cuando la quaffle esté en la zona verde, antes de que el cazador lance.',
     bateo: 'Toca cuando el círculo naranja encaje en el círculo punteado.',
     repeler: '¡Rápido! Toca cuando el círculo naranja encaje en el punteado.',
   };
@@ -2343,6 +2344,23 @@
   function animar(este) {
     if (!reto || reto !== este) return;
     const ms = performance.now() - reto.t0;
+    // Cuenta atrás (tiro contra guardián): la quaffle espera quieta al principio y nadie puede tocar todavía.
+    if (ms < 0) {
+      reto.dibujar(0);
+      const btn = $('btn-tap');
+      btn.textContent = `${Math.ceil(-ms / 500)}`;
+      btn.classList.add('espera');
+      $('reto-cuenta').textContent = '¡Prepárate! Empieza a la vez para los dos';
+      $('reto-cuenta').classList.remove('urgente');
+      reto.enCuenta = true;
+      return requestAnimationFrame(() => animar(este));
+    }
+    if (reto.enCuenta) {
+      reto.enCuenta = false;
+      $('btn-tap').textContent = reto.boton;
+      $('btn-tap').classList.remove('espera');
+      if (navigator.vibrate) try { navigator.vibrate(60); } catch {}
+    }
     if (!reto.enviado) {
       const f = (ms % reto.periodo) / reto.periodo;
       reto.dibujar(f < 0.5 ? f * 2 : 2 - f * 2);
@@ -2365,6 +2383,7 @@
   function tocar(e) {
     e.preventDefault();
     if (!reto || reto.enviado || reto.resultado) return;
+    if (!reto.duelo && performance.now() - reto.t0 < 0) return;   // durante la cuenta atrás no cuenta
     reto.enviado = true;
     // Cuenta la posición que el jugador estaba VIENDO al tocar (el último dibujo), no la del instante en que el
     // celular procesa el toque: si el celular va lento, ese instante llega tarde y la marca ya se movió.
@@ -2553,7 +2572,7 @@
   let practica = null;
   const PRACTICAS = {
     cazador: { clase: 'tiro', visual: 'barra', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡LANZAR!', nombre: 'Cazador', ayuda: 'Por rapidez: acierta en lo verde lo antes posible.' },
-    guardian: { clase: 'atajar', visual: 'aguja', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡ATAJAR!', nombre: 'Guardián', ayuda: 'Ataja con la aguja en lo verde.' },
+    guardian: { clase: 'atajar', visual: 'barra', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡ATAJAR!', nombre: 'Guardián', ayuda: 'Ataja cuando la quaffle esté en lo verde.' },
     golpeador: { clase: 'bateo', visual: 'circulo', ancho: 0.2, periodo: 1900, limite: 6000, boton: '¡BATEAR!', nombre: 'Golpeador', ayuda: 'Toca cuando el círculo encaje en el punteado.' },
     buscador: { nombre: 'Buscador', ayuda: 'Toca en cuanto aparezca la snitch. ¡Ojo con la polilla dorada!' },
   };

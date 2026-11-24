@@ -26,6 +26,7 @@ const PUNTOS_GOL = 10;
 const PUNTOS_SNITCH = 150;
 const DURACIONES = [10, 15, 20];        // minutos de partido que puede elegir el administrador
 const MOMENTOS_SNITCH = [0.5];          // la snitch empieza a aparecer a la mitad del partido (20 min: desde el minuto 10)
+const PREPARACION_MS = 1500;           // tiro: cuenta atrás 3-2-1 igual para cazador y guardián antes de que se mueva la quaffle
 const VENTANA_RED_MS = 1000;            // en duelos (tiro, snitch), cuánto esperamos el toque del otro por si viene con retraso
 const MAX_COMENTARIO = 140;
 
@@ -37,11 +38,12 @@ const AJUSTES = {
 };
 // Cada reto es un minijuego de precisión: una marca va y vuelve y hay que tocar dentro de la zona.
 // Lo que cambia es el dibujo: barra (cazadores), aguja (guardián) y círculo (golpeadores).
-// Tiro y atajada tienen la MISMA velocidad y zona, para que gane el más rápido.
+// Tiro y atajada son el MISMO minijuego (barra, misma velocidad y zona) y empiezan a la vez tras una cuenta atrás,
+// para que gane el más rápido y no quien ya sabía que iba a tirar.
 const RETOS = {
   pase:    { visual: 'barra',   ancho: 0.14, periodo: 1600, limite: 6000, boton: '¡PASAR!' },
   tiro:    { visual: 'barra',   ancho: 0.14, periodo: 1500, limite: 6000, boton: '¡LANZAR!' },
-  atajar:  { visual: 'aguja',   ancho: 0.14, periodo: 1500, limite: 6000, boton: '¡ATAJAR!' },
+  atajar:  { visual: 'barra',   ancho: 0.14, periodo: 1500, limite: 6000, boton: '¡ATAJAR!' },
   bateo:   { visual: 'circulo', ancho: 0.18, periodo: 1900, limite: 6000, boton: '¡BATEAR!' },
   repeler: { visual: 'circulo', ancho: 0.22, periodo: 1400, limite: 3000, boton: '¡REPELER!' },
 };
@@ -672,13 +674,13 @@ function ajustar(cfg, f) {
   return { ...cfg, ancho: cfg.ancho * (1 - menos * f), periodo: Math.round(cfg.periodo / (1 + mas * f)) };
 }
 
-function lanzarReto(sala, a, pid, clase, titulo, centroFijo, fFijo) {
+function lanzarReto(sala, a, pid, clase, titulo, centroFijo, fFijo, prepMs = 0) {
   const cfg = ajustar(RETOS[clase], fFijo !== undefined ? fFijo : dificultad(sala));
   const centro = centroFijo !== undefined ? centroFijo : CENTROS[sala.contadorRetos++ % CENTROS.length];
   const r = {
     id: hex(4), pid, clase, titulo, ...cfg,
     zonaIni: centro - cfg.ancho / 2, zonaFin: centro + cfg.ancho / 2,
-    inicio: Date.now(), precision: undefined, ms: null, motivo: '',
+    inicio: Date.now() + prepMs, precision: undefined, ms: null, motivo: '',   // con cuenta atrás, empieza en el futuro
   };
   a.retos.set(r.id, r);
   enviarReto(sala, r);
@@ -865,9 +867,10 @@ function tirar(ws) {
   // Misma zona y velocidad para los dos: gana quien acierte primero.
   const centro = CENTROS[sala.contadorRetos++ % CENTROS.length];
   const f = dificultad(sala); // la misma dificultad para los dos
-  lanzarReto(sala, a, p.id, 'tiro', '¡Lanza a la meta!', centro, f);
-  if (guardian) lanzarReto(sala, a, guardian, 'atajar', `¡${p.nombre} lanza! Ataja el tiro`, centro, f);
-  programarFin(sala, a, RETOS.tiro.limite);
+  const prep = guardian ? PREPARACION_MS : 0;   // sin guardián no hace falta esperar a nadie
+  lanzarReto(sala, a, p.id, 'tiro', '¡Lanza a la meta!', centro, f, prep);
+  if (guardian) lanzarReto(sala, a, guardian, 'atajar', `¡${p.nombre} lanza! Ataja el tiro`, centro, f, prep);
+  programarFin(sala, a, RETOS.tiro.limite + prep);
   registrar(sala, a.texto);
   difundir(sala);
 }

@@ -252,7 +252,8 @@ async function main() {
     await pase('centro');
     comprobar(obs.estado.pasesBuenos === 2, 'segundo pase bueno: ya se puede lanzar');
     let t = await tiro('centro', 'tarde');
-    comprobar(t.rt.visual === 'barra' && t.rg.visual === 'aguja', 'cazador con barra y guardián con aguja');
+    comprobar(t.rt.visual === 'barra' && t.rg.visual === 'barra', 'cazador y guardián juegan el mismo minijuego (la barra)');
+    comprobar(t.rt.desde < -1000 && t.rg.desde < -1000 && Math.abs(t.rt.desde - t.rg.desde) < 100, `los dos esperan la misma cuenta atrás antes de empezar (${-t.rt.desde} ms)`);
     comprobar(t.rt.zonaIni === t.rg.zonaIni && t.rt.periodo === t.rg.periodo, 'los dos tienen la misma zona y velocidad (justo)');
     comprobar(obs.estado.marcador[t.equipo] === 10 && log('GOOOL'), 'el cazador acierta ANTES que el guardián: ¡gol!');
     comprobar(pel().equipo !== t.equipo, 'tras el gol, la quaffle pasa al otro equipo');
@@ -263,7 +264,7 @@ async function main() {
     await pase('centro'); await pase('centro');
     const antes = { ...obs.estado.marcador };
     t = await tiro('centro', 'nada');
-    comprobar(obs.estado.marcador[t.equipo] === antes[t.equipo] + 10 && t.dur < 3500, `si el guardián no reacciona, es gol sin esperar los 6 s (${(t.dur / 1000).toFixed(1)} s)`);
+    comprobar(obs.estado.marcador[t.equipo] === antes[t.equipo] + 10 && t.dur < 4500, `si el guardián no reacciona, es gol sin esperar los 6 s (${(t.dur / 1000).toFixed(1)} s)`);
 
     console.log('\n9) Pérdidas de la quaffle');
     let eq0 = pel().equipo;

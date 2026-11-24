@@ -13,7 +13,8 @@ Cómo funciona (paso 3):
 - **Reloj** visible para todos. Desde la mitad del partido (en 20 min: desde el minuto 10) la snitch aparece de vez en cuando.
 - **Quaffle** (cazadores, barra): 10 s para pasar o lanzar o se pierde. 2 pases buenos para lanzar (con 1 solo
   cazador, tiro directo). Al perderla (pase fallido, gol, atajada, bludger o tardar) pasa al otro equipo.
-- **Tiro:** cazador (barra) contra guardián (aguja), misma zona y velocidad. Gana quien acierta primero:
+- **Tiro:** cazador contra guardián con el **mismo minijuego** (la barra con la quaffle), misma zona y velocidad, y
+  una cuenta atrás 3-2-1 de 1,5 s para que los dos empiecen a la vez. Gana quien acierta primero:
   si el guardián ataja antes de que el cazador lance, es atajada; si el cazador lanza antes, es gol (10 puntos).
 - **Bludgers** (golpeadores, círculo): una cada 20 s por equipo contra quien lleva la quaffle; los golpeadores
   rivales tienen 3 s para repelerla.
