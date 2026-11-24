@@ -935,7 +935,6 @@ function pintarMia(propia, error) {
     cont.append(el('button', { class: 'btn', type: 'button', onclick: () => $('tArchivo').click() }, '📷 Sacar o elegir foto'));
   }
   if (error) cont.append(el('p', { class: 'error' }, error));
-  cont.append(el('p', { class: 'suave' }, 'Sube solo la foto de tu tarea: sin caras ni datos personales. Al acabar el tiempo se borra todo.'));
 }
 
 function cargarImagen(archivo) {

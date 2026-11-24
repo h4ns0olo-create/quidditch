@@ -272,7 +272,12 @@ async function main() {
     comprobar((await post('/api/profe/estado', {}, s1)).tablon === null, 'el profesor ya no tiene tablón');
     comprobar((await (await fetch(URL + '/salud')).json()).fotosKB === 0, 'la memoria de fotos vuelve a 0');
     comprobar(!!(await post('/api/alumno/entrar', { codigo: t1.codigo, nombre: 'Tarde', casa: 'Ravenclaw' })).error, 'ya no se puede entrar a ese tablón');
-    const t2 = await post('/api/profe/tablon-abrir', { minutos: 30 }, s1);
+    const t20 = await post('/api/profe/tablon-abrir', { minutos: 20 }, s1);
+    comprobar((await post('/api/profe/estado', {}, s1)).tablon.minutos === 20 && !(await post('/api/profe/estado', {}, s1)).tablon.puedeAlargar, 'un tablón de 20 minutos no se puede alargar');
+    comprobar(/20 minutos/.test((await post('/api/profe/tablon-alargar', {}, s1)).error || ''), 'nunca dura más de 20 minutos');
+    await post('/api/profe/tablon-abrir', { minutos: 30 }, s1);
+    comprobar((await post('/api/profe/estado', {}, s1)).tablon.minutos === 10, 'si piden 30 minutos queda en 10 (lo normal)');
+    const t2 = await post('/api/profe/tablon-abrir', { minutos: 20 }, s1);
     const t3 = await post('/api/profe/tablon-abrir', { minutos: 15 }, s1);
     comprobar(!tablonExiste(await post('/api/alumno/entrar', { codigo: t2.codigo, nombre: 'X', casa: 'Ravenclaw' })) && !!t3.codigo, 'abrir un tablón nuevo reemplaza al anterior');
     comprobar((await post('/api/profe/tablon-cerrar', {}, s1)).ok && (await post('/api/profe/estado', {}, s1)).tablon === null, 'el profesor puede cerrarlo y borrarlo antes');

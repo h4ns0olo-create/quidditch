@@ -31,9 +31,9 @@ const BORRAR_TRAS_PUBLICAR_MS = entero(process.env.BORRAR_TRAS_PUBLICAR_MS, 30 *
 const BORRAR_SIN_PUBLICAR_MS = entero(process.env.BORRAR_SIN_PUBLICAR_MS, 3 * 60 * 60 * 1000, 1000, 864e5);
 const SESION_PROFE_MS = 12 * 60 * 60 * 1000;
 // Tablón de tareas (fotos cuadradas que suben los alumnos; se borra todo al acabar el tiempo)
-const TABLON_MINUTOS = [10, 15, 20, 30];                                        // duraciones que elige el profesor
+const TABLON_MINUTOS = [10, 15, 20];                                            // duraciones que elige el profesor (10 por defecto)
 const TABLON_ALARGAR_MIN = 5;                                                   // botón "+5 minutos"
-const TABLON_MAX_MIN = 60;                                                      // nunca más de 1 hora en total
+const TABLON_MAX_MIN = 20;                                                      // nunca más de 20 minutos en total (no es un archivo)
 const MINUTO_TABLON_MS = entero(process.env.MINUTO_TABLON_MS, 60000, 50, 60000); // (las pruebas lo acortan)
 const MAX_FOTO_BYTES = 450 * 1024;                                              // cada foto (el celular la deja en ~150 KB)
 const MAX_FOTOS_BYTES = entero(process.env.MAX_FOTOS_MB, 200, 1, 2000) * 1024 * 1024; // todas las fotos juntas en memoria

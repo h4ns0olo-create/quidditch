@@ -32,8 +32,9 @@ vive en esta carpeta `quiz/` y en Render es otro servicio, con su propia direcci
 
 ### Tablón de tareas
 Pestaña **"Tablón de tareas"** en el panel del profesor (va aparte del quiz; pueden estar los dos abiertos).
-- El profesor elige cuánto dura (**10, 15, 20 o 30 minutos**) y toca "Abrir tablón y crear código". Puede tocar
-  **"+5 minutos"** si hace falta más tiempo (máximo 1 hora en total) o **"Cerrar y borrar"** para terminar antes.
+- El profesor elige cuánto dura (**10 minutos por defecto, 15 o 20 como máximo**) y toca "Abrir tablón y crear código".
+  Puede abrirlo cuando quiera, por ejemplo después de la clase para que suban la tarea. Puede tocar **"+5 minutos"**
+  si hace falta más tiempo (nunca más de 20 minutos en total) o **"Cerrar y borrar"** para terminar antes.
 - Los alumnos entran con el mismo formulario (código, nombre y apellido, casa) y suben **una foto** de su tarea.
   El celular la deja **cuadrada** ("Foto entera" con bordes de papel, o "Llenar el cuadrado" recortando al centro)
   y la comprime (~150 KB). Pueden cambiarla o quitarla mientras el tablón siga abierto.
