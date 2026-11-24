@@ -30,6 +30,13 @@ const MAX_TEXTO = 300;                // largo máximo de una pregunta o alterna
 const BORRAR_TRAS_PUBLICAR_MS = entero(process.env.BORRAR_TRAS_PUBLICAR_MS, 30 * 60 * 1000, 1000, 864e5);
 const BORRAR_SIN_PUBLICAR_MS = entero(process.env.BORRAR_SIN_PUBLICAR_MS, 3 * 60 * 60 * 1000, 1000, 864e5);
 const SESION_PROFE_MS = 12 * 60 * 60 * 1000;
+// Tablón de tareas (fotos cuadradas que suben los alumnos; se borra todo al acabar el tiempo)
+const TABLON_MINUTOS = [10, 15, 20, 30];                                        // duraciones que elige el profesor
+const TABLON_ALARGAR_MIN = 5;                                                   // botón "+5 minutos"
+const TABLON_MAX_MIN = 60;                                                      // nunca más de 1 hora en total
+const MINUTO_TABLON_MS = entero(process.env.MINUTO_TABLON_MS, 60000, 50, 60000); // (las pruebas lo acortan)
+const MAX_FOTO_BYTES = 450 * 1024;                                              // cada foto (el celular la deja en ~150 KB)
+const MAX_FOTOS_BYTES = entero(process.env.MAX_FOTOS_MB, 200, 1, 2000) * 1024 * 1024; // todas las fotos juntas en memoria
 
 const CASAS = ['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherin'];
 const CURSOS = [
@@ -104,7 +111,10 @@ console.log(`Cursos con contraseña: ${CLAVES.porCurso.size} de ${CURSOS.length}
 const quizzes = new Map();        // código -> quiz
 const quizDeCurso = new Map();    // número de curso -> código del quiz activo
 const sesiones = new Map();       // token de profesor -> { curso, creada }
-const alumnos = new Map();        // token de alumno -> { codigo, id }
+const alumnos = new Map();        // token de alumno -> { codigo, id, tipo: 'quiz' | 'tablon' }
+const tablones = new Map();       // código -> tablón de tareas
+const tablonDeCurso = new Map();  // número de curso -> código del tablón activo
+let bytesFotos = 0;               // memoria que ocupan ahora todas las fotos
 const fallosLogin = new Map();    // ip -> { n, desde }
 let ultimoIntento = 0;            // número único de cada intento (en todo el servidor)
 
@@ -115,7 +125,7 @@ function nuevoCodigo() {
   for (;;) {
     let c = '';
     for (let i = 0; i < 4; i++) c += LETRAS_CODIGO[crypto.randomInt(LETRAS_CODIGO.length)];
-    if (!quizzes.has(c)) return c;
+    if (!quizzes.has(c) && !tablones.has(c)) return c;
   }
 }
 
@@ -220,16 +230,30 @@ function validarPreguntas(lista) {
 }
 
 // ---------------------------------------------------------------- API de alumnos
-function alumnoEntrar(d) {
-  const codigo = String(d.codigo || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const q = quizzes.get(codigo);
-  if (!q) return { error: 'No existe ningún quiz con ese código. Revisa que esté bien escrito.' };
-  if (q.estado !== 'abierto') return { error: 'Este quiz ya está cerrado.' };
+// Nombre y casa: lo mismo para quizzes y tablones.
+function validarAlumno(d) {
   const nombre = String(d.nombre || '').replace(/\s+/g, ' ').trim();
   if (!nombre) return { error: 'Escribe tu nombre y apellido.' };
   if (nombre.length > MAX_NOMBRE) return { error: `El nombre es demasiado largo (máximo ${MAX_NOMBRE} letras).` };
   if (!CASAS.includes(d.casa)) return { error: 'Elige tu casa.' };
-  const norm = normalizar(nombre);
+  return { nombre, norm: normalizar(nombre), casa: d.casa };
+}
+function lleno(lista, casa) {
+  if (lista.length >= MAX_ALUMNOS) return `Ya hay ${MAX_ALUMNOS} participantes, el máximo.`;
+  if (lista.filter((x) => x.casa === casa).length >= MAX_POR_CASA) return `${casa} ya tiene ${MAX_POR_CASA} participantes, el máximo por casa.`;
+  return '';
+}
+
+function alumnoEntrar(d) {
+  const codigo = String(d.codigo || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const t = tablonVivo(codigo);
+  if (t) return tablonEntrar(t, d);
+  const q = quizzes.get(codigo);
+  if (!q) return { error: 'No existe ningún quiz ni tablón con ese código. Revisa que esté bien escrito.' };
+  if (q.estado !== 'abierto') return { error: 'Este quiz ya está cerrado.' };
+  const v = validarAlumno(d);
+  if (v.error) return v;
+  const { nombre, norm } = v;
   if (q.nombres.has(norm)) return { error: 'Ese nombre ya respondió este quiz. Si es un error, pídele al profesor que borre ese intento.' };
   if (q.intentos.size >= MAX_ALUMNOS) return { error: `El quiz está lleno (máximo ${MAX_ALUMNOS} participantes).` };
   let enCasa = 0;
@@ -249,19 +273,21 @@ function alumnoEntrar(d) {
   };
   q.intentos.set(it.id, it);
   q.nombres.set(norm, it.id);
-  alumnos.set(it.token, { codigo, id: it.id });
-  return { token: it.token, codigo };
+  alumnos.set(it.token, { codigo, id: it.id, tipo: 'quiz' });
+  return { token: it.token, codigo, tipo: 'quiz' };
 }
 
 function buscarAlumno(t) {
   const ref = alumnos.get(String(t || ''));
-  if (!ref) return {};
+  if (!ref || ref.tipo !== 'quiz') return {};
   const q = quizzes.get(ref.codigo);
   const it = q && q.intentos.get(ref.id);
   return it ? { q, it } : {};
 }
 
 function alumnoEstado(d) {
+  const ref = alumnos.get(String(d.token || ''));
+  if (ref && ref.tipo === 'tablon') return tablonEstadoAlumno(d.token);
   const { q, it } = buscarAlumno(d.token);
   if (!q) return { fase: 'no-existe' };
   const base = { curso: CURSOS[q.curso - 1], numCurso: q.curso, codigo: q.codigo, nombre: it.nombre, casa: it.casa };
@@ -323,7 +349,8 @@ function profeEntrar(d, req) {
 function profeEstado(curso) {
   const q = quizzes.get(quizDeCurso.get(curso));
   const r = { curso: CURSOS[curso - 1], numCurso: curso, minPreguntas: MIN_PREGUNTAS, maxPreguntas: MAX_PREGUNTAS, segundosMin: SEGUNDOS_MIN,
-    segundosMax: SEGUNDOS_MAX, segundosPorDefecto: SEGUNDOS_POR_DEFECTO, quiz: null };
+    segundosMax: SEGUNDOS_MAX, segundosPorDefecto: SEGUNDOS_POR_DEFECTO, quiz: null,
+    tablonMinutos: TABLON_MINUTOS, tablonAlargar: TABLON_ALARGAR_MIN, tablon: tablonParaProfe(curso) };
   if (!q) return r;
   const ahora = Date.now();
   const participantes = [...q.intentos.values()].map((it) => {
@@ -401,6 +428,158 @@ function profeBorrarQuiz(curso) {
   return { ok: true };
 }
 
+// ---------------------------------------------------------------- Tablón de tareas
+// Cada curso puede tener un tablón activo (aparte de su quiz). Los alumnos suben UNA foto cuadrada de su tarea;
+// todos ven el tablón; el profesor puede quitar fotos. Al acabar el tiempo se borra todo (fotos incluidas).
+function borrarTablon(codigo) {
+  const t = tablones.get(codigo);
+  if (!t) return;
+  for (const p of t.participantes.values()) {
+    if (p.foto) bytesFotos -= p.foto.length;
+    alumnos.delete(p.token);
+  }
+  tablones.delete(codigo);
+  if (tablonDeCurso.get(t.curso) === codigo) tablonDeCurso.delete(t.curso);
+}
+function tablonVivo(codigo) {
+  const t = tablones.get(codigo);
+  if (!t) return null;
+  if (Date.now() >= t.expira) { borrarTablon(codigo); return null; }
+  return t;
+}
+setInterval(() => { for (const c of [...tablones.keys()]) tablonVivo(c); },
+  Math.max(200, Math.min(15000, MINUTO_TABLON_MS / 2))).unref();
+
+function tablonEntrar(t, d) {
+  const v = validarAlumno(d);
+  if (v.error) return v;
+  if (t.nombres.has(v.norm)) return { error: 'Ese nombre ya está en el tablón. Si es un error, pídele al profesor que lo quite.' };
+  const motivo = lleno([...t.participantes.values()], v.casa);
+  if (motivo) return { error: motivo };
+  const p = { id: ++ultimoIntento, token: token(), nombre: v.nombre, norm: v.norm, casa: v.casa, foto: null, fotoId: null, subida: null };
+  t.participantes.set(p.id, p);
+  t.nombres.set(p.norm, p.id);
+  alumnos.set(p.token, { codigo: t.codigo, id: p.id, tipo: 'tablon' });
+  return { token: p.token, codigo: t.codigo, tipo: 'tablon' };
+}
+
+function buscarEnTablon(tk) {
+  const ref = alumnos.get(String(tk || ''));
+  if (!ref || ref.tipo !== 'tablon') return {};
+  const t = tablonVivo(ref.codigo);
+  const p = t && t.participantes.get(ref.id);
+  return p ? { t, p } : {};
+}
+
+const urlFoto = (t, p) => `/foto/${t.codigo}/${p.fotoId}`;
+// Las fotos, en el orden en que se subieron por primera vez (como se van clavando en el corcho).
+function fotosDe(t, conId) {
+  return [...t.participantes.values()].filter((p) => p.foto).sort((a, b) => a.subida - b.subida)
+    .map((p) => ({ id: p.id, nombre: p.nombre, casa: p.casa, url: urlFoto(t, p), ...(conId === p.id ? { propia: true } : {}) }));
+}
+
+function tablonEstadoAlumno(tk) {
+  const { t, p } = buscarEnTablon(tk);
+  if (!t) return { fase: 'no-existe' };
+  return {
+    fase: 'tablon', tipo: 'tablon', curso: CURSOS[t.curso - 1], numCurso: t.curso, codigo: t.codigo,
+    nombre: p.nombre, casa: p.casa, restanteMs: Math.max(0, t.expira - Date.now()),
+    propia: p.foto ? urlFoto(t, p) : null,
+    fotos: fotosDe(t, p.id), participantes: t.participantes.size,
+  };
+}
+
+// Recibe la foto ya hecha cuadrada y comprimida por el celular (JPEG en base64).
+function tablonSubir(d) {
+  if (d.demasiado) return { error: 'La foto es demasiado grande.' };
+  const { t, p } = buscarEnTablon(d.token);
+  if (!t) return { error: 'El tablón ya se cerró.' };
+  const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(d.imagen || ''));
+  if (!m) return { error: 'No se pudo leer la foto. Prueba con otra.' };
+  const buf = Buffer.from(m[1], 'base64');
+  if (buf.length < 100 || buf[0] !== 0xff || buf[1] !== 0xd8 || buf[2] !== 0xff) return { error: 'Eso no parece una foto. Prueba con otra.' };
+  if (buf.length > MAX_FOTO_BYTES) return { error: 'La foto es demasiado grande.' };
+  const antes = p.foto ? p.foto.length : 0;
+  if (bytesFotos - antes + buf.length > MAX_FOTOS_BYTES) return { error: 'Ahora mismo hay demasiadas fotos en los tablones. Prueba en unos minutos.' };
+  bytesFotos += buf.length - antes;
+  p.foto = buf;
+  p.fotoId = token();                 // dirección nueva en cada cambio: así nadie ve la foto vieja guardada
+  if (!p.subida) p.subida = Date.now();
+  return { ok: true, url: urlFoto(t, p) };
+}
+
+function tablonQuitar(d) {
+  const { t, p } = buscarEnTablon(d.token);
+  if (!t) return { error: 'El tablón ya se cerró.' };
+  if (p.foto) bytesFotos -= p.foto.length;
+  p.foto = null; p.fotoId = null; p.subida = null;
+  return { ok: true };
+}
+
+function verFoto(codigo, fotoId) {
+  const t = tablonVivo(codigo);
+  if (!t || !fotoId) return null;
+  for (const p of t.participantes.values()) if (p.fotoId === fotoId && p.foto) return p.foto;
+  return null;
+}
+
+function tablonDelProfe(curso) {
+  const c = tablonDeCurso.get(curso);
+  return c ? tablonVivo(c) : null;
+}
+
+function tablonParaProfe(curso) {
+  const t = tablonDelProfe(curso);
+  if (!t) return null;
+  const lista = [...t.participantes.values()];
+  return {
+    codigo: t.codigo, minutos: t.minutos, restanteMs: Math.max(0, t.expira - Date.now()),
+    puedeAlargar: t.expira + TABLON_ALARGAR_MIN * MINUTO_TABLON_MS <= t.creado + TABLON_MAX_MIN * MINUTO_TABLON_MS,
+    fotos: fotosDe(t),
+    sinFoto: lista.filter((p) => !p.foto).map((p) => ({ id: p.id, nombre: p.nombre, casa: p.casa })),
+    participantes: lista.length, maxAlumnos: MAX_ALUMNOS,
+  };
+}
+
+function profeTablonAbrir(curso, d) {
+  const minutos = TABLON_MINUTOS.includes(Number(d.minutos)) ? Number(d.minutos) : TABLON_MINUTOS[0];
+  const anterior = tablonDeCurso.get(curso);
+  if (anterior) borrarTablon(anterior);               // un solo tablón por curso: el nuevo reemplaza al viejo
+  const ahora = Date.now();
+  const t = { codigo: nuevoCodigo(), curso, minutos, creado: ahora, expira: ahora + minutos * MINUTO_TABLON_MS,
+    participantes: new Map(), nombres: new Map() };
+  tablones.set(t.codigo, t);
+  tablonDeCurso.set(curso, t.codigo);
+  return { ok: true, codigo: t.codigo };
+}
+
+function profeTablonAlargar(curso) {
+  const t = tablonDelProfe(curso);
+  if (!t) return { error: 'No hay ningún tablón abierto.' };
+  const nueva = t.expira + TABLON_ALARGAR_MIN * MINUTO_TABLON_MS;
+  if (nueva > t.creado + TABLON_MAX_MIN * MINUTO_TABLON_MS) return { error: `El tablón no puede durar más de ${TABLON_MAX_MIN} minutos.` };
+  t.expira = nueva;
+  return { ok: true };
+}
+
+function profeTablonQuitar(curso, d) {
+  const t = tablonDelProfe(curso);
+  if (!t) return { error: 'No hay ningún tablón abierto.' };
+  const p = t.participantes.get(Number(d.id));
+  if (!p) return { error: 'Ya no está en el tablón.' };
+  if (p.foto) bytesFotos -= p.foto.length;
+  t.participantes.delete(p.id);
+  t.nombres.delete(p.norm);
+  alumnos.delete(p.token);
+  return { ok: true };
+}
+
+function profeTablonCerrar(curso) {
+  const c = tablonDeCurso.get(curso);
+  if (c) borrarTablon(c);
+  return { ok: true };
+}
+
 // ---------------------------------------------------------------- Servidor HTTP
 const PAGINA = path.join(__dirname, 'public', 'index.html');
 // Archivos fijos que usa la página: los dibujitos y las tipografías (guardadas aquí, sin depender de nadie).
@@ -415,14 +594,18 @@ function responder(res, codigo, datos) {
   res.end(cuerpo);
 }
 
-function leerCuerpo(req) {
+// Lee el JSON que manda la página. Si es más grande que el límite, no lo guarda y avisa con { demasiado: true }.
+function leerCuerpo(req, limite) {
   return new Promise((ok) => {
     let datos = '';
+    let demasiado = false;
     req.on('data', (c) => {
+      if (demasiado) return;
       datos += c;
-      if (datos.length > 200000) { datos = ''; req.destroy(); }
+      if (datos.length > limite) { demasiado = true; datos = ''; }
     });
     req.on('end', () => {
+      if (demasiado) return ok({ demasiado: true });
       try { ok(JSON.parse(datos || '{}')); } catch { ok({}); }
     });
     req.on('error', () => ok({}));
@@ -433,6 +616,8 @@ const RUTAS_ALUMNO = {
   '/api/alumno/entrar': alumnoEntrar,
   '/api/alumno/estado': alumnoEstado,
   '/api/alumno/responder': alumnoResponder,
+  '/api/tablon/subir': tablonSubir,
+  '/api/tablon/quitar': tablonQuitar,
 };
 const RUTAS_PROFE = {
   '/api/profe/estado': (curso) => profeEstado(curso),
@@ -441,6 +626,10 @@ const RUTAS_PROFE = {
   '/api/profe/ajustes': profeAjustes,
   '/api/profe/borrar-intento': profeBorrarIntento,
   '/api/profe/borrar-quiz': profeBorrarQuiz,
+  '/api/profe/tablon-abrir': profeTablonAbrir,
+  '/api/profe/tablon-alargar': profeTablonAlargar,
+  '/api/profe/tablon-quitar': profeTablonQuitar,
+  '/api/profe/tablon-cerrar': profeTablonCerrar,
 };
 
 const server = http.createServer(async (req, res) => {
@@ -457,11 +646,19 @@ const server = http.createServer(async (req, res) => {
       fs.createReadStream(path.join(__dirname, 'public', archivo)).pipe(res);
       return;
     }
+    if (req.method === 'GET' && url.startsWith('/foto/')) {
+      const [, , codigo, fotoId] = url.split('/');
+      const foto = verFoto(codigo, fotoId);
+      if (!foto) return responder(res, 404, { error: 'Esta foto ya no existe' });
+      res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Content-Length': foto.length, 'Cache-Control': 'private, max-age=3600' });
+      return res.end(foto);
+    }
     if (url === '/salud') {
-      return responder(res, 200, { ok: true, cursosConfigurados: CLAVES.porCurso.size, quizzesAbiertos: quizzes.size });
+      return responder(res, 200, { ok: true, cursosConfigurados: CLAVES.porCurso.size, quizzesAbiertos: quizzes.size,
+        tablonesAbiertos: tablones.size, fotosKB: Math.round(bytesFotos / 1024) });
     }
     if (req.method !== 'POST') return responder(res, 404, { error: 'No encontrado' });
-    const d = await leerCuerpo(req);
+    const d = await leerCuerpo(req, url === '/api/tablon/subir' ? Math.ceil(MAX_FOTO_BYTES * 1.4) + 2000 : 200000);
     if (url === '/api/profe/entrar') return responder(res, 200, profeEntrar(d, req));
     if (RUTAS_ALUMNO[url]) return responder(res, 200, RUTAS_ALUMNO[url](d));
     if (RUTAS_PROFE[url]) {

@@ -181,6 +181,39 @@
   .consejo { font-family: var(--mano); font-size: 22px; line-height: 1.15; color: var(--vino); margin-top: 8px; }
   pre.ejemplo { background: #fff; border: 1px dashed var(--borde); border-radius: 6px; padding: 10px; font-size: 15px; white-space: pre-wrap; font-family: var(--texto); }
   summary { cursor: pointer; }
+  /* Pestañas del profesor */
+  .pestanas { display: flex; gap: 6px; margin: 10px 0 4px; border-bottom: 2px solid var(--tinta); }
+  .pestanas button { flex: 1; padding: 10px 6px; border-radius: 8px 8px 0 0; background: #efe6cf; border: 1.5px solid var(--borde);
+    border-bottom: 0; font-family: var(--titulo); font-size: 18px; color: var(--tinta-suave); line-height: 1.1; }
+  .pestanas button[aria-selected=true] { background: var(--tinta); color: #fbefd5; border-color: var(--tinta); }
+  .pestanas small { display: block; font-family: var(--mano); font-size: 17px; }
+
+  /* Tablón de corcho */
+  .corcho { margin: 10px -6px 18px; padding: 22px 14px 6px; border: 10px solid #8b5a2b; border-radius: 6px;
+    background-color: #c69c6d;
+    background-image: radial-gradient(rgba(60,35,10,.18) 1px, transparent 1.6px), radial-gradient(rgba(255,240,210,.22) 1px, transparent 1.6px);
+    background-size: 7px 7px, 11px 11px; background-position: 0 0, 3px 5px;
+    box-shadow: inset 0 0 24px rgba(40,20,0,.35), 0 4px 10px rgba(0,0,0,.18); }
+  .corcho-vacio { text-align: center; font-family: var(--mano); font-size: 25px; line-height: 1.15; color: #3b2a14;
+    background: rgba(255,250,235,.9); padding: 14px; margin: 0 0 18px; transform: rotate(-1deg); box-shadow: 0 4px 8px rgba(0,0,0,.2); }
+  .tarea { position: relative; background: #fffef9; margin: 6px auto 30px; padding: 12px 12px 10px; max-width: 440px;
+    box-shadow: 0 8px 16px rgba(40,25,5,.35); }
+  .tarea img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #f1ead7; }
+  .tarea figcaption { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-family: var(--mano); font-size: 27px; line-height: 1.05; }
+  .tarea figcaption .dibujo { width: 36px; height: 36px; }
+  .tarea figcaption small { display: block; font-family: var(--texto); font-size: 14px; color: var(--tinta-suave); }
+  .chincheta { position: absolute; top: -9px; left: 50%; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%;
+    box-shadow: 0 3px 3px rgba(0,0,0,.45), inset -3px -4px 0 rgba(0,0,0,.25), inset 2px 2px 0 rgba(255,255,255,.4); }
+  .quitar-tarea { position: absolute; top: 18px; right: 18px; padding: 6px 10px; font-size: 15px; background: rgba(255,255,255,.94);
+    color: var(--mal); border: 1.5px solid var(--mal); }
+  .mia-foto { display: block; width: 100%; max-width: 320px; aspect-ratio: 1; margin: 8px auto; object-fit: cover;
+    border: 8px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,.2); background: #f1ead7; }
+  .selector { display: flex; gap: 6px; margin: 6px 0; }
+  .selector button { flex: 1; padding: 8px; border: 1.5px solid var(--tinta); background: transparent; font-size: 16px; }
+  .selector button[aria-pressed=true] { background: var(--tinta); color: #fff; }
+  .sin-foto { list-style: none; padding: 0; margin: 4px 0; }
+  .sin-foto li { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--raya); padding: 2px 0; }
+
   .red { position: fixed; left: 0; right: 0; top: 0; background: var(--mal); color: #fff; text-align: center;
     padding: 8px; font-weight: 700; z-index: 9; }
 </style>
@@ -193,16 +226,16 @@
 <!-- ============ ALUMNO: ENTRAR ============ -->
 <section class="vista" id="vEntrar" hidden>
   <h1>Quiz de clase</h1>
-  <p class="nota">Escribe el código que te dio tu profesor, tu nombre y apellido y tu casa.</p>
-  <label for="codigo">Código del quiz</label>
+  <p class="nota">Escribe el código que te dio tu profesor (de un quiz o de un tablón de tareas), tu nombre y apellido y tu casa.</p>
+  <label for="codigo">Código</label>
   <input type="text" id="codigo" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="K7PX">
   <label for="nombre">Nombre y apellido</label>
   <input type="text" id="nombre" maxlength="30" autocomplete="off" placeholder="Ej.: Elara Moonwhistle">
   <label>Tu casa</label>
   <div class="casas" id="casas"></div>
   <p class="error" id="errorEntrar"></p>
-  <button class="btn" id="btnEntrar">Empezar el quiz</button>
-  <p class="suave">Tienes un solo intento. Cada pregunta tiene un tiempo límite y no se puede volver atrás.</p>
+  <button class="btn" id="btnEntrar">Entrar</button>
+  <p class="suave">Sirve para los quizzes y para el tablón de tareas. En los quizzes tienes un solo intento: cada pregunta tiene un tiempo límite y no se puede volver atrás.</p>
   <h2>Asignaturas</h2>
   <div class="asignaturas" id="asignaturas"></div>
   <p class="centro"><button class="enlace" id="irProfe">Soy profesor/a →</button></p>
@@ -229,6 +262,18 @@
   <div class="pluma" id="ePluma"></div>
   <p><b>Esperando resultados…</b></p>
   <p class="suave">Tu profesor los publicará cuando cierre el quiz. Puedes dejar esta página abierta o volver más tarde desde este mismo celular.</p>
+</section>
+
+<!-- ============ ALUMNO: TABLÓN DE TAREAS ============ -->
+<section class="vista" id="vTablon" hidden>
+  <div class="clase" id="tClase"></div>
+  <h1>Tablón de tareas</h1>
+  <p class="nota" id="tTiempo"></p>
+  <div class="tarjeta" id="tMia"></div>
+  <input type="file" id="tArchivo" accept="image/*" hidden>
+  <h2 id="tTitulo">El tablón de la clase</h2>
+  <div class="corcho" id="tCorcho"></div>
+  <button class="btn2" id="btnSalirTablon">Salir del tablón</button>
 </section>
 
 <!-- ============ ALUMNO: RESULTADOS ============ -->
@@ -264,6 +309,12 @@
     <button class="enlace" id="btnSalir">Salir</button>
   </div>
 
+  <div class="pestanas" role="tablist">
+    <button type="button" role="tab" id="pestQuiz" aria-selected="true">Quiz</button>
+    <button type="button" role="tab" id="pestTablon" aria-selected="false">Tablón de tareas</button>
+  </div>
+
+  <div id="zonaQuiz">
   <div id="panel"></div>
 
   <div id="crear" hidden>
@@ -303,6 +354,9 @@ c) Roja</pre>
     <button class="btn2" id="btnCancelarNuevo" hidden>Cancelar</button>
     <button class="enlace" id="btnLimpiar">Vaciar el formulario</button>
   </div>
+  </div>
+
+  <div id="zonaTablon" hidden></div>
 </section>
 
 </main>
@@ -410,7 +464,7 @@ async function entrar() {
   const codigo = limpiarCodigo($('codigo').value);
   const nombre = $('nombre').value.trim();
   const err = $('errorEntrar');
-  if (!codigo) return (err.textContent = 'Escribe el código del quiz.');
+  if (!codigo) return (err.textContent = 'Escribe el código.');
   if (!nombre) return (err.textContent = 'Escribe tu nombre y apellido.');
   if (!casaElegida) return (err.textContent = 'Elige tu casa.');
   err.textContent = '';
@@ -418,15 +472,16 @@ async function entrar() {
   // Este celular ya entró a este quiz: retomar en vez de crear otro intento.
   const previo = guardado.get('quiz_' + codigo);
   if (previo) {
-    alumno = { codigo, token: previo };
+    alumno = { codigo, token: previo, tipo: guardado.get('tipo_' + codigo) || 'quiz' };
     guardado.set('quizActual', alumno);
     if (await estadoAlumno(true)) return;
   }
   const r = await api('/api/alumno/entrar', { codigo, nombre, casa: casaElegida });
   $('btnEntrar').disabled = false;
   if (r.error) return (err.textContent = r.error);
-  alumno = { codigo: r.codigo, token: r.token };
+  alumno = { codigo: r.codigo, token: r.token, tipo: r.tipo };
   guardado.set('quiz_' + r.codigo, r.token);
+  guardado.set('tipo_' + r.codigo, r.tipo);
   guardado.set('quizActual', alumno);
   guardado.set('ultimoAlumno', { nombre, casa: casaElegida });
   estadoAlumno();
@@ -444,10 +499,15 @@ async function estadoAlumno(desdeEntrar) {
     guardado.del('quiz_' + yo.codigo);
     guardado.del('quizActual');
     alumno = null;
-    if (!desdeEntrar) mostrarEntrar('Tu intento anterior ya no existe (el quiz terminó o el profesor lo borró).');
+    if (!desdeEntrar) mostrarEntrar(yo.tipo === 'tablon'
+      ? 'El tablón ya se cerró (al acabar el tiempo se borra todo) o el profesor quitó tu tarea.'
+      : 'Tu intento anterior ya no existe (el quiz terminó o el profesor lo borró).');
     return false;
   }
-  if (e.fase === 'pregunta') mostrarPregunta(e);
+  if (e.fase === 'tablon') {
+    mostrarTablonAlumno(e);
+    programar(() => estadoAlumno(), 5000);    // el tablón se actualiza solo
+  } else if (e.fase === 'pregunta') mostrarPregunta(e);
   else if (e.fase === 'esperando') {
     pararReloj();
     pintarClase($('eClase'), e.numCurso, e.curso);
@@ -799,6 +859,156 @@ async function pintarZonaImagen(cont, r) {
   cont.append(el('p', { class: 'suave' }, 'En iPhone también puedes mantener pulsada la imagen y elegir "Guardar en Fotos".'));
 }
 
+// ------------------------------------------------------------ TABLÓN DE TAREAS
+// Cuenta atrás de "se borrará todo en…" (una sola a la vez: alumno o profesor)
+let relojTablon = null;
+const mmss = (ms) => { const t = Math.ceil(ms / 1000); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+function cuentaAtras(elemento, restanteMs, alTerminar) {
+  clearInterval(relojTablon);
+  const fin = performance.now() + restanteMs;
+  let avisado = false;
+  const tic = () => {
+    const resta = fin - performance.now();
+    if (resta > 0) { elemento.textContent = `Se borrará todo en ${mmss(resta)}`; return; }
+    elemento.textContent = 'Se acabó el tiempo: el tablón se está borrando…';
+    if (!avisado && !elemento.closest('.vista').hidden) { avisado = true; setTimeout(alTerminar, 800); }
+  };
+  tic();
+  relojTablon = setInterval(tic, 500);
+}
+
+// Dibuja (o actualiza sin parpadeos) las tareas clavadas en el corcho.
+function tarjetaTarea(f, quitar) {
+  const giro = [-2.2, 1.4, -0.8, 2, -1.5, 0.9][f.id % 6];
+  return el('figure', { class: 'tarea', style: `transform: rotate(${giro}deg)`, 'data-id': f.id, 'data-url': f.url },
+    el('span', { class: 'chincheta', style: `background:${COLORES[f.casa][0]}` }),
+    el('img', { src: f.url, alt: `Tarea de ${f.nombre}`, loading: 'lazy', decoding: 'async' }),
+    el('figcaption', null, dibujo(f.casa), el('span', null, f.nombre, el('small', null, f.casa + (f.propia ? ' · tu tarea' : '')))),
+    quitar ? el('button', { class: 'quitar-tarea', type: 'button', 'aria-label': `Quitar la tarea de ${f.nombre}`, onclick: () => quitar(f) }, '🗑 Quitar') : null);
+}
+function pintarCorcho(cont, fotos, quitar, textoVacio) {
+  const vacio = cont.querySelector('.corcho-vacio');
+  if (!fotos.length) {
+    cont.innerHTML = '';
+    cont.append(el('p', { class: 'corcho-vacio' }, textoVacio));
+    return;
+  }
+  if (vacio) vacio.remove();
+  const existentes = new Map([...cont.querySelectorAll('figure.tarea')].map((f) => [f.dataset.id, f]));
+  const vistos = new Set();
+  fotos.forEach((f, i) => {
+    const id = String(f.id);
+    vistos.add(id);
+    let fig = existentes.get(id);
+    if (fig && fig.dataset.url !== f.url) { fig.remove(); fig = null; }
+    if (!fig) fig = tarjetaTarea(f, quitar);
+    if (cont.children[i] !== fig) cont.insertBefore(fig, cont.children[i] || null);
+  });
+  for (const [id, fig] of existentes) if (!vistos.has(id)) fig.remove();
+}
+
+// ---- alumno
+let fotoEnPreparacion = null;   // { img, modo } mientras el alumno revisa su foto antes de subirla
+let ultimaPropia = undefined;
+
+function mostrarTablonAlumno(e) {
+  pararReloj();
+  pintarClase($('tClase'), e.numCurso, e.curso);
+  cuentaAtras($('tTiempo'), e.restanteMs, () => estadoAlumno());
+  if (!fotoEnPreparacion && e.propia !== ultimaPropia) { ultimaPropia = e.propia; pintarMia(e.propia); }
+  $('tTitulo').textContent = `El tablón de la clase · ${plural(e.fotos.length, 'tarea', 'tareas')}`;
+  pintarCorcho($('tCorcho'), e.fotos, null, 'Todavía no hay tareas. ¡Clava la tuya la primera!');
+  if ($('vTablon').hidden) ver('vTablon');
+}
+
+function pintarMia(propia, error) {
+  const cont = $('tMia');
+  cont.innerHTML = '';
+  cont.append(el('h3', null, 'Tu tarea'));
+  if (propia) {
+    cont.append(el('img', { class: 'mia-foto', src: propia, alt: 'Tu tarea' }));
+    cont.append(el('div', { class: 'fila' },
+      el('button', { class: 'btn2', type: 'button', onclick: () => $('tArchivo').click() }, 'Cambiar foto'),
+      el('button', { class: 'btn2 btn-peligro', type: 'button', onclick: quitarMia }, 'Quitar mi foto')));
+  } else {
+    cont.append(el('p', { class: 'nota' }, 'Saca o elige una foto de tu tarea. En el tablón saldrá cuadrada.'));
+    cont.append(el('button', { class: 'btn', type: 'button', onclick: () => $('tArchivo').click() }, '📷 Sacar o elegir foto'));
+  }
+  if (error) cont.append(el('p', { class: 'error' }, error));
+  cont.append(el('p', { class: 'suave' }, 'Sube solo la foto de tu tarea: sin caras ni datos personales. Al acabar el tiempo se borra todo.'));
+}
+
+function cargarImagen(archivo) {
+  return new Promise((ok, mal) => {
+    const url = URL.createObjectURL(archivo);
+    const img = new Image();
+    img.onload = () => ok(img);
+    img.onerror = () => { URL.revokeObjectURL(url); mal(new Error('foto')); };
+    img.src = url;
+  });
+}
+// La foto se hace cuadrada en el propio celular: "entera" (con bordes de papel) o "llenar" (recorta al centro).
+function fotoCuadrada(img, modo) {
+  const T = 900;
+  const cv = document.createElement('canvas');
+  cv.width = T; cv.height = T;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#fffdf7'; g.fillRect(0, 0, T, T);
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const esc = modo === 'llenar' ? Math.max(T / w, T / h) : Math.min(T / w, T / h);
+  g.drawImage(img, (T - w * esc) / 2, (T - h * esc) / 2, w * esc, h * esc);
+  return cv;
+}
+function comprimir(cv) {
+  let d = '';
+  for (const q of [0.82, 0.72, 0.62, 0.5]) {
+    d = cv.toDataURL('image/jpeg', q);
+    if (d.length * 0.75 < 420 * 1024) break;
+  }
+  return d;
+}
+
+function pintarPrevia() {
+  const cont = $('tMia');
+  const { img, modo } = fotoEnPreparacion;
+  const cv = fotoCuadrada(img, modo);
+  cv.className = 'mia-foto';
+  cont.innerHTML = '';
+  cont.append(el('h3', null, 'Así se verá en el tablón'), cv);
+  const opcion = (valor, texto) => el('button', { type: 'button', 'aria-pressed': String(modo === valor),
+    onclick: () => { fotoEnPreparacion.modo = valor; pintarPrevia(); } }, texto);
+  cont.append(el('div', { class: 'selector' }, opcion('entera', 'Foto entera'), opcion('llenar', 'Llenar el cuadrado')));
+  const err = el('p', { class: 'error' });
+  const subir = el('button', { class: 'btn', type: 'button', onclick: async () => {
+    subir.disabled = true; subir.textContent = 'Subiendo…'; err.textContent = '';
+    const r = await api('/api/tablon/subir', { token: alumno.token, imagen: comprimir(cv) });
+    if (r.error) { subir.disabled = false; subir.textContent = 'Clavar en el tablón'; err.textContent = r.error; return; }
+    fotoEnPreparacion = null; ultimaPropia = undefined;
+    estadoAlumno();
+  } }, 'Clavar en el tablón');
+  cont.append(subir, err, el('button', { class: 'btn2', type: 'button', onclick: () => { fotoEnPreparacion = null; ultimaPropia = undefined; estadoAlumno(); } }, 'Cancelar'));
+}
+
+async function elegirFoto() {
+  const archivo = $('tArchivo').files[0];
+  $('tArchivo').value = '';
+  if (!archivo || !alumno) return;
+  try {
+    fotoEnPreparacion = { img: await cargarImagen(archivo), modo: 'entera' };
+    pintarPrevia();
+  } catch {
+    fotoEnPreparacion = null;
+    pintarMia(ultimaPropia, 'No se pudo abrir esa imagen. Prueba con otra foto.');
+  }
+}
+
+async function quitarMia() {
+  if (!confirm('¿Quitar tu foto del tablón?')) return;
+  await api('/api/tablon/quitar', { token: alumno.token });
+  ultimaPropia = undefined;
+  estadoAlumno();
+}
+
 // ------------------------------------------------------------ PROFESOR
 let sesion = guardado.get('sesionProfe');
 let infoProfe = null;     // respuesta de /api/profe/estado
@@ -825,7 +1035,8 @@ async function login() {
 }
 
 function salirProfe() {
-  sesion = null; guardado.del('sesionProfe'); infoProfe = null; clavePanel = ''; parar();
+  sesion = null; guardado.del('sesionProfe'); infoProfe = null; clavePanel = ''; claveTablon = ''; parar();
+  clearInterval(relojTablon);
   $('errorLogin').textContent = '';
   ver('vProfeLogin');
 }
@@ -848,7 +1059,100 @@ async function cargarProfe() {
     ver('vProfe');
   }
   pintarPanel();
+  pintarTablonProfe();
   programar(cargarProfe, 3000);
+}
+
+// ---- pestañas del profesor: Quiz | Tablón de tareas
+let pestana = guardado.get('pestanaProfe') === 'tablon' ? 'tablon' : 'quiz';
+function ponerPestana(p) {
+  pestana = p;
+  guardado.set('pestanaProfe', p);
+  $('zonaQuiz').hidden = p !== 'quiz';
+  $('zonaTablon').hidden = p !== 'tablon';
+  $('pestQuiz').setAttribute('aria-selected', String(p === 'quiz'));
+  $('pestTablon').setAttribute('aria-selected', String(p === 'tablon'));
+}
+
+// ---- tablón de tareas del profesor
+let claveTablon = '';
+function pintarTablonProfe() {
+  const t = infoProfe.tablon;
+  const q = infoProfe.quiz;
+  $('pestQuiz').replaceChildren('Quiz', el('small', null, !q ? 'cerrado' : q.estado === 'publicado' ? 'publicado' : 'abierto'));
+  $('pestTablon').replaceChildren('Tablón de tareas', el('small', null, t ? 'abierto' : 'cerrado'));
+  ponerPestana(pestana);
+  const clave = t ? t.codigo : '-';
+  if (clave !== claveTablon) { claveTablon = clave; construirTablonProfe(t); }
+  if (t) actualizarTablonProfe(t);
+}
+
+function construirTablonProfe(t) {
+  const zona = $('zonaTablon');
+  zona.innerHTML = '';
+  if (!t) {
+    clearInterval(relojTablon);
+    const sel = el('select', { id: 'tablonMinutos' }, infoProfe.tablonMinutos.map((m) => el('option', { value: m }, `${m} minutos`)));
+    const err = el('p', { class: 'error' });
+    zona.append(el('div', { class: 'tarjeta' },
+      el('h3', null, 'Tablón de tareas'),
+      el('p', null, 'Tus alumnos suben una foto cuadrada de su tarea y todos la ven en un tablón de corcho, como los dibujos en el salón. Cuando acaba el tiempo, se borra todo.'),
+      el('p', { class: 'suave' }, 'Va aparte del quiz: puedes tener los dos abiertos a la vez, cada uno con su código.'),
+      el('label', { for: 'tablonMinutos' }, '¿Cuánto tiempo dura?'), sel,
+      err,
+      el('button', { class: 'btn', type: 'button', onclick: async (ev) => {
+        ev.currentTarget.disabled = true;
+        const r = await profe('/api/profe/tablon-abrir', { minutos: Number(sel.value) });
+        if (r && r.error) err.textContent = r.error;
+        cargarProfe();
+      } }, 'Abrir tablón y crear código')));
+    return;
+  }
+  const enlace = `${location.origin}/?c=${t.codigo}`;
+  zona.append(el('div', { class: 'pizarra' },
+    el('div', { class: 'nota' }, 'Código del tablón'),
+    el('div', { class: 'codigo' }, t.codigo),
+    el('div', { class: 'enlace-quiz' }, enlace),
+    el('div', { class: 'fila' },
+      el('button', { class: 'btn2', type: 'button', onclick: (e) => copiar(t.codigo, e.currentTarget) }, 'Copiar código'),
+      el('button', { class: 'btn2', type: 'button', onclick: (e) => copiar(enlace, e.currentTarget) }, 'Copiar enlace'))));
+  zona.append(el('p', { class: 'nota centro', id: 'tpTiempo' }));
+  zona.append(el('div', { class: 'fila' },
+    el('button', { class: 'btn2', type: 'button', id: 'tpAlargar', onclick: async () => {
+      const r = await profe('/api/profe/tablon-alargar');
+      if (r && r.error) alert(r.error);
+      cargarProfe();
+    } }, `+${infoProfe.tablonAlargar} minutos`),
+    el('button', { class: 'btn2 btn-peligro', type: 'button', onclick: async () => {
+      if (!confirm('¿Cerrar el tablón y borrar todas las fotos ahora? No se puede deshacer.')) return;
+      await profe('/api/profe/tablon-cerrar');
+      cargarProfe();
+    } }, 'Cerrar y borrar')));
+  zona.append(el('div', { class: 'tarjeta' },
+    el('h3', { id: 'tpCuantos', style: 'font-family: var(--texto); font-weight: 700' }),
+    el('p', { class: 'suave', id: 'tpAyuda' }, 'Puedes quitar cualquier tarea con su botón 🗑 (por ejemplo, si alguien eligió mal su casa o subió algo que no es la tarea). Esa persona podrá volver a entrar y subirla de nuevo.'),
+    el('div', { id: 'tpSinFoto' })));
+  zona.append(el('div', { class: 'corcho', id: 'tpCorcho' }));
+}
+
+function quitarTareaProfe(p) {
+  if (!confirm(`¿Quitar a ${p.nombre} (${p.casa}) del tablón?\n\nSu foto se borra y podrá volver a entrar y subirla de nuevo.`)) return;
+  profe('/api/profe/tablon-quitar', { id: p.id }).then((r) => { if (r && r.error) alert(r.error); cargarProfe(); });
+}
+
+function actualizarTablonProfe(t) {
+  cuentaAtras($('tpTiempo'), t.restanteMs, () => cargarProfe());
+  $('tpAlargar').disabled = !t.puedeAlargar;
+  $('tpCuantos').textContent = `${plural(t.fotos.length, 'tarea subida', 'tareas subidas')} · ${plural(t.participantes, 'alumno', 'alumnos')} en el tablón`;
+  const sf = $('tpSinFoto');
+  sf.innerHTML = '';
+  if (t.sinFoto.length) {
+    sf.append(el('p', { class: 'suave' }, 'Entraron pero aún no subieron foto:'),
+      el('ul', { class: 'sin-foto' }, t.sinFoto.map((p) => el('li', null,
+        el('span', null, el('span', { class: 'punto', style: `background:${COLORES[p.casa][0]}` }), p.nombre),
+        el('button', { class: 'borrar', type: 'button', 'aria-label': `Quitar a ${p.nombre}`, onclick: () => quitarTareaProfe(p) }, '🗑')))));
+  }
+  pintarCorcho($('tpCorcho'), t.fotos, quitarTareaProfe, 'Todavía nadie subió su tarea. Comparte el código con tus alumnos.');
 }
 
 let clavePanel = '';       // código + estado del quiz que está dibujado
@@ -868,16 +1172,17 @@ function pintarPanel() {
   actualizarPanel(q);
 }
 
+function copiar(texto, boton) {
+  const listo = () => { const t = boton.textContent; boton.textContent = '✓ Copiado'; setTimeout(() => { boton.textContent = t; }, 1500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(texto).then(listo, () => prompt('Copia esto:', texto));
+  else prompt('Copia esto:', texto);
+}
+
 function construirPanel(q) {
   const panel = $('panel');
   panel.innerHTML = '';
   const enlace = `${location.origin}/?c=${q.codigo}`;
   const publicado = q.estado === 'publicado';
-  const copiar = (texto, boton) => {
-    const listo = () => { const t = boton.textContent; boton.textContent = '✓ Copiado'; setTimeout(() => { boton.textContent = t; }, 1500); };
-    if (navigator.clipboard) navigator.clipboard.writeText(texto).then(listo, () => prompt('Copia esto:', texto));
-    else prompt('Copia esto:', texto);
-  };
   panel.append(el('div', { class: 'pizarra' },
     el('div', { class: 'nota' }, publicado ? 'Quiz cerrado · resultados publicados' : 'Código del quiz'),
     el('div', { class: 'codigo' }, q.codigo),
@@ -1158,6 +1463,16 @@ $('sello').setAttribute('aria-hidden', 'true');
 CURSOS.forEach((nombre, i) => $('asignaturas').append(el('div', null, dibujo(i + 1), nombre)));
 $('ePluma').innerHTML = dibujoSVG(4);
 $('btnEntrar').addEventListener('click', entrar);
+$('tArchivo').addEventListener('change', elegirFoto);
+$('btnSalirTablon').addEventListener('click', () => {
+  guardado.del('quizActual');     // si vuelve a entrar con ese código, sigue siendo él mismo
+  alumno = null; ultimaPropia = undefined; fotoEnPreparacion = null;
+  clearInterval(relojTablon);
+  $('codigo').value = '';
+  mostrarEntrar();
+});
+$('pestQuiz').addEventListener('click', () => ponerPestana('quiz'));
+$('pestTablon').addEventListener('click', () => ponerPestana('tablon'));
 $('irProfe').addEventListener('click', irProfe);
 $('volverAlumno').addEventListener('click', () => mostrarEntrar());
 $('btnLogin').addEventListener('click', login);

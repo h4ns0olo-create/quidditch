@@ -30,6 +30,20 @@ vive en esta carpeta `quiz/` y en Render es otro servicio, con su propia direcci
 - **Borrado automático:** 30 minutos después de publicar, al abrir otro quiz en ese curso, o 3 horas después de
   abrirlo si nunca se publicó.
 
+### Tablón de tareas
+Pestaña **"Tablón de tareas"** en el panel del profesor (va aparte del quiz; pueden estar los dos abiertos).
+- El profesor elige cuánto dura (**10, 15, 20 o 30 minutos**) y toca "Abrir tablón y crear código". Puede tocar
+  **"+5 minutos"** si hace falta más tiempo (máximo 1 hora en total) o **"Cerrar y borrar"** para terminar antes.
+- Los alumnos entran con el mismo formulario (código, nombre y apellido, casa) y suben **una foto** de su tarea.
+  El celular la deja **cuadrada** ("Foto entera" con bordes de papel, o "Llenar el cuadrado" recortando al centro)
+  y la comprime (~150 KB). Pueden cambiarla o quitarla mientras el tablón siga abierto.
+- Todos ven un **tablón de corcho vertical** con las tareas clavadas con chinchetas del color de su casa, en el
+  orden en que llegaron, con el nombre y el escudo debajo. Se actualiza solo cada pocos segundos.
+- El profesor puede **quitar** cualquier tarea (esa persona podrá volver a entrar y subirla de nuevo).
+- **Al acabar el tiempo se borra todo**, fotos incluidas. Las fotos solo viven en la memoria del servidor
+  (nunca en disco) y cada foto tiene una dirección secreta que cambia si el alumno la reemplaza.
+- Límites: 80 participantes y 20 por casa, como en los quizzes; 450 KB por foto y 200 MB entre todos los tablones.
+
 ### Formato para pegar las preguntas
 ```
 1. ¿Qué criatura vigila la cámara?
@@ -112,7 +126,7 @@ npm start          # sin CLAVES_CURSOS, el curso 1 usa la contraseña "prueba"
 ```
 Abre http://localhost:3000 (profesores: botón "Soy profesor/a" o http://localhost:3000/?profe).
 
-Pruebas automáticas con 80 alumnos simulados (menos de 1 minuto):
+Pruebas automáticas con 80 alumnos simulados y el tablón de tareas (menos de 1 minuto):
 ```bash
 cd quiz
 npm test

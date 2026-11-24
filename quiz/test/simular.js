@@ -21,6 +21,12 @@ function comprobar(cond, texto) {
   if (!cond) fallos++;
 }
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+// Una "foto" JPEG de mentira (empieza como un JPEG de verdad)
+const jpeg = (n, relleno = 7) => 'data:image/jpeg;base64,' + Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(n, relleno), Buffer.from([0xff, 0xd9])]).toString('base64');
+async function bajar(ruta) {
+  const r = await fetch(URL + ruta);
+  return { status: r.status, tipo: r.headers.get('content-type'), datos: Buffer.from(await r.arrayBuffer()) };
+}
 
 async function post(ruta, datos, sesion) {
   const headers = { 'Content-Type': 'application/json' };
@@ -43,12 +49,15 @@ const correctaDe = (texto) => {
   return null;
 };
 
+const tablonExiste = (r) => !!r.token;
+
 async function main() {
   const servidor = spawn(process.execPath, [path.join(__dirname, '..', 'server.js')], {
     env: {
       ...process.env, PORT: String(PUERTO), RENDER: '',
       CLAVES_CURSOS: '1 = Fénix ; 4=mandragora;7=escoba;8=escoba; 13=nada; sinigual',
       SEGUNDOS_MIN: '2', BORRAR_TRAS_PUBLICAR_MS: '3000', BORRAR_SIN_PUBLICAR_MS: '600000',
+      MINUTO_TABLON_MS: '300',   // en la prueba, 1 "minuto" del tablón dura 0,3 s (10 min = 3 s)
     },
     stdio: ['ignore', 'pipe', 'inherit'],
   });
@@ -210,6 +219,63 @@ async function main() {
     comprobar((await post('/api/profe/estado', {}, s1)).quiz === null, 'el quiz publicado se borra solo pasado el tiempo');
     comprobar((await post('/api/alumno/estado', { token: alumnos[0].token })).fase === 'no-existe', 'y los alumnos ya no ven nada');
     comprobar((await post('/api/profe/estado', {}, s4)).quiz.codigo === nuevo.codigo, 'el quiz sin publicar del curso 4 sigue ahí');
+
+    console.log('\n10. Tablón de tareas');
+    const t1 = await post('/api/profe/tablon-abrir', { minutos: 10 }, s1);
+    comprobar(/^[A-Z0-9]{4}$/.test(t1.codigo), `el profesor abre un tablón (${t1.codigo})`);
+    const ep = await post('/api/profe/estado', {}, s1);
+    comprobar(ep.tablon && ep.tablon.codigo === t1.codigo && ep.tablon.minutos === 10, 'el panel del profesor muestra su tablón');
+    comprobar(!(await post('/api/profe/estado', {}, s4)).tablon, 'el profesor de otro curso no ve ese tablón');
+    const tq = await post('/api/profe/abrir', { preguntas: PREGUNTAS, segundos: SEG }, s1);
+    comprobar(!!tq.codigo && tq.codigo !== t1.codigo && (await post('/api/profe/estado', {}, s1)).tablon.codigo === t1.codigo,
+      'quiz y tablón del mismo curso conviven con códigos distintos');
+    const ana = await post('/api/alumno/entrar', { codigo: t1.codigo, nombre: 'Ana Pérez', casa: 'Hufflepuff' });
+    const leo = await post('/api/alumno/entrar', { codigo: t1.codigo.toLowerCase(), nombre: 'Leo Ruiz', casa: 'Ravenclaw' });
+    comprobar(ana.tipo === 'tablon' && leo.tipo === 'tablon' && !!ana.token, 'los alumnos entran al tablón con el mismo formulario');
+    comprobar(/ya está en el tablón/.test((await post('/api/alumno/entrar', { codigo: t1.codigo, nombre: 'ana perez', casa: 'Slytherin' })).error || ''),
+      'no se puede repetir un nombre en el tablón');
+    const ea = await post('/api/alumno/estado', { token: ana.token });
+    comprobar(ea.fase === 'tablon' && ea.propia === null && ea.fotos.length === 0 && ea.restanteMs > 0, 'al entrar ve el tablón vacío y el tiempo que queda');
+    comprobar(/foto/.test((await post('/api/tablon/subir', { token: ana.token, imagen: 'data:image/png;base64,iVBORw0KGgo=' })).error || ''), 'rechaza lo que no es una foto JPEG');
+    comprobar(/grande/.test((await post('/api/tablon/subir', { token: ana.token, imagen: jpeg(700 * 1024) })).error || ''), 'rechaza una foto demasiado grande (sin colgarse)');
+    const sa = await post('/api/tablon/subir', { token: ana.token, imagen: jpeg(5000, 1) });
+    comprobar(sa.ok && /^\/foto\//.test(sa.url), 'Ana sube su foto');
+    await esperar(20);
+    const sl = await post('/api/tablon/subir', { token: leo.token, imagen: jpeg(6000, 2) });
+    const vista = await post('/api/alumno/estado', { token: leo.token });
+    comprobar(vista.fotos.length === 2 && vista.fotos[0].nombre === 'Ana Pérez' && vista.fotos[1].propia === true, 'todos ven las fotos en orden de llegada (y la propia marcada)');
+    const f1 = await bajar(sa.url);
+    comprobar(f1.status === 200 && f1.tipo === 'image/jpeg' && f1.datos.length === 5006, 'la foto se puede ver');
+    const sa2 = await post('/api/tablon/subir', { token: ana.token, imagen: jpeg(4000, 3) });
+    comprobar(sa2.url !== sa.url && (await bajar(sa.url)).status === 404, 'al cambiar la foto, la vieja deja de existir');
+    comprobar((await post('/api/alumno/estado', { token: leo.token })).fotos[0].nombre === 'Ana Pérez', 'al cambiarla conserva su lugar en el tablón');
+    const kb = (await (await fetch(URL + '/salud')).json()).fotosKB;
+    comprobar(kb === Math.round(10012 / 1024), `la memoria de fotos cuadra (${kb} KB)`);
+    comprobar((await post('/api/tablon/quitar', { token: leo.token })).ok && (await bajar(sl.url)).status === 404, 'Leo quita su foto');
+    await post('/api/tablon/subir', { token: leo.token, imagen: jpeg(3000, 4) });
+    const pt = (await post('/api/profe/estado', {}, s1)).tablon;
+    comprobar(pt.fotos.length === 2 && pt.participantes === 2, 'el profesor ve las fotos');
+    const idAna = pt.fotos.find((f) => f.nombre === 'Ana Pérez').id;
+    comprobar(!!(await post('/api/profe/tablon-quitar', { id: idAna }, s4)).error, 'otro profesor no puede quitarla');
+    comprobar((await post('/api/profe/tablon-quitar', { id: idAna }, s1)).ok, 'el profesor quita la foto de Ana');
+    comprobar((await post('/api/alumno/estado', { token: ana.token })).fase === 'no-existe' && (await bajar(sa2.url)).status === 404,
+      'la foto desaparece y Ana podría volver a entrar');
+    comprobar(!!(await post('/api/alumno/entrar', { codigo: t1.codigo, nombre: 'Ana Pérez', casa: 'Hufflepuff' })).token, 'Ana vuelve a entrar con su nombre');
+    const antesAl = (await post('/api/profe/estado', {}, s1)).tablon.restanteMs;
+    comprobar((await post('/api/profe/tablon-alargar', {}, s1)).ok, 'el profesor alarga 5 minutos');
+    const despuesAl = (await post('/api/profe/estado', {}, s1)).tablon.restanteMs;
+    comprobar(despuesAl > antesAl + 1000, `queda más tiempo (${antesAl} → ${despuesAl} ms)`);
+    const urlLeo = (await post('/api/alumno/estado', { token: leo.token })).propia;
+    await esperar(despuesAl + 400);
+    comprobar((await post('/api/alumno/estado', { token: leo.token })).fase === 'no-existe', 'al acabar el tiempo el tablón se cierra');
+    comprobar((await bajar(urlLeo)).status === 404, 'y las fotos se borran');
+    comprobar((await post('/api/profe/estado', {}, s1)).tablon === null, 'el profesor ya no tiene tablón');
+    comprobar((await (await fetch(URL + '/salud')).json()).fotosKB === 0, 'la memoria de fotos vuelve a 0');
+    comprobar(!!(await post('/api/alumno/entrar', { codigo: t1.codigo, nombre: 'Tarde', casa: 'Ravenclaw' })).error, 'ya no se puede entrar a ese tablón');
+    const t2 = await post('/api/profe/tablon-abrir', { minutos: 30 }, s1);
+    const t3 = await post('/api/profe/tablon-abrir', { minutos: 15 }, s1);
+    comprobar(!tablonExiste(await post('/api/alumno/entrar', { codigo: t2.codigo, nombre: 'X', casa: 'Ravenclaw' })) && !!t3.codigo, 'abrir un tablón nuevo reemplaza al anterior');
+    comprobar((await post('/api/profe/tablon-cerrar', {}, s1)).ok && (await post('/api/profe/estado', {}, s1)).tablon === null, 'el profesor puede cerrarlo y borrarlo antes');
   } catch (e) {
     console.error(e);
     fallos++;
