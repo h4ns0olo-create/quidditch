@@ -47,7 +47,8 @@ confeti; escenas en cada minijuego; podio con el jugador destacado al final; y s
   Al final: ganador, reacción media y mejor tiempo de cada uno.
 - **🎯 Práctica libre** (botón en la portada, sin sala): cada uno practica el minijuego de su posición; 3 vidas, cada
   acierto sube de nivel y se guarda el récord en el celular. En la del buscador, la snitch se deja ver cada vez menos
-  (de 0,8 s hasta 0,4 s, nunca menos).
+  (de 0,8 s hasta 0,4 s, nunca menos). La del guardián es como en el partido: cuenta atrás 3-2-1 y un cazador imaginario que
+  también intenta acertar (cada nivel, más rápido); hay que tocar lo verde antes que él.
 - **Dificultad que sube:** en partidos y entrenamientos la zona se achica y la marca acelera con el reloj; en los
   duelos, ronda a ronda; en la práctica, nivel a nivel. El círculo de los golpeadores tiene la zona verde más ancha,
   va más lento y se pone difícil más despacio que los demás.

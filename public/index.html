@@ -2366,7 +2366,7 @@
       reto.dibujar(f < 0.5 ? f * 2 : 2 - f * 2);
       reto.msDibujado = ms;   // lo último que vio el jugador en pantalla
     }
-    const resta = Math.max(0, reto.limite - ms) / 1000;
+    const resta = Math.max(0, (reto.limiteMostrar || reto.limite) - ms) / 1000;   // en la práctica del guardián no se delata al cazador
     const cuenta = $('reto-cuenta');
     $('salir-reto').classList.toggle('oculto', !practica);
     if (reto.duelo) {
@@ -2376,8 +2376,8 @@
     }
     cuenta.textContent = reto.resultado ? '' : reto.enviado ? (reto.local ? '' : 'Enviado, esperando resultado…') : `Te quedan ${resta.toFixed(1)} s`;
     cuenta.classList.toggle('urgente', !reto.enviado && resta < 2);
-    if (reto.local && !reto.enviado && ms > reto.limite) { reto.enviado = true; return practicaTap(null); }
-    if (ms > reto.limite + 4000) return cerrarReto(); // por si se perdió la respuesta
+    if (reto.local && !reto.enviado && ms > reto.limite) { reto.enviado = true; practicaTap(null); }
+    if (!reto.local && ms > reto.limite + 4000) return cerrarReto(); // por si se perdió la respuesta
     requestAnimationFrame(() => animar(este));
   }
   function tocar(e) {
@@ -2572,7 +2572,7 @@
   let practica = null;
   const PRACTICAS = {
     cazador: { clase: 'tiro', visual: 'barra', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡LANZAR!', nombre: 'Cazador', ayuda: 'Por rapidez: acierta en lo verde lo antes posible.' },
-    guardian: { clase: 'atajar', visual: 'barra', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡ATAJAR!', nombre: 'Guardián', ayuda: 'Ataja cuando la quaffle esté en lo verde.' },
+    guardian: { clase: 'atajar', visual: 'barra', ancho: 0.16, periodo: 1500, limite: 6000, boton: '¡ATAJAR!', nombre: 'Guardián', ayuda: 'Como en el partido: tras el 3-2-1, ataja en lo verde antes de que el cazador lance.' },
     golpeador: { clase: 'bateo', visual: 'circulo', ancho: 0.2, periodo: 1900, limite: 6000, boton: '¡BATEAR!', nombre: 'Golpeador', ayuda: 'Toca cuando el círculo encaje en el punteado.' },
     buscador: { nombre: 'Buscador', ayuda: 'Toca en cuanto aparezca la snitch. ¡Ojo con la polilla dorada!' },
   };
@@ -2597,8 +2597,26 @@
     const [menos, mas] = c.visual === 'circulo' ? [0.3, 0.3] : [0.5, 0.5];
     const ancho = c.ancho * (1 - menos * f), periodo = Math.round(c.periodo / (1 + mas * f));
     const centro = 0.25 + Math.random() * 0.5;
-    abrirReto({ id: 'local', clase: c.clase, visual: c.visual, titulo: `Nivel ${practica.nivel} · ${'❤️'.repeat(practica.vidas)}${'🖤'.repeat(3 - practica.vidas)}`,
-      boton: c.boton, zonaIni: centro - ancho / 2, zonaFin: centro + ancho / 2, periodo, limite: c.limite, desde: 0, local: true });
+    const titulo = `Nivel ${practica.nivel} · ${'❤️'.repeat(practica.vidas)}${'🖤'.repeat(3 - practica.vidas)}`;
+    if (practica.pos === 'guardian') {
+      // Como en el partido: cuenta atrás 3-2-1 y un cazador imaginario que también intenta acertar.
+      // Hay que tocar lo verde ANTES que él. Al principio acierta tarde (en la 3.ª o 4.ª pasada); con el nivel, antes.
+      const pasada = practica.nivel <= 3 ? 2 + Math.floor(Math.random() * 2)
+        : practica.nivel <= 10 ? 1 + Math.floor(Math.random() * 2)
+        : practica.nivel <= 25 ? (Math.random() < 0.7 ? 1 : 0)
+        : (Math.random() < Math.min(0.85, 0.4 + (practica.nivel - 25) * 0.02) ? 0 : 1);
+      // Momento en que la quaffle pasa por el centro de la zona en esa pasada (ida o vuelta), con un poco de azar
+      const cruce = (n) => (n % 2 === 0 ? centro / 2 + n / 2 : 1 - centro / 2 + (n - 1) / 2) * periodo;
+      let n = pasada;
+      while (cruce(n) < 350) n++;   // nunca más rápido que una persona muy rápida
+      const tCazador = Math.round(cruce(n) + (Math.random() - 0.5) * ancho * periodo * 0.5);
+      practica.tCazador = tCazador;
+      abrirReto({ id: 'local', clase: c.clase, visual: c.visual, titulo, boton: c.boton, zonaIni: centro - ancho / 2, zonaFin: centro + ancho / 2,
+        periodo, limite: tCazador + 150, limiteMostrar: c.limite, desde: -1500, local: true });
+    } else {
+      practica.tCazador = null;
+      abrirReto({ id: 'local', clase: c.clase, visual: c.visual, titulo, boton: c.boton, zonaIni: centro - ancho / 2, zonaFin: centro + ancho / 2, periodo, limite: c.limite, desde: 0, local: true });
+    }
     $('reto-ayuda').textContent = c.ayuda;
   }
   function practicaTap(ms) {
@@ -2607,7 +2625,12 @@
     practica.intentos++;
     let ok = false;
     if (ms !== null) { const f = (ms % r.periodo) / r.periodo, pos = f < 0.5 ? f * 2 : 2 - f * 2; ok = pos >= r.zonaIni - 0.015 && pos <= r.zonaFin + 0.015; }
-    if (ok) { practica.aciertos++; practica.tiempos.push(ms); practica.nivel++; mostrarResultado(`✅ ¡Bien! ${seg(ms)} · sube al nivel ${practica.nivel}`, true); }
+    const tc = practica.tCazador;
+    if (tc) {
+      // Guardián: además de acertar, hay que hacerlo antes que el cazador imaginario
+      if (ok && ms < tc) { practica.aciertos++; practica.tiempos.push(ms); practica.nivel++; mostrarResultado(`🧤 ¡Atajada! ${seg(ms)} (el cazador iba a lanzar a los ${seg(tc)}) · nivel ${practica.nivel}`, true); }
+      else { practica.vidas--; mostrarResultado(ok || ms === null ? `🥅 ¡Gol! El cazador lanzó a los ${seg(tc)}` : '❌ Fuera de la zona: ¡gol!', false); }
+    } else if (ok) { practica.aciertos++; practica.tiempos.push(ms); practica.nivel++; mostrarResultado(`✅ ¡Bien! ${seg(ms)} · sube al nivel ${practica.nivel}`, true); }
     else { practica.vidas--; mostrarResultado(ms === null ? '⏰ Se acabó el tiempo' : '❌ Fuera de la zona', false); }
     practica.timers.push(setTimeout(() => { if (practica) (practica.vidas > 0 ? rondaPractica() : terminarPractica()); }, 2000));
   }
