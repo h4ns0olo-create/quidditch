@@ -247,7 +247,8 @@ export class Marcador extends DurableObject {
 
   // ------------------------- Contraseñas y sesiones -------------------------
   async calcularHuellas() {
-    if (this.huellas) return this.huellas;
+    // Se recuerda en memoria solo si ya hay contraseñas (si no, se vuelve a mirar cada vez)
+    if (this.huellas && this.huellas.size > 0) return this.huellas;
     const huellas = new Map(); // secreto -> huella
     for (const c of CUENTAS) {
       const valor = this.env[c.secreto];

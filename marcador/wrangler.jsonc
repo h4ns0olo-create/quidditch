@@ -18,5 +18,8 @@
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Marcador"] }],
 
+  // Al publicar código nuevo, no borrar las variables puestas en el panel de Cloudflare.
+  "keep_vars": true,
+
   "observability": { "enabled": true }
 }
