@@ -1,9 +1,9 @@
 -- =====================================================================
 --  BAILE DE NAVIDAD — base de datos (Supabase)
 --  Cómo usarlo: en Supabase → SQL Editor → New query → pega TODO este
---  archivo → cambia la clave de administración (más abajo) → Run.
---  Se puede volver a ejecutar sin perder datos (solo actualiza funciones
---  y la clave de administración).
+--  archivo → (solo la primera vez) cambia la clave de administración → Run.
+--  Se puede volver a ejecutar sin perder datos: actualiza las funciones y
+--  NO cambia la clave de administración que ya tengas.
 -- =====================================================================
 
 create extension if not exists pgcrypto with schema extensions;
@@ -11,18 +11,21 @@ create extension if not exists pgcrypto with schema extensions;
 -- ---------------------------------------------------------------- Ajustes
 create table if not exists baile_config (clave text primary key, valor text not null);
 insert into baile_config (clave, valor) values
-  ('sombrero',   'si'),                        -- 'si' = el Sombrero propone parejas; 'no' = en pausa
-  ('cierre',     '2026-12-04 23:59:59-03'),    -- hasta cuándo propone parejas (hora de Argentina: -03)
+  ('sombrero',   'si'),                        -- 'si' = se pueden mandar invitaciones; 'no' = en pausa
+  ('cierre',     '2026-12-04 23:59:59-03'),    -- hasta cuándo se puede invitar (hora de Argentina: -03)
   ('baile',      '2026-12-05 00:00:00-03'),    -- cuándo se abren los regalos "sorpresa"
-  ('horas',      '12'),                        -- horas para responder a una propuesta antes de que caduque
-  ('minimo',     '3'),                         -- cosas en común que hacen falta como mínimo para que el Sombrero proponga
-  ('nota_libre', 'si')                         -- 'si' = se puede escribir una nota propia; 'no' = solo frases hechas
+  ('horas',      '12'),                        -- horas para responder a una invitación antes de que caduque
+  ('minimo',     '3'),                         -- cosas en común que hacen falta como mínimo para ver a alguien
+  ('nota_libre', 'si')                         -- 'si' = se puede escribir una carta propia; 'no' = solo frases hechas
 on conflict (clave) do nothing;
 
--- 🔑 CLAVE DE ADMINISTRACIÓN: cambia CAMBIA-ESTA-CLAVE por la tuya antes de pulsar Run.
+-- 🔑 CLAVE DE ADMINISTRACIÓN (solo la primera vez): cambia CAMBIA-ESTA-CLAVE por la tuya antes de pulsar Run.
+--    Si ya la pusiste antes, no hace falta tocar nada: esta línea no la cambia.
 insert into baile_config (clave, valor)
 values ('admin', extensions.crypt('CAMBIA-ESTA-CLAVE', extensions.gen_salt('bf')))
-on conflict (clave) do update set valor = excluded.valor;
+on conflict (clave) do nothing;
+-- Para cambiarla más adelante, ejecuta solo esta línea con tu clave nueva:
+-- update baile_config set valor = extensions.crypt('MI-CLAVE-NUEVA', extensions.gen_salt('bf')) where clave = 'admin';
 
 -- ---------------------------------------------------------------- Tablas
 create table if not exists baile_personas (
@@ -41,6 +44,7 @@ create table if not exists baile_personas (
   bloqueo     timestamptz,
   creado      timestamptz not null default now()
 );
+alter table baile_personas add column if not exists crush bigint references baile_personas(id) on delete set null;
 create table if not exists baile_fotos (
   persona_id bigint not null references baile_personas(id) on delete cascade,
   orden      int not null,
@@ -52,7 +56,7 @@ create table if not exists baile_sesiones (
   persona_id bigint not null references baile_personas(id) on delete cascade,
   creado     timestamptz not null default now()
 );
-create table if not exists baile_vetos (
+create table if not exists baile_vetos (            -- "prefiero no ir con…"
   persona_id bigint not null references baile_personas(id) on delete cascade,
   vetado_id  bigint not null references baile_personas(id) on delete cascade,
   primary key (persona_id, vetado_id)
@@ -61,13 +65,13 @@ create table if not exists baile_parejas (
   id      bigint generated always as identity primary key,
   a       bigint not null unique references baile_personas(id) on delete cascade,
   b       bigint not null unique references baile_personas(id) on delete cascade,
-  origen  text not null,                        -- propia | sombrero | admin
+  origen  text not null,                        -- propia | invitacion | admin
   visto_a boolean not null default false,
   visto_b boolean not null default false,
   creada  timestamptz not null default now(),
   check (a < b)
 );
-create table if not exists baile_solicitudes (     -- "ya tengo pareja": la otra persona confirma
+create table if not exists baile_solicitudes (      -- "ya tengo pareja": la otra persona confirma
   id     bigint generated always as identity primary key,
   de     bigint not null references baile_personas(id) on delete cascade,
   para   bigint not null references baile_personas(id) on delete cascade,
@@ -75,24 +79,24 @@ create table if not exists baile_solicitudes (     -- "ya tengo pareja": la otra
   visto  boolean not null default false,
   creada timestamptz not null default now()
 );
-create table if not exists baile_propuestas (      -- lo que propone el Sombrero
-  id       bigint generated always as identity primary key,
-  a        bigint not null references baile_personas(id) on delete cascade,
-  b        bigint not null references baile_personas(id) on delete cascade,
-  puntos   numeric not null default 0,
-  comunes  text[] not null default '{}',
-  estado   text not null default 'pendiente',     -- pendiente | pareja | no | caducada | cancelada
-  resp_a   boolean,
-  resp_b   boolean,
-  regalo_a text, nota_a text,
-  regalo_b text, nota_b text,
-  visto_a  boolean not null default false,
-  visto_b  boolean not null default false,
-  creada   timestamptz not null default now(),
-  cerrada  timestamptz,
-  check (a < b)
+create table if not exists baile_invitaciones (     -- "¿vamos juntos al baile?" con regalo y carta
+  id          bigint generated always as identity primary key,
+  de          bigint not null references baile_personas(id) on delete cascade,
+  para        bigint not null references baile_personas(id) on delete cascade,
+  regalo      text not null,
+  nota        text not null default '',
+  foto        bigint,
+  titulo      text,
+  revela      boolean not null default false,     -- revela que era su admirador secreto
+  regalo_resp text, nota_resp text, foto_resp bigint, titulo_resp text,
+  revela_resp boolean not null default false,
+  estado      text not null default 'pendiente',  -- pendiente | aceptada | rechazada | caducada | cancelada
+  visto_de    boolean not null default false,
+  visto_para  boolean not null default false,
+  creada      timestamptz not null default now(),
+  cerrada     timestamptz
 );
-create table if not exists baile_lechuzas (        -- regalos con nota
+create table if not exists baile_lechuzas (         -- regalos entre parejas
   id       bigint generated always as identity primary key,
   de       bigint not null references baile_personas(id) on delete cascade,
   para     bigint not null references baile_personas(id) on delete cascade,
@@ -102,20 +106,14 @@ create table if not exists baile_lechuzas (        -- regalos con nota
   leida    boolean not null default false,
   creada   timestamptz not null default now()
 );
-create table if not exists baile_regalo_fotos (    -- fotos de los regalos propios
+alter table baile_lechuzas add column if not exists foto bigint, add column if not exists titulo text;
+create table if not exists baile_regalo_fotos (     -- fotos de los regalos propios
   id     bigint generated always as identity primary key,
   de     bigint not null references baile_personas(id) on delete cascade,
   datos  text not null,
   creada timestamptz not null default now()
 );
-alter table baile_propuestas add column if not exists foto_a bigint, add column if not exists foto_b bigint,
-  add column if not exists titulo_a text, add column if not exists titulo_b text;
-alter table baile_lechuzas add column if not exists foto bigint, add column if not exists titulo text;
-alter table baile_propuestas add column if not exists revela_a boolean not null default false,
-  add column if not exists revela_b boolean not null default false;
--- 💌 Admirador secreto: cada persona puede elegir a UNA persona y mandarle regalos anónimos
-alter table baile_personas add column if not exists crush bigint references baile_personas(id) on delete set null;
-create table if not exists baile_secretos (
+create table if not exists baile_secretos (         -- 🤫 regalos del admirador secreto
   id     bigint generated always as identity primary key,
   de     bigint not null references baile_personas(id) on delete cascade,
   para   bigint not null references baile_personas(id) on delete cascade,
@@ -126,33 +124,44 @@ create table if not exists baile_secretos (
   leida  boolean not null default false,
   creada timestamptz not null default now()
 );
-create table if not exists baile_bloqueos (       -- "no quiero recibir más regalos secretos de esta persona"
+create table if not exists baile_bloqueos (         -- "no quiero recibir más regalos secretos de esta persona"
   para bigint not null references baile_personas(id) on delete cascade,
   de   bigint not null references baile_personas(id) on delete cascade,
   primary key (para, de)
 );
-create index if not exists baile_propuestas_pend on baile_propuestas (estado);
+create index if not exists baile_invitaciones_estado on baile_invitaciones (estado);
 create index if not exists baile_lechuzas_para on baile_lechuzas (para);
 
+-- Lo de la versión anterior (propuestas del Sombrero) ya no se usa
+drop function if exists baile_repartir();
+drop function if exists baile_cancelar_propuesta(bigint);
+drop table if exists baile_propuestas cascade;
+
 -- Nadie lee las tablas directamente: todo pasa por la función baile(), que comprueba quién eres.
-alter table baile_config      enable row level security;
-alter table baile_personas    enable row level security;
-alter table baile_fotos       enable row level security;
-alter table baile_sesiones    enable row level security;
-alter table baile_vetos       enable row level security;
-alter table baile_parejas     enable row level security;
-alter table baile_solicitudes enable row level security;
-alter table baile_propuestas  enable row level security;
-alter table baile_lechuzas    enable row level security;
+alter table baile_config       enable row level security;
+alter table baile_personas     enable row level security;
+alter table baile_fotos        enable row level security;
+alter table baile_sesiones     enable row level security;
+alter table baile_vetos        enable row level security;
+alter table baile_parejas      enable row level security;
+alter table baile_solicitudes  enable row level security;
+alter table baile_invitaciones enable row level security;
+alter table baile_lechuzas     enable row level security;
 alter table baile_regalo_fotos enable row level security;
-alter table baile_secretos    enable row level security;
-alter table baile_bloqueos    enable row level security;
-revoke all on baile_config, baile_personas, baile_fotos, baile_sesiones, baile_vetos, baile_parejas,
-  baile_solicitudes, baile_propuestas, baile_lechuzas, baile_regalo_fotos, baile_secretos, baile_bloqueos from anon, authenticated;
+alter table baile_secretos     enable row level security;
+alter table baile_bloqueos     enable row level security;
+revoke all on baile_config, baile_personas, baile_fotos, baile_sesiones, baile_vetos, baile_parejas, baile_solicitudes,
+  baile_invitaciones, baile_lechuzas, baile_regalo_fotos, baile_secretos, baile_bloqueos from anon, authenticated;
 
 -- ---------------------------------------------------------------- Ayudantes
 create or replace function baile_cfg(k text) returns text
 language sql stable set search_path = public as $$ select valor from baile_config where clave = k $$;
+
+-- 🎁 Regalos permitidos (si quitas uno en regalos.js, quítalo también aquí). 'propio' = foto de tu propio regalo.
+create or replace function baile_regalos() returns text[]
+language sql immutable as $$
+  select array['rosa', 'rana', 'grajeas', 'ramillete', 'copo', 'pastel', 'snitch', 'lechuza', 'amortentia', 'propio']
+$$;
 
 create or replace function baile_norm(t text) returns text
 language sql immutable as $$
@@ -163,6 +172,22 @@ create or replace function baile_compat(s1 text, v1 text, s2 text, v2 text) retu
 language sql immutable as $$
   select (v1 = 'cualquiera' or (v1 = 'chicas' and s2 = 'chica') or (v1 = 'chicos' and s2 = 'chico'))
      and (v2 = 'cualquiera' or (v2 = 'chicas' and s1 = 'chica') or (v2 = 'chicos' and s1 = 'chico'))
+$$;
+
+-- ¿Pueden verse e invitarse? (los dos buscan pareja, se sienten a gusto y nadie vetó al otro)
+create or replace function baile_compatibles(x bigint, y bigint) returns boolean
+language sql stable set search_path = public as $$
+  select exists (
+    select 1 from baile_personas p, baile_personas q
+    where p.id = x and q.id = y and p.id <> q.id and p.estado = 'busca' and q.estado = 'busca'
+      and baile_compat(p.soy, p.voy_con, q.soy, q.voy_con)
+      and not exists (select 1 from baile_vetos v
+                      where (v.persona_id = x and v.vetado_id = y) or (v.persona_id = y and v.vetado_id = x)))
+$$;
+
+create or replace function baile_abiertas() returns boolean
+language sql stable set search_path = public as $$
+  select baile_cfg('sombrero') = 'si' and now() <= baile_cfg('cierre')::timestamptz
 $$;
 
 create or replace function baile_publico(pid bigint) returns jsonb
@@ -180,79 +205,12 @@ language sql stable set search_path = public as $$
   where i = any ((select intereses from baile_personas where id = y)::text[])
 $$;
 
--- Forma una pareja y cancela todo lo pendiente de esas dos personas.
-create or replace function baile_formar_pareja(x bigint, y bigint, origen text) returns void
-language plpgsql set search_path = public as $$
-begin
-  if exists (select 1 from baile_parejas where a in (x, y) or b in (x, y)) then
-    raise exception 'Una de esas personas ya tiene pareja';
-  end if;
-  update baile_propuestas set estado = 'cancelada', cerrada = now(),
-         visto_a = visto_a or a in (x, y), visto_b = visto_b or b in (x, y)
-   where estado = 'pendiente' and (a in (x, y) or b in (x, y));
-  update baile_solicitudes set estado = 'cancelada', visto = true
-   where estado = 'pendiente' and (de in (x, y) or para in (x, y));
-  insert into baile_parejas (a, b, origen) values (least(x, y), greatest(x, y), origen);
-  update baile_personas set estado = 'pareja' where id in (x, y);
-end $$;
-
--- Cancela la propuesta pendiente de una persona (p. ej. porque dice que ya tiene pareja).
-create or replace function baile_cancelar_propuesta(pid bigint) returns void
-language plpgsql set search_path = public as $$
-begin
-  update baile_propuestas set estado = 'cancelada', cerrada = now(),
-         visto_a = visto_a or a = pid, visto_b = visto_b or b = pid
-   where estado = 'pendiente' and (a = pid or b = pid);
-end $$;
-
--- 🎩 El Sombrero: junta a quienes buscan pareja y no tienen propuesta, empezando por los más compatibles.
-create or replace function baile_repartir() returns void
-language plpgsql set search_path = public as $$
-declare
-  r record;
-  usados bigint[] := '{}';
-  total int;
-  minimo int := coalesce(baile_cfg('minimo'), '1')::int;
-begin
-  update baile_propuestas set estado = 'caducada', cerrada = now()
-   where estado = 'pendiente' and creada < now() - make_interval(hours => baile_cfg('horas')::int);
-  if baile_cfg('sombrero') <> 'si' or now() > baile_cfg('cierre')::timestamptz then return; end if;
-  select count(*) into total from baile_personas;
-  for r in
-    with libres as (
-      select p.* from baile_personas p
-      where p.estado = 'busca'
-        and not exists (select 1 from baile_propuestas q where q.estado = 'pendiente' and (q.a = p.id or q.b = p.id))
-    ), pesos as (                              -- lo que tiene poca gente cuenta más que lo que tiene todo el mundo
-      select i, 1 + ln(greatest(total, 1)::numeric / count(*)) as peso
-      from baile_personas, unnest(intereses) i group by i
-    ), pares as (
-      select x.id as a, y.id as b,
-        coalesce((select sum(w.peso) from unnest(x.intereses) i join pesos w using (i) where i = any (y.intereses)), 0) as puntos,
-        exists (select 1 from baile_propuestas q where q.a = x.id and q.b = y.id) as repetida,
-        cardinality(array(select unnest(x.intereses) intersect select unnest(y.intereses))) as n,
-        (coalesce(x.crush = y.id, false) or coalesce(y.crush = x.id, false)) as crush
-      from libres x join libres y on x.id < y.id
-      where baile_compat(x.soy, x.voy_con, y.soy, y.voy_con)
-        and not exists (select 1 from baile_vetos v
-                        where (v.persona_id = x.id and v.vetado_id = y.id) or (v.persona_id = y.id and v.vetado_id = x.id))
-        and not exists (select 1 from baile_propuestas q              -- un "no" es para siempre; lo caducado puede volver
-                        where q.a = x.id and q.b = y.id and q.estado <> 'caducada')
-    )
-    select * from pares where n >= minimo            -- sin suficientes cosas en común, mejor esperar a que llegue más gente
-    order by repetida, crush desc, puntos desc, a, b   -- si alguien tiene un crush compatible, se lo presenta primero
-  loop
-    if r.a = any (usados) or r.b = any (usados) then continue; end if;
-    insert into baile_propuestas (a, b, puntos, comunes) values (r.a, r.b, r.puntos, baile_comunes(r.a, r.b));
-    usados := usados || r.a || r.b;
-  end loop;
-end $$;
-
 -- Regalo propio: valida y guarda la foto; devuelve su id (o null si es un regalo de la lista).
 create or replace function baile_foto_regalo(me bigint, p jsonb) returns bigint
 language plpgsql set search_path = public as $$
 declare fid bigint;
 begin
+  if not (p->>'regalo' = any (baile_regalos())) then raise exception 'Elige un regalo'; end if;
   if p->>'regalo' <> 'propio' then return null; end if;
   if length(trim(coalesce(p->>'titulo', ''))) < 2 then raise exception 'Escribe qué es tu regalo'; end if;
   if coalesce(p->>'foto', '') !~ '^data:image/(jpeg|png|webp);base64,' or length(p->>'foto') > 600000 then
@@ -262,13 +220,95 @@ begin
   return fid;
 end $$;
 
+-- Invitaciones sin respuesta a tiempo → caducan
+create or replace function baile_caducar() returns void
+language sql set search_path = public as $$
+  update baile_invitaciones set estado = 'caducada', cerrada = now()
+  where estado = 'pendiente' and creada < now() - make_interval(hours => baile_cfg('horas')::int)
+$$;
+
+-- Cancela las invitaciones pendientes de una persona (enviadas y recibidas)
+create or replace function baile_cancelar_invitaciones(pid bigint) returns void
+language sql set search_path = public as $$
+  update baile_invitaciones set estado = 'cancelada', cerrada = now(),
+         visto_de = visto_de or de = pid, visto_para = visto_para or para = pid
+  where estado = 'pendiente' and (de = pid or para = pid)
+$$;
+
+-- Cancela las invitaciones de alguien que ya no son posibles (cambió con quién quiere ir, vetó, etc.)
+create or replace function baile_limpiar_invitaciones(pid bigint) returns void
+language sql set search_path = public as $$
+  update baile_invitaciones set estado = 'cancelada', cerrada = now(),
+         visto_de = visto_de or de = pid, visto_para = visto_para or para = pid
+  where estado = 'pendiente' and (de = pid or para = pid) and not baile_compatibles(de, para)
+$$;
+
+-- Forma una pareja y cancela todo lo pendiente de esas dos personas.
+create or replace function baile_formar_pareja(x bigint, y bigint, origen text) returns void
+language plpgsql set search_path = public as $$
+begin
+  if exists (select 1 from baile_parejas where a in (x, y) or b in (x, y)) then
+    raise exception 'Una de esas personas ya tiene pareja';
+  end if;
+  perform baile_cancelar_invitaciones(x);
+  perform baile_cancelar_invitaciones(y);
+  update baile_solicitudes set estado = 'cancelada', visto = true
+   where estado = 'pendiente' and (de in (x, y) or para in (x, y));
+  insert into baile_parejas (a, b, origen) values (least(x, y), greatest(x, y), origen);
+  update baile_personas set estado = 'pareja' where id in (x, y);
+end $$;
+
+-- Aceptar una invitación (con regalo y carta de vuelta)
+create or replace function baile_aceptar(iid bigint, p jsonb) returns void
+language plpgsql set search_path = public as $$
+declare
+  inv baile_invitaciones;
+  fid bigint;
+begin
+  select * into inv from baile_invitaciones where id = iid and estado = 'pendiente';
+  if not found then raise exception 'Esa invitación ya no está activa'; end if;
+  fid := baile_foto_regalo(inv.para, p);
+  update baile_invitaciones set estado = 'aceptada', cerrada = now(), visto_de = true, visto_para = true,
+    regalo_resp = p->>'regalo', nota_resp = left(trim(coalesce(p->>'nota', '')), 500), foto_resp = fid,
+    titulo_resp = case when fid is not null then left(trim(p->>'titulo'), 40) end,
+    revela_resp = coalesce((p->>'revela')::boolean, false)
+                  and exists (select 1 from baile_secretos where de = inv.para and para = inv.de)
+  where id = iid;
+  select * into inv from baile_invitaciones where id = iid;
+  perform baile_formar_pareja(inv.de, inv.para, 'invitacion');
+  insert into baile_lechuzas (de, para, regalo, nota, foto, titulo)
+  values (inv.de, inv.para, inv.regalo, inv.nota, inv.foto, inv.titulo),
+         (inv.para, inv.de, inv.regalo_resp, coalesce(inv.nota_resp, ''), inv.foto_resp, inv.titulo_resp);
+end $$;
+
+-- Las personas que puede ver alguien que busca pareja, de más a menos cosas en común
+create or replace function baile_perfiles(me bigint) returns jsonb
+language sql stable set search_path = public as $$
+  select coalesce(jsonb_agg(s.o order by s.n desc, s.nombre), '[]')
+  from (
+    select baile_publico(y.id) || jsonb_build_object(
+        'comunes', to_jsonb(c.comunes), 'n', cardinality(c.comunes),
+        'es_mi_crush', coalesce(x.crush = y.id, false),
+        'me_invito', exists (select 1 from baile_invitaciones i where i.de = y.id and i.para = me and i.estado = 'pendiente'),
+        'le_invite', exists (select 1 from baile_invitaciones i where i.de = me and i.para = y.id and i.estado = 'pendiente'),
+        'me_rechazo', exists (select 1 from baile_invitaciones i where i.de = me and i.para = y.id and i.estado = 'rechazada'),
+        'le_mande_secretos', exists (select 1 from baile_secretos z where z.de = me and z.para = y.id)) as o,
+      cardinality(c.comunes) as n, y.nombre
+    from baile_personas x
+    join baile_personas y on baile_compatibles(x.id, y.id)
+    cross join lateral (select baile_comunes(x.id, y.id) as comunes) c
+    where x.id = me
+      and (cardinality(c.comunes) >= baile_cfg('minimo')::int
+           or exists (select 1 from baile_invitaciones i where i.de = y.id and i.para = me and i.estado = 'pendiente'))
+  ) s
+$$;
+
 -- Todo lo que ve una persona en su pantalla.
 create or replace function baile_estado(me bigint) returns jsonb
 language plpgsql set search_path = public as $$
 declare
   yo baile_personas;
   par baile_parejas;
-  q baile_propuestas;
   otro bigint;
   j jsonb;
   baile_t timestamptz := baile_cfg('baile')::timestamptz;
@@ -276,56 +316,45 @@ begin
   select * into yo from baile_personas where id = me;
   j := jsonb_build_object(
     'yo', baile_publico(me) || jsonb_build_object('soy', yo.soy, 'voy_con', yo.voy_con, 'estado', yo.estado),
-    'cfg', jsonb_build_object('sombrero', baile_cfg('sombrero'), 'cierre', baile_cfg('cierre')::timestamptz,
-      'baile', baile_t, 'horas', baile_cfg('horas')::int, 'minimo', baile_cfg('minimo')::int, 'nota_libre', baile_cfg('nota_libre') = 'si', 'ahora', now()),
+    'cfg', jsonb_build_object('abiertas', baile_abiertas(), 'sombrero', baile_cfg('sombrero'), 'cierre', baile_cfg('cierre')::timestamptz,
+      'baile', baile_t, 'horas', baile_cfg('horas')::int, 'minimo', baile_cfg('minimo')::int,
+      'nota_libre', baile_cfg('nota_libre') = 'si', 'ahora', now()),
     'resumen', jsonb_build_object('parejas', (select count(*) from baile_parejas),
       'buscando', (select count(*) from baile_personas where estado = 'busca')),
     'vetos', coalesce((select jsonb_agg(vetado_id) from baile_vetos where persona_id = me), '[]'));
 
-  -- Pareja confirmada
+  -- Pareja confirmada (y si era su admirador secreto y lo reveló)
   select * into par from baile_parejas where a = me or b = me;
   if found then
     otro := case when par.a = me then par.b else par.a end;
     j := j || jsonb_build_object('pareja', jsonb_build_object('id', par.id, 'origen', par.origen,
       'persona', baile_publico(otro), 'comunes', to_jsonb(baile_comunes(me, otro)),
-      'nueva', not (case when par.a = me then par.visto_a else par.visto_b end)));
+      'nueva', not (case when par.a = me then par.visto_a else par.visto_b end),
+      'era_admirador', exists (select 1 from baile_invitaciones i where i.estado = 'aceptada'
+        and ((i.de = otro and i.para = me and i.revela) or (i.para = otro and i.de = me and i.revela_resp)))));
   end if;
 
-  -- Propuesta del Sombrero
-  select * into q from baile_propuestas where estado = 'pendiente' and (a = me or b = me);
-  if found then
-    otro := case when q.a = me then q.b else q.a end;
-    j := j || jsonb_build_object('propuesta', jsonb_build_object('id', q.id, 'persona', baile_publico(otro),
-      'comunes', to_jsonb(q.comunes),
-      'vence', q.creada + make_interval(hours => baile_cfg('horas')::int),
-      'mi_resp',   case when q.a = me then q.resp_a else q.resp_b end,
-      'mi_regalo', case when q.a = me then q.regalo_a else q.regalo_b end,
-      'mi_nota',   case when q.a = me then q.nota_a else q.nota_b end,
-      'su_regalo', case when q.a = me then (case when q.resp_b then q.regalo_b end) else (case when q.resp_a then q.regalo_a end) end,
-      'su_nota',   case when q.a = me then (case when q.resp_b then q.nota_b end) else (case when q.resp_a then q.nota_a end) end,
-      'mi_titulo', case when q.a = me then q.titulo_a else q.titulo_b end,
-      'mi_foto',   case when q.a = me then q.foto_a else q.foto_b end,
-      'su_titulo', case when q.a = me then (case when q.resp_b then q.titulo_b end) else (case when q.resp_a then q.titulo_a end) end,
-      'su_foto',   case when q.a = me then (case when q.resp_b then q.foto_b end) else (case when q.resp_a then q.foto_a end) end,
-      'es_mi_crush', coalesce(yo.crush = otro, false),
-      'le_mande_secretos', exists (select 1 from baile_secretos where de = me and para = otro),
-      'mi_revela', case when q.a = me then q.revela_a else q.revela_b end,
-      'su_revela', case when q.a = me then q.resp_b is true and q.revela_b else q.resp_a is true and q.revela_a end));
-  end if;
+  -- Invitaciones
+  j := j || jsonb_build_object(
+    'recibidas', coalesce((select jsonb_agg(jsonb_build_object('id', i.id, 'persona', baile_publico(i.de),
+        'comunes', to_jsonb(baile_comunes(me, i.de)), 'regalo', i.regalo, 'nota', i.nota, 'titulo', i.titulo, 'foto', i.foto,
+        'revela', i.revela, 'le_mande_secretos', exists (select 1 from baile_secretos z where z.de = me and z.para = i.de),
+        'vence', i.creada + make_interval(hours => baile_cfg('horas')::int)) order by i.id)
+      from baile_invitaciones i where i.para = me and i.estado = 'pendiente'), '[]'),
+    'enviada', (select jsonb_build_object('id', i.id, 'persona', baile_publico(i.para), 'regalo', i.regalo, 'nota', i.nota,
+        'titulo', i.titulo, 'foto', i.foto, 'revela', i.revela, 'vence', i.creada + make_interval(hours => baile_cfg('horas')::int))
+      from baile_invitaciones i where i.de = me and i.estado = 'pendiente' order by i.id desc limit 1));
 
-  -- Avisos que aún no ha visto (propuestas que terminaron sin pareja, solicitudes rechazadas)
-  j := j || jsonb_build_object('avisos', coalesce((
-    select jsonb_agg(jsonb_build_object('tipo', x.estado, 'id', x.id,
-      'nombre', (select nombre from baile_personas where id = case when x.a = me then x.b else x.a end),
-      'mi_resp', case when x.a = me then x.resp_a else x.resp_b end,
-      'su_resp', case when x.a = me then x.resp_b else x.resp_a end) order by x.id)
-    from baile_propuestas x
-    where x.estado in ('no', 'caducada', 'cancelada')
-      and ((x.a = me and not x.visto_a) or (x.b = me and not x.visto_b))), '[]')
-    || coalesce((
-    select jsonb_agg(jsonb_build_object('tipo', 'solicitud_rechazada', 'id', s.id,
-      'nombre', (select nombre from baile_personas where id = s.para)))
-    from baile_solicitudes s where s.de = me and s.estado = 'rechazada' and not s.visto), '[]'));
+  -- Avisos que aún no ha visto
+  j := j || jsonb_build_object('avisos',
+    coalesce((select jsonb_agg(jsonb_build_object('tipo', 'inv_' || i.estado, 'rol', case when i.de = me then 'de' else 'para' end,
+        'id', i.id, 'nombre', (select nombre from baile_personas where id = case when i.de = me then i.para else i.de end)) order by i.id)
+      from baile_invitaciones i
+      where (i.de = me and not i.visto_de and i.estado in ('rechazada', 'caducada', 'cancelada'))
+         or (i.para = me and not i.visto_para and i.estado in ('caducada', 'cancelada'))), '[]')
+    || coalesce((select jsonb_agg(jsonb_build_object('tipo', 'solicitud_rechazada', 'id', s.id,
+        'nombre', (select nombre from baile_personas where id = s.para)))
+      from baile_solicitudes s where s.de = me and s.estado = 'rechazada' and not s.visto), '[]'));
 
   -- "Ya tengo pareja": solicitudes
   j := j || jsonb_build_object(
@@ -338,16 +367,15 @@ begin
   j := j || jsonb_build_object(
     'lechuzas', coalesce((select jsonb_agg(jsonb_build_object('id', l.id,
         'de', (select nombre from baile_personas where id = l.de),
-        'de_casa', (select casa from baile_personas where id = l.de),
         'cerrada', l.sorpresa and now() < baile_t,
-        'titulo', case when l.sorpresa and now() < baile_t then null else l.titulo end,
-        'foto',   case when l.sorpresa and now() < baile_t then null else l.foto end,
         'regalo', case when l.sorpresa and now() < baile_t then null else l.regalo end,
         'nota',   case when l.sorpresa and now() < baile_t then null else l.nota end,
+        'titulo', case when l.sorpresa and now() < baile_t then null else l.titulo end,
+        'foto',   case when l.sorpresa and now() < baile_t then null else l.foto end,
         'sorpresa', l.sorpresa, 'leida', l.leida, 'creada', l.creada) order by l.id desc)
       from baile_lechuzas l where l.para = me), '[]'),
-    'enviadas', coalesce((select jsonb_agg(jsonb_build_object('id', l.id, 'regalo', l.regalo, 'nota', l.nota, 'titulo', l.titulo, 'foto', l.foto,
-        'sorpresa', l.sorpresa, 'creada', l.creada) order by l.id desc)
+    'enviadas', coalesce((select jsonb_agg(jsonb_build_object('id', l.id, 'para', (select nombre from baile_personas where id = l.para),
+        'regalo', l.regalo, 'nota', l.nota, 'titulo', l.titulo, 'foto', l.foto, 'sorpresa', l.sorpresa, 'creada', l.creada) order by l.id desc)
       from baile_lechuzas l where l.de = me), '[]'));
 
   -- Admirador secreto: lo que recibo (sin decir de quién) y mi crush
@@ -376,20 +404,17 @@ declare
   accion text := p->>'accion';
   me bigint;
   yo baile_personas;
-  q baile_propuestas;
+  inv baile_invitaciones;
   s baile_solicitudes;
   otro bigint;
   tok text;
   v text;
   i int;
-  casas text[] := array['Gryffindor', 'Slytherin', 'Ravenclaw', 'Hufflepuff'];
-  -- 🎁 Regalos permitidos (si quitas uno en regalos.js, quítalo también aquí). 'propio' = foto de tu propio regalo.
-  regalos text[] := array['rosa', 'rana', 'grajeas', 'ramillete', 'copo', 'pastel', 'snitch', 'lechuza', 'amortentia', 'propio'];
   fid bigint;
-  tit text;
-  v2 boolean;
+  casas text[] := array['Gryffindor', 'Slytherin', 'Ravenclaw', 'Hufflepuff'];
 begin
   perform pg_advisory_xact_lock(20261205);   -- una petición a la vez: nadie se queda con la misma pareja dos veces
+  perform baile_caducar();
 
   -- ======== Sin cuenta
   if accion = 'resumen' then
@@ -416,7 +441,7 @@ begin
     if coalesce(p->>'voy_con', '') not in ('chicas', 'chicos', 'cualquiera') then raise exception 'Dinos con quién te gustaría ir'; end if;
     if coalesce(p->>'estado', '') not in ('busca', 'tiene') then raise exception 'Dinos si ya tienes pareja'; end if;
     if p->>'estado' = 'busca' and jsonb_array_length(coalesce(p->'fotos', '[]')) = 0 then
-      raise exception 'Sube al menos una foto para que el Sombrero pueda presentarte';
+      raise exception 'Sube al menos una foto para que puedan conocerte';
     end if;
     insert into baile_personas (nombre, nombre_norm, pin_hash, casa, soy, voy_con, frase, intereses, estado)
     values (v, baile_norm(v), extensions.crypt(p->>'pin', extensions.gen_salt('bf')), p->>'casa', p->>'soy', p->>'voy_con',
@@ -438,7 +463,6 @@ begin
     if p->>'estado' = 'tiene' and nullif(p->>'pareja_id', '') is not null then
       perform baile(jsonb_build_object('accion', 'pedir_pareja', 'token', tok, 'para', p->'pareja_id'));
     end if;
-    perform baile_repartir();
     return jsonb_build_object('token', tok, 'estado', baile_estado(me));
   end if;
 
@@ -458,7 +482,6 @@ begin
     update baile_personas set fallos = 0, bloqueo = null where id = yo.id;
     tok := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
     insert into baile_sesiones (token, persona_id) values (tok, yo.id);
-    perform baile_repartir();
     return jsonb_build_object('token', tok, 'estado', baile_estado(yo.id));
   end if;
 
@@ -491,7 +514,6 @@ begin
     elsif accion <> 'admin_panel' then
       raise exception 'Acción desconocida';
     end if;
-    perform baile_repartir();
     return jsonb_build_object(
       'sombrero', baile_cfg('sombrero'), 'cierre', baile_cfg('cierre')::timestamptz, 'horas', baile_cfg('horas')::int,
       'minimo', baile_cfg('minimo')::int,
@@ -499,9 +521,10 @@ begin
           'id', x.id, 'nombre', x.nombre, 'casa', x.casa, 'soy', x.soy, 'voy_con', x.voy_con, 'estado', x.estado,
           'intereses', cardinality(x.intereses), 'fotos', (select count(*) from baile_fotos f where f.persona_id = x.id),
           'creado', x.creado,
-          'propuesta_con', (select y.nombre from baile_propuestas q2 join baile_personas y on y.id = case when q2.a = x.id then q2.b else q2.a end
-                            where q2.estado = 'pendiente' and (q2.a = x.id or q2.b = x.id)),
-          'rechazos', (select count(*) from baile_propuestas q3 where q3.estado = 'no' and (q3.a = x.id or q3.b = x.id))
+          'invito_a', (select y.nombre from baile_invitaciones i2 join baile_personas y on y.id = i2.para
+                       where i2.de = x.id and i2.estado = 'pendiente' limit 1),
+          'invitaciones', (select count(*) from baile_invitaciones i3 where i3.para = x.id and i3.estado = 'pendiente'),
+          'rechazos', (select count(*) from baile_invitaciones i4 where i4.de = x.id and i4.estado = 'rechazada')
         ) order by x.nombre) from baile_personas x), '[]'),
       'parejas', coalesce((select jsonb_agg(jsonb_build_object('id', pa.id, 'origen', pa.origen, 'creada', pa.creada,
           'a', (select nombre from baile_personas where id = pa.a), 'b', (select nombre from baile_personas where id = pa.b)
@@ -519,8 +542,11 @@ begin
   select * into yo from baile_personas where id = me;
 
   if accion = 'estado' then
-    perform baile_repartir();
     return baile_estado(me);
+
+  elsif accion = 'perfiles' then             -- quienes se pueden ver mutuamente, de más a menos cosas en común
+    if yo.estado <> 'busca' then return '[]'::jsonb; end if;
+    return baile_perfiles(me);
 
   elsif accion = 'salir' then
     delete from baile_sesiones where token = p->>'token';
@@ -529,8 +555,9 @@ begin
   elsif accion = 'fotos' then
     otro := (p->>'persona')::bigint;
     if otro <> me
+       and not baile_compatibles(me, otro)
        and not exists (select 1 from baile_parejas where (a = me and b = otro) or (a = otro and b = me))
-       and not exists (select 1 from baile_propuestas where (a = least(me, otro) and b = greatest(me, otro)))
+       and not exists (select 1 from baile_invitaciones where (de = me and para = otro) or (de = otro and para = me))
        and not exists (select 1 from baile_solicitudes where (de = me and para = otro) or (de = otro and para = me)) then
       raise exception 'No puedes ver esas fotos';
     end if;
@@ -539,7 +566,7 @@ begin
   elsif accion = 'foto_regalo' then
     fid := (p->>'id')::bigint;
     if not exists (select 1 from baile_lechuzas where foto = fid and (de = me or (para = me and not (sorpresa and now() < baile_cfg('baile')::timestamptz))))
-       and not exists (select 1 from baile_propuestas where (foto_a = fid and (a = me or (b = me and resp_a))) or (foto_b = fid and (b = me or (a = me and resp_b))))
+       and not exists (select 1 from baile_invitaciones where (foto = fid or foto_resp = fid) and (de = me or para = me))
        and not exists (select 1 from baile_secretos where foto = fid and (de = me or para = me)) then
       raise exception 'No puedes ver esa foto';
     end if;
@@ -572,14 +599,7 @@ begin
       end loop;
       update baile_personas set fotos_ver = fotos_ver + 1 where id = me;
     end if;
-    -- si cambió con quién quiere ir y su propuesta ya no encaja, se cancela
-    select * into q from baile_propuestas where estado = 'pendiente' and (a = me or b = me);
-    if found then
-      otro := case when q.a = me then q.b else q.a end;
-      if not (select baile_compat(x.soy, x.voy_con, y.soy, y.voy_con) from baile_personas x, baile_personas y where x.id = me and y.id = otro) then
-        perform baile_cancelar_propuesta(me);
-      end if;
-    end if;
+    perform baile_limpiar_invitaciones(me);
 
   elsif accion = 'vetos' then
     delete from baile_vetos where persona_id = me;
@@ -588,26 +608,22 @@ begin
     where x::bigint <> me and exists (select 1 from baile_personas where id = x::bigint)
     limit 3
     on conflict do nothing;
-    if exists (select 1 from baile_propuestas q2 join baile_vetos v2 on v2.persona_id = me
-               and v2.vetado_id = case when q2.a = me then q2.b else q2.a end
-               where q2.estado = 'pendiente' and (q2.a = me or q2.b = me)) then
-      perform baile_cancelar_propuesta(me);
-    end if;
+    perform baile_limpiar_invitaciones(me);
 
   elsif accion = 'nombres' then
     return coalesce((select jsonb_agg(jsonb_build_object('id', id, 'nombre', nombre, 'casa', casa, 'estado', estado) order by nombre)
                      from baile_personas where id <> me), '[]');
 
-  elsif accion = 'modo' then                 -- 'busca' (que me ayude el Sombrero) o 'tiene' (ya tengo con quién ir)
+  elsif accion = 'modo' then                 -- 'busca' (busco pareja) o 'tiene' (ya tengo con quién ir)
     if yo.estado = 'pareja' then raise exception 'Ya tienes pareja confirmada'; end if;
     if p->>'estado' = 'busca' then
       if not exists (select 1 from baile_fotos where persona_id = me) then
-        raise exception 'Sube al menos una foto en tu perfil para que el Sombrero pueda presentarte';
+        raise exception 'Sube al menos una foto en tu perfil para que puedan conocerte';
       end if;
       update baile_solicitudes set estado = 'cancelada', visto = true where de = me and estado = 'pendiente';
       update baile_personas set estado = 'busca' where id = me;
     elsif p->>'estado' = 'tiene' then
-      perform baile_cancelar_propuesta(me);
+      perform baile_cancelar_invitaciones(me);
       update baile_personas set estado = 'tiene' where id = me;
     else
       raise exception 'Opción no válida';
@@ -624,7 +640,7 @@ begin
     else
       update baile_solicitudes set estado = 'cancelada', visto = true where de = me and estado = 'pendiente';
       insert into baile_solicitudes (de, para) values (me, otro);
-      perform baile_cancelar_propuesta(me);
+      perform baile_cancelar_invitaciones(me);
       update baile_personas set estado = 'tiene' where id = me;
     end if;
 
@@ -642,35 +658,46 @@ begin
       update baile_solicitudes set estado = 'rechazada' where id = s.id;
     end if;
 
-  elsif accion = 'responder_propuesta' then  -- invitar (con regalo) o decir que no
-    select * into q from baile_propuestas where estado = 'pendiente' and (a = me or b = me) and id = (p->>'id')::bigint;
-    if not found then raise exception 'Esta propuesta ya no está activa'; end if;
-    if (case when q.a = me then q.resp_a else q.resp_b end) is not null then raise exception 'Ya respondiste'; end if;
-    if (p->>'si')::boolean then
-      if not (p->>'regalo' = any (regalos)) then raise exception 'Elige un regalo para tu invitación'; end if;
-      v := left(trim(coalesce(p->>'nota', '')), 500);
-      fid := baile_foto_regalo(me, p);
-      tit := case when fid is not null then left(trim(p->>'titulo'), 40) end;
-      otro := case when q.a = me then q.b else q.a end;
-      -- revelar que eres su admirador secreto: solo si de verdad le mandaste regalos secretos
-      v2 := coalesce((p->>'revela')::boolean, false) and exists (select 1 from baile_secretos where de = me and para = otro);
-      if q.a = me then update baile_propuestas set resp_a = true, regalo_a = p->>'regalo', nota_a = v, foto_a = fid, titulo_a = tit, revela_a = v2 where id = q.id;
-      else update baile_propuestas set resp_b = true, regalo_b = p->>'regalo', nota_b = v, foto_b = fid, titulo_b = tit, revela_b = v2 where id = q.id; end if;
-      select * into q from baile_propuestas where id = q.id;
-      if q.resp_a and q.resp_b then         -- ¡los dos dijeron que sí!
-        update baile_propuestas set estado = 'pareja', cerrada = now(), visto_a = true, visto_b = true where id = q.id;
-        perform baile_formar_pareja(q.a, q.b, 'sombrero');
-        insert into baile_lechuzas (de, para, regalo, nota, foto, titulo)
-        values (q.a, q.b, q.regalo_a, coalesce(q.nota_a, ''), q.foto_a, q.titulo_a),
-               (q.b, q.a, q.regalo_b, coalesce(q.nota_b, ''), q.foto_b, q.titulo_b);
-      end if;
-    else
-      update baile_propuestas set estado = 'no', cerrada = now(),
-             resp_a = case when a = me then false else resp_a end,
-             resp_b = case when b = me then false else resp_b end,
-             visto_a = visto_a or a = me, visto_b = visto_b or b = me
-       where id = q.id;
+  elsif accion = 'invitar' then              -- "¿vamos juntos al baile?" con regalo y carta
+    otro := (p->>'para')::bigint;
+    if not baile_abiertas() then
+      if now() > baile_cfg('cierre')::timestamptz then raise exception 'El plazo para invitar ya terminó'; end if;
+      raise exception 'Las invitaciones todavía no están abiertas. ¡Muy pronto!';
     end if;
+    if yo.estado <> 'busca' then raise exception 'Solo puedes invitar mientras buscas pareja'; end if;
+    if not baile_compatibles(me, otro) then raise exception 'No puedes invitar a esa persona'; end if;
+    select * into inv from baile_invitaciones where de = otro and para = me and estado = 'pendiente';
+    if found then                            -- ¡ya te había invitado! invitar = aceptar
+      perform baile_aceptar(inv.id, p);
+      return baile_estado(me);
+    end if;
+    if cardinality(baile_comunes(me, otro)) < baile_cfg('minimo')::int then
+      raise exception 'Necesitan al menos % cosas en común', baile_cfg('minimo');
+    end if;
+    if exists (select 1 from baile_invitaciones where de = me and estado = 'pendiente') then
+      raise exception 'Ya tienes una invitación esperando respuesta. Espera o cancélala para invitar a otra persona.';
+    end if;
+    if exists (select 1 from baile_invitaciones where de = me and para = otro and estado = 'rechazada') then
+      raise exception 'Esa persona ya respondió a tu invitación';
+    end if;
+    fid := baile_foto_regalo(me, p);
+    insert into baile_invitaciones (de, para, regalo, nota, foto, titulo, revela)
+    values (me, otro, p->>'regalo', left(trim(coalesce(p->>'nota', '')), 500), fid,
+            case when fid is not null then left(trim(p->>'titulo'), 40) end,
+            coalesce((p->>'revela')::boolean, false) and exists (select 1 from baile_secretos where de = me and para = otro));
+
+  elsif accion = 'responder_invitacion' then
+    select * into inv from baile_invitaciones where id = (p->>'id')::bigint and para = me and estado = 'pendiente';
+    if not found then raise exception 'Esa invitación ya no está activa'; end if;
+    if (p->>'acepta')::boolean then
+      if yo.estado = 'pareja' then raise exception 'Ya tienes pareja confirmada'; end if;
+      perform baile_aceptar(inv.id, p);
+    else
+      update baile_invitaciones set estado = 'rechazada', cerrada = now(), visto_para = true where id = inv.id;
+    end if;
+
+  elsif accion = 'cancelar_invitacion' then
+    update baile_invitaciones set estado = 'cancelada', cerrada = now(), visto_de = true where de = me and estado = 'pendiente';
 
   elsif accion = 'visto' then
     if p->>'tipo' = 'solicitud_rechazada' then
@@ -678,14 +705,13 @@ begin
     elsif p->>'tipo' = 'pareja' then
       update baile_parejas set visto_a = visto_a or a = me, visto_b = visto_b or b = me where a = me or b = me;
     else
-      update baile_propuestas set visto_a = visto_a or a = me, visto_b = visto_b or b = me
-       where id = (p->>'id')::bigint and (a = me or b = me);
+      update baile_invitaciones set visto_de = visto_de or de = me, visto_para = visto_para or para = me
+       where id = (p->>'id')::bigint and (de = me or para = me);
     end if;
 
   elsif accion = 'lechuza' then             -- regalo a tu pareja confirmada
     select case when a = me then b else a end into otro from baile_parejas where a = me or b = me;
     if otro is null then raise exception 'Primero necesitas pareja confirmada'; end if;
-    if not (p->>'regalo' = any (regalos)) then raise exception 'Elige un regalo'; end if;
     if (select count(*) from baile_lechuzas where de = me and creada > now() - interval '1 day') >= 15 then
       raise exception 'Las lechuzas están agotadas por hoy 🦉 Mañana pueden volar más.';
     end if;
@@ -693,6 +719,10 @@ begin
     insert into baile_lechuzas (de, para, regalo, nota, sorpresa, foto, titulo)
     values (me, otro, p->>'regalo', left(trim(coalesce(p->>'nota', '')), 500), coalesce((p->>'sorpresa')::boolean, false),
             fid, case when fid is not null then left(trim(p->>'titulo'), 40) end);
+
+  elsif accion = 'leer_lechuzas' then
+    update baile_lechuzas set leida = true
+     where para = me and not leida and not (sorpresa and now() < baile_cfg('baile')::timestamptz);
 
   elsif accion = 'crush' then                -- elegir (o quitar) a quién mandarle regalos secretos
     if p->>'para' is null or p->>'para' = '' then
@@ -712,7 +742,6 @@ begin
     if otro is null then raise exception 'Primero elige a quién se lo mandas'; end if;
     if (select estado from baile_personas where id = otro) = 'pareja' then raise exception 'Esa persona ya tiene pareja para el baile'; end if;
     if exists (select 1 from baile_bloqueos where para = otro and de = me) then raise exception 'Esa persona prefiere no recibir regalos secretos'; end if;
-    if not (p->>'regalo' = any (regalos)) then raise exception 'Elige un regalo'; end if;
     if (select count(*) from baile_secretos where de = me and creada > now() - interval '1 day') >= 3 then
       raise exception 'Ya mandaste 3 regalos secretos hoy 🤫 Mañana puedes mandar más.';
     end if;
@@ -729,21 +758,18 @@ begin
   elsif accion = 'leer_secretos' then
     update baile_secretos set leida = true where para = me and not leida;
 
-  elsif accion = 'leer_lechuzas' then
-    update baile_lechuzas set leida = true
-     where para = me and not leida and not (sorpresa and now() < baile_cfg('baile')::timestamptz);
-
   else
     raise exception 'Acción desconocida';
   end if;
 
-  perform baile_repartir();
   return baile_estado(me);
 end $$;
 
 -- Solo la función baile() se puede llamar desde la página.
-revoke execute on function baile_cfg(text), baile_norm(text), baile_compat(text, text, text, text), baile_publico(bigint),
-  baile_comunes(bigint, bigint), baile_formar_pareja(bigint, bigint, text), baile_cancelar_propuesta(bigint),
-  baile_repartir(), baile_estado(bigint), baile_foto_regalo(bigint, jsonb) from public, anon, authenticated;
+revoke execute on function baile_cfg(text), baile_regalos(), baile_norm(text), baile_compat(text, text, text, text),
+  baile_compatibles(bigint, bigint), baile_abiertas(), baile_publico(bigint), baile_comunes(bigint, bigint),
+  baile_foto_regalo(bigint, jsonb), baile_caducar(), baile_cancelar_invitaciones(bigint), baile_limpiar_invitaciones(bigint),
+  baile_formar_pareja(bigint, bigint, text), baile_aceptar(bigint, jsonb), baile_perfiles(bigint), baile_estado(bigint)
+  from public, anon, authenticated;
 revoke execute on function baile(jsonb) from public;
 grant execute on function baile(jsonb) to anon, authenticated;

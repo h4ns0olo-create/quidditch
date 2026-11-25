@@ -8,26 +8,25 @@ datos se guardan gratis en **Supabase**.
   una frase, **de 1 a 3 fotos** e **intereses** (mínimo 8). Categorías: música, animales, comida, color, películas
   y series, hobbies, deportes y asignatura favorita de Hogwarts; cada una con "Otro: escribe el tuyo".
 - **Ya tengo pareja:** eliges a tu pareja de la lista y ella lo confirma. Luego se pueden mandar regalos.
-- **Que el Sombrero me ayude:** el Sombrero te presenta a la persona libre con la que más coincides (lo raro cuenta más:
-  coincidir en "Metal" pesa más que en "Pizza"). **Solo propone si tienen al menos 3 cosas en común** (se cambia en
-  `#admin`); si no hay nadie así, espera a que se registre más gente. Ves sus fotos, su casa, su frase y en qué coinciden.
+- **Buscar pareja:** al entrar vas bajando y aparecen los perfiles de las personas compatibles contigo (los dos se
+  sienten a gusto yendo juntos y tienen **al menos 3 cosas en común**; se cambia en `#admin`). Quienes más se parecen a ti
+  salen primero. Cada perfil: fotos (con flechitas ‹ › o deslizando), nombre, casa, frase y en qué coinciden.
   - **Invitar al baile:** eliges un regalo de la lista (9 regalos dibujados, en `regalos.js`) **o tu propio regalo**
-    (foto + qué es), y una **carta** (hasta 500 letras; se puede empezar con una frase hecha). Llega como un sobre con
-    sello de lacre que se abre al tocarlo.
-  - Si **los dos dicen que sí** → ¡pareja! (con celebración y los regalos van al buzón).
-  - Si **cualquiera dice que no** → a la otra persona le sale "*Fulano ha rechazado tu invitación*" y a los dos se les
-    presenta a otra persona. Esa pareja no se vuelve a proponer.
-  - Si alguien no responde en **12 horas**, la propuesta **caduca** (a quien invitó le sale "*Tu invitación a Fulano ha
-    caducado*", que no es un rechazo) y los dos quedan libres.
+    (foto + qué es), y una **carta** (hasta 500 letras). Llega como un sobre con sello de lacre que se abre al tocarlo.
+  - Solo puedes tener **una invitación pendiente** a la vez (esperas la respuesta o la cancelas). Recibir, puedes varias.
+  - Si la otra persona **acepta** (con un regalo y carta de vuelta) → ¡pareja! Si te había invitado y tú la invitas, es pareja directa.
+  - Si **rechaza** → te sale "*Fulano ha rechazado tu invitación*" y ya no le puedes volver a invitar.
+  - Si no responde en **12 horas**, la invitación **caduca** ("*Tu invitación a Fulano ha caducado*", que no es un rechazo).
+- **Barra de abajo:** Inicio · Buzón (invitaciones, cartas, regalos y lo que mandaste) · Secreto · Perfil.
 - **Prefiero no ir con…** (secreto, hasta 3 personas): el Sombrero nunca te las presenta.
 - **Admirador secreto 🤫:** quien no tiene pareja elige a **una** persona (su crush) y le manda regalos con carta
-  **sin que sepa quién es** (hasta 3 al día). Si son compatibles, el Sombrero intenta presentarlos primero; al invitarle
+  **sin que sepa quién es** (hasta 3 al día). Si son compatibles, le ve primero en su inicio; al invitarle
   puede **revelar** que era su admirador secreto. Quien recibe puede tocar "No quiero recibir más" y se cortan.
   En `#admin` el organizador ve quién manda a quién (solo por seguridad).
 - **Correo Lechuza 🦉:** las parejas se mandan regalos con nota. Opción **🎁 sorpresa**: se abre el día del baile.
 - **Sin chat**: solo regalos y cartas.
 - **Administración:** abre la página con `#admin` al final (ej. `https://tu-pagina.netlify.app/#admin`).
-  Ves a todos, pausas/abres el Sombrero, cambias el **mínimo de cosas en común**, **emparejas a mano** (para que nadie se quede sin pareja al final),
+  Ves a todos, abres/pausas las **invitaciones**, cambias el **mínimo de cosas en común**, **emparejas a mano** (para que nadie se quede sin pareja al final),
   deshaces parejas, cambias PIN olvidados y borras perfiles.
 
 ## Ponerlo en marcha (una sola vez, ~15 minutos)
@@ -66,6 +65,8 @@ El Sombrero también se puede pausar o abrir desde la página de administración
 ## Bueno saber
 - Supabase gratis: 500 MB (sobra: cada foto se comprime en el celular a ~100 KB). Si el proyecto pasa
   **7 días sin uso** se pausa (se reactiva desde su panel); durante el baile no pasará.
-- El orden importa un poco: el Sombrero junta a quien esté libre en ese momento. Si quieres que se registre más gente
-  antes de las primeras propuestas, **pausa el Sombrero** desde `#admin` y ábrelo cuando quieras.
-- Las fotos solo las ven tu pareja y las personas que el Sombrero te presentó.
+- Si quieres que se registre más gente antes de que empiecen las invitaciones, **pausa las invitaciones** desde `#admin`
+  (la gente puede ir viendo perfiles) y ábrelas cuando quieras.
+- **Actualizar la base de datos:** si cambia `supabase.sql`, vuelve a pegarlo entero en el SQL Editor y pulsa Run.
+  No se borra nada y tu clave de organizador se queda igual.
+- Las fotos solo las ven las personas compatibles contigo, tu pareja y con quien te escribiste invitaciones.
