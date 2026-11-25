@@ -145,6 +145,12 @@ await api("/api/maximo", { token: dev, datos: { maximo: 100 } });
 ok((await api("/api/reiniciar", { token: dev, datos: { confirmacion: "si" } })).status === 400, "reiniciar sin escribir REINICIAR: rechazado");
 
 // ---------------------------------------------------------------
+console.log("— Capacidad del tubo");
+ok((await api("/api/estado")).capacidad === 1000, "por defecto, 1000 puntos llenan un tubo");
+ok((await api("/api/capacidad", { token: dir, datos: { capacidad: 2000 } })).status === 403, "la directora NO cambia la capacidad");
+ok((await api("/api/capacidad", { token: dev, datos: { capacidad: 2000 } })).ok && (await api("/api/estado")).capacidad === 2000, "la desarrolladora SÍ la cambia");
+await api("/api/capacidad", { token: dev, datos: { capacidad: 1000 } });
+
 console.log("— Deshacer");
 const antes = (await api("/api/estado")).puntos;
 await api("/api/cambio", { token: dev, datos: { casa: "slytherin", modo: "sumar", cantidad: 50, motivo: "para deshacer" } });

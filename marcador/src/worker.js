@@ -47,6 +47,7 @@ const CURSOS = [
 // ---------- Reglas ----------
 const MAXIMO_POR_DEFECTO = 100;
 const MAXIMO_TOPE = 1000; // ni la desarrolladora puede poner un máximo mayor
+const CAPACIDAD_POR_DEFECTO = 1000; // puntos que llenan un tubo
 const PUNTOS_TOPE = 999999; // ninguna casa puede pasar de aquí
 const LARGO_MIN_CLAVE = 6; // contraseñas más cortas se ignoran
 const SESION_DIAS = 14;
@@ -159,7 +160,7 @@ export class Marcador extends DurableObject {
       }
 
       // Herramientas: solo desarrollador.
-      const herramientas = ["/api/deshacer", "/api/fijar", "/api/reiniciar", "/api/maximo"];
+      const herramientas = ["/api/deshacer", "/api/fijar", "/api/reiniciar", "/api/maximo", "/api/capacidad"];
       if (herramientas.includes(ruta)) {
         if (cuenta.rol !== "desarrollador") return error(403, "Solo la desarrolladora puede usar esto.");
         if (ruta === "/api/deshacer" && metodo === "GET") return json({ pendiente: this.describirDeshacer() });
@@ -169,6 +170,7 @@ export class Marcador extends DurableObject {
         if (ruta === "/api/fijar") return this.fijar(cuenta, datos);
         if (ruta === "/api/reiniciar") return this.reiniciar(cuenta, datos);
         if (ruta === "/api/maximo") return this.cambiarMaximo(cuenta, datos);
+        if (ruta === "/api/capacidad") return this.cambiarCapacidad(cuenta, datos);
       }
       return error(404, "No encontrado.");
     } catch (e) {
@@ -188,9 +190,15 @@ export class Marcador extends DurableObject {
         tipo: "estado",
         puntos,
         ultimo: ultimo ? JSON.parse(ultimo) : null,
+        capacidad: this.capacidad(),
       };
     }
     return this.cacheEstado;
+  }
+
+  capacidad() {
+    const v = parseInt(this.leerAjuste("capacidad") ?? "", 10);
+    return Number.isInteger(v) ? v : CAPACIDAD_POR_DEFECTO;
   }
 
   maximo() {
@@ -358,6 +366,7 @@ export class Marcador extends DurableObject {
       ...(cuenta.rol === "curso" ? { curso: cuenta.curso || null, cursos: CURSOS } : {}),
       rol: cuenta.rol,
       maximo: this.maximo(),
+      capacidad: this.capacidad(),
       sinLimite: cuenta.rol === "desarrollador", // la desarrolladora no tiene máximo por cambio
       puedeVerRegistro: cuenta.rol !== "curso",
       herramientas: cuenta.rol === "desarrollador",
@@ -491,6 +500,19 @@ export class Marcador extends DurableObject {
     });
     this.difundir();
     return json({ ok: true, estado: this.estado() });
+  }
+
+  cambiarCapacidad(cuenta, datos) {
+    const valor = Number(datos.capacidad);
+    if (!Number.isInteger(valor) || valor < 50 || valor > 100000) {
+      throw new ErrorUsuario("La capacidad debe estar entre 50 y 100000 puntos.");
+    }
+    this.ctx.storage.transactionSync(() => {
+      this.guardarAjuste("capacidad", String(valor));
+      this.anotar({ tipo: "capacidad", cuenta, cantidad: valor, motivo: `Tubo lleno con ${valor} puntos` });
+    });
+    this.difundir();
+    return json({ ok: true, capacidad: valor });
   }
 
   cambiarMaximo(cuenta, datos) {

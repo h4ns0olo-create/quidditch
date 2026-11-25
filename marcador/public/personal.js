@@ -177,6 +177,7 @@
       ? "Todos los cambios, del más nuevo al más antiguo."
       : "Solo lectura: aquí ves todos los cambios, pero no se pueden modificar.";
     $("maximo").value = datos.maximo;
+    $("capacidad").value = datos.capacidad || 1000;
     actualizarMaximo(datos.maximo);
     cambiarVista("puntos");
     mostrar("panel");
@@ -343,6 +344,9 @@
     } else if (f.tipo === "deshacer") {
       cant = `<div class="cant especial">↶</div>`;
       titulo = "Deshacer";
+    } else if (f.tipo === "capacidad") {
+      cant = `<div class="cant especial">Tubo</div>`;
+      titulo = "Cambio de los puntos para llenar un tubo";
     } else if (f.tipo === "maximo") {
       cant = `<div class="cant especial">Máx.</div>`;
       titulo = "Cambio del máximo por cambio";
@@ -420,6 +424,13 @@
       const r = await accion(() => api("/api/fijar", { metodo: "POST", datos: { casa, puntos } }), `${nombre} ahora tiene ${plural(puntos)}.`);
       if (r) $("fijar-puntos").value = "";
     }
+  });
+
+  $("guardar-capacidad").addEventListener("click", async () => {
+    const capacidad = Number($("capacidad").value);
+    if (!Number.isInteger(capacidad) || capacidad < 50 || capacidad > 100000) return aviso("Escribe un número entre 50 y 100000.", true);
+    const r = await accion(() => api("/api/capacidad", { metodo: "POST", datos: { capacidad } }), `Ahora un tubo se llena con ${plural(capacidad)}.`);
+    if (r) sesion.capacidad = r.capacidad;
   });
 
   $("guardar-maximo").addEventListener("click", async () => {

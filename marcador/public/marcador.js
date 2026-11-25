@@ -9,7 +9,7 @@
   const vivo = document.getElementById("vivo");
   const sinMovimiento = matchMedia("(prefers-reduced-motion: reduce)");
 
-  const NIVEL_MAXIMO = 0.9; // la casa con más puntos se ve al 90 %
+  const NIVEL_MAXIMO = 0.9; // si una casa pasa la capacidad, la escala crece y queda al 90 %
   const NIVEL_MINIMO = 0.025; // con 1 punto ya se ve alguna gema
 
   // ---- Crear las tarjetas ----
@@ -70,12 +70,16 @@
     const puntos = estado.puntos || {};
     const valores = CASAS.map((c) => Math.max(0, Number(puntos[c.id]) || 0));
     const max = Math.max(...valores);
+    // El tubo es una regla fija: "capacidad" puntos = tubo lleno (1000 si no se cambió).
+    // Si alguna casa la supera, la escala crece para que nada se desborde.
+    const capacidad = Number(estado.capacidad) > 0 ? Number(estado.capacidad) : 1000;
+    const escala = Math.max(capacidad, max / NIVEL_MAXIMO);
     const lideres = CASAS.filter((c, i) => max > 0 && valores[i] === max);
 
     CASAS.forEach((c, i) => {
       const t = tarjetas[c.id];
       const pts = valores[i];
-      const nivel = max > 0 && pts > 0 ? Math.max(NIVEL_MINIMO, (pts / max) * NIVEL_MAXIMO) : 0;
+      const nivel = pts > 0 ? Math.max(NIVEL_MINIMO, pts / escala) : 0;
       const y = yDeNivel(nivel);
 
       t.monton.style.transform = `translateY(${pts > 0 ? y : T.fondo + 20}px)`;
