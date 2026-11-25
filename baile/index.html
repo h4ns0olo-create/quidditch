@@ -418,7 +418,7 @@ async function api(p) {
   if (!String(CFG.key).startsWith('sb_')) headers.Authorization = 'Bearer ' + CFG.key;
   let r;
   try {
-    r = await fetch(String(CFG.url).replace(/\/+$/, '') + '/rest/v1/rpc/baile', { method: 'POST', headers, body: JSON.stringify({ p }) });
+    r = await fetch(String(CFG.url).replace(/\/+$/, '').replace(/\/rest\/v1$/, '') + '/rest/v1/rpc/baile', { method: 'POST', headers, body: JSON.stringify({ p }) });
   } catch (e) { throw new Error('Sin conexión. Revisa tu internet e inténtalo de nuevo.'); }
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.message || 'Algo salió mal. Inténtalo de nuevo.');
