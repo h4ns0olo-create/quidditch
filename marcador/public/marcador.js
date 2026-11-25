@@ -4,7 +4,14 @@
 (function () {
   const { CASAS, tuboSVG, yDeNivel, T } = window.Gemas;
   const tablero = document.getElementById("tablero");
-  const cinta = document.querySelector(".cinta");
+  const cinta = document.getElementById("cinta");
+  let cintaTimer;
+  function mostrarCinta(texto, segundos) {
+    textoUltimo.textContent = texto;
+    cinta.classList.add("visible");
+    clearTimeout(cintaTimer);
+    cintaTimer = setTimeout(() => cinta.classList.remove("visible"), segundos * 1000);
+  }
   const textoUltimo = document.getElementById("ultimo");
   const vivo = document.getElementById("vivo");
   const sinMovimiento = matchMedia("(prefers-reduced-motion: reduce)");
@@ -110,11 +117,12 @@
       );
     });
 
-    const texto = estado.ultimo && estado.ultimo.texto ? estado.ultimo.texto : "Aún no hay cambios";
-    if (texto !== ultimoTexto) {
-      textoUltimo.textContent = texto;
-      if (ultimoTexto !== null) reiniciarAnimacion(cinta, "nueva");
-      ultimoTexto = texto;
+    // Cartel del último cambio: al abrir la página se ve 5 s; con cada cambio nuevo, 7 s
+    const ultimo = estado.ultimo && estado.ultimo.texto ? estado.ultimo : null;
+    const clave = ultimo ? ultimo.texto + "|" + (ultimo.fecha || "") : "";
+    if (clave !== ultimoTexto) {
+      if (ultimo) mostrarCinta(ultimo.texto, ultimoTexto === null ? 5 : 7);
+      ultimoTexto = clave;
     }
   }
 

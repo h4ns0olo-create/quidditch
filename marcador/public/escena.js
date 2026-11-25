@@ -90,7 +90,7 @@
   if (!banda) return;
   // En este dibujo el agua empieza en y=330 (de 0 a 420)
   banda.innerHTML = `
-<svg viewBox="0 0 1000 420" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 160 1000 260" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <radialGradient id="halo" r=".5">
       <stop offset="0" stop-color="#fff2c8" stop-opacity=".5"/>

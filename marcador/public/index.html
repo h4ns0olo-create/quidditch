@@ -21,15 +21,13 @@
     <div class="vivo conectando" id="vivo" role="status">
       <span class="punto" aria-hidden="true"></span><span class="txt">Conectando…</span>
     </div>
-    <p class="antetitulo">✦ Puntos de las casas ✦</p>
     <h1>Copa de las Casas</h1>
+    <!-- Último cambio: aparece unos segundos sobre el lago, sin ocupar espacio -->
+    <div class="cinta-flotante pergamino" id="cinta" role="status" aria-live="polite">
+      <p id="ultimo"></p>
+    </div>
   </header>
 
-  <div class="cinta-envoltura">
-    <div class="cinta pergamino">
-      <p id="ultimo" aria-live="polite">Aún no hay cambios</p>
-    </div>
-  </div>
 
   <main class="tablero" id="tablero" aria-label="Puntos de cada casa"></main>
 
