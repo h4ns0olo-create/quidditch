@@ -44,17 +44,22 @@ las 00:00 (hora UTC), cuando el contador se reinicia.
 4. Si en algún momento te pide tarjeta de crédito, **detente y avísame**. Para
    esto no hace falta.
 
-### 2. Conectar este repositorio de GitHub (lo hacemos juntas en el próximo paso)
+### 2. Conectar este repositorio de GitHub (hecho el 25-11-2026)
 
-1. En el panel de Cloudflare: menú **Workers & Pages** → **Create application**.
+1. En el panel de Cloudflare: menú **Build → Compute → Workers & Pages** → **Create**
+   (o el botón **Create app** de la portada).
 2. Elige **GitHub**, autoriza a Cloudflare y elige el repositorio `quidditch`.
-3. En la configuración:
-   - **Project name / Worker name:** `marcador-casas` (tiene que ser exactamente este)
-   - **Root directory:** `marcador`
-   - **Deploy command:** dejar `npx wrangler deploy`
-   - **Git branch:** la rama que te indique (por ahora, `claude/harry-potter-house-scoreboard-0hwz57`)
-4. Toca **Save and Deploy**. La primera vez, Cloudflare te pide elegir tu
-   subdominio de `workers.dev`: elige algo neutro (será parte de la dirección pública).
+3. En **Set up your application**:
+   - **Project name:** `marcador-casas` (tiene que ser exactamente este)
+   - **Build command:** vacío
+   - **Deploy command:** `npx wrangler deploy`
+   - **Advanced settings → Path:** `/marcador`
+   - **API token:** "Create new token"
+   - **Variable name / value:** vacío (¡las contraseñas NO van aquí!)
+4. Toca **Deploy**. La primera vez falla con "root directory not found" porque
+   usa la rama `main`. Se arregla en **Settings → Builds → Production branch**:
+   `claude/harry-potter-house-scoreboard-0hwz57`. Desde entonces, cada cambio que
+   se sube a esa rama se publica solo.
 
 ### 3. Poner las 14 contraseñas (secretos)
 
