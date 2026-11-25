@@ -97,6 +97,7 @@ Reglas de las contraseñas:
 
 - Máximo 100 puntos por cambio para profesores y directora (la desarrolladora puede cambiarlo, hasta 1000). La desarrolladora no tiene límite por cambio.
 - Ninguna casa puede quedar en negativo.
+- El cielo sigue la hora de Argentina: amanecer (~6:45), día, atardecer (~18:45) y noche. Para ver otra hora: agregar `?hora=19` a la dirección.
 - El tubo es una regla fija: 1000 puntos = tubo lleno. Si una casa pasa ese número, la escala crece sola. La desarrolladora puede cambiar el 1000 en Registro → Herramientas.
 - Tras 5 contraseñas equivocadas seguidas desde el mismo lugar, se bloquea 15 minutos.
 - Todo esto lo revisa el servidor, no solo la pantalla.
