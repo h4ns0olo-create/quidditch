@@ -44,6 +44,26 @@
     art.setAttribute("aria-label", `${c.nombre}: 0 puntos`);
   }
 
+  // ---- Alto de los tubos: que la tarjeta entera quepa en la pantalla ----
+  // Se calcula al abrir y solo se recalcula si cambia el ANCHO (girar el celular).
+  // Así no "salta" cuando el navegador esconde sus barras al hacer scroll.
+  let anchoAnterior = 0;
+  function ajustarAltura(forzar) {
+    if (!forzar && window.innerWidth === anchoAnterior) return;
+    anchoAnterior = window.innerWidth;
+    const raiz = document.documentElement;
+    raiz.style.setProperty("--alto-tubo", "2000px");
+    const svg = tablero.querySelector(".tubo-svg");
+    const tarjeta = tablero.querySelector(".tarjeta");
+    const debajo = tarjeta.getBoundingClientRect().bottom - svg.getBoundingClientRect().bottom;
+    const arriba = svg.getBoundingClientRect().top + window.scrollY;
+    const alto = Math.round(window.innerHeight - arriba - debajo - 12);
+    raiz.style.setProperty("--alto-tubo", Math.max(220, Math.min(860, alto)) + "px");
+  }
+  ajustarAltura(true);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ajustarAltura(true));
+  window.addEventListener("resize", () => ajustarAltura(false));
+
   // ---- Contar hasta el número nuevo ----
   function animarNumero(t, destino) {
     const desde = t.mostrado;
