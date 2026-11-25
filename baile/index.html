@@ -128,9 +128,10 @@ select option{background:#0d1633}
 .carrusel .pistas{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
 .carrusel .pistas::-webkit-scrollbar{display:none}
 .carrusel img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:center}
-.carrusel .puntos{position:absolute;top:28%;left:0;right:0;display:flex;gap:5px;justify-content:center}
-.carrusel .puntos b{width:24px;height:4px;border-radius:2px;background:rgba(255,255,255,.45)}
-.carrusel .puntos b.on{background:#fff}
+.puntos{display:flex;gap:6px;justify-content:center;margin-top:8px;min-height:4px}
+.puntos b{width:22px;height:4px;border-radius:2px;background:rgba(214,228,250,.28)}
+.puntos b.on{background:#fff;box-shadow:0 0 8px rgba(214,228,250,.7)}
+.plan{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:99px;font-size:.8rem;font-weight:700;background:rgba(6,10,30,.55);border:1px solid rgba(255,255,255,.3)}
 .carrusel .flecha{position:absolute;top:52%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;z-index:2;
   background:rgba(6,10,30,.55);border:1px solid rgba(255,255,255,.4);color:#fff;font-size:1.7rem;line-height:38px;text-align:center;
   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 4px 14px rgba(0,0,0,.35)}
@@ -268,19 +269,22 @@ const CATALOGO = [
 ];
 const REGALOS = window.REGALOS || [];
 const FRASES_INVITAR = [
-  '¿Me concederías este baile? 💃', 'El Sombrero tiene buen ojo… ¿vamos juntos al baile?', 'Prometo no pisarte (mucho) 😅',
-  'Sería un honor ir al baile contigo ✨', 'Tenemos demasiado en común como para no ir juntos',
+  '¿Me concederías este baile? 💃', '¿Vamos juntos al baile? Sería genial ir contigo ✨', 'Prometo no pisarte (mucho) 😅',
+  '¿Vamos en plan amigos y lo damos todo en la pista? 🕺', 'No se me ocurre nadie con quien me lo pasaría mejor 🤝',
+  'Tenemos demasiado en común como para no ir juntos', 'Sería un honor ir al baile contigo 💫',
   '¿Bailamos bajo la nieve encantada del Gran Comedor? ❄️',
 ];
-const FRASES_ACEPTAR = ['¡Sí! Me encantaría ir contigo 💫', 'Acepto… y prepárate para bailar toda la noche', 'El Sombrero acertó: ¡vamos juntos!'];
+const FRASES_ACEPTAR = ['¡Sí! Me encantaría ir contigo 💫', '¡Claro que sí! Va a ser épico 🎉', 'Acepto… y prepárate para bailar toda la noche', '¡Trato hecho! Nos vemos en la pista 🕺'];
 const FRASES_LECHUZA = [
-  'Cuento los días para el baile ⏳', 'Gracias por ser mi pareja 💛', 'Vamos a ser la pareja más elegante del Gran Comedor',
-  'Ya estoy practicando el vals por ti 💃', 'Guárdame el primer baile', 'Un detallito para alegrarte el día ✨',
+  'Cuento los días para el baile ⏳', 'Gracias por ir conmigo 💛', 'Vamos a ser los más elegantes del Gran Comedor',
+  'Ya estoy practicando el vals 💃', 'Guárdame el primer baile', 'Un detallito para alegrarte el día ✨', 'Qué suerte ir contigo al baile 🤝',
 ];
-const FRASES_SECRETO = [
-  'Alguien en el castillo piensa mucho en ti ✨', 'Tu sonrisa ilumina más que las velas del Gran Comedor',
-  'Ojalá el Sombrero nos junte… 🎩', 'No sabes quién soy, pero me alegras los días', 'Un pequeño detalle de tu admirador secreto 🤫',
+const FRASES_REGALO = [
+  'Un detallito para alegrarte el día 💛', 'Gracias por ser como eres 🤝', 'Que tengas un baile mágico ❄️',
+  'Alguien en el castillo piensa mucho en ti ✨', 'Tu sonrisa ilumina más que las velas del Gran Comedor', 'Para alguien que se lo merece 🎁',
 ];
+const PLANES = [{ id: 'romantico', e: '💞', n: 'En plan romántico' }, { id: 'amistad', e: '🤝', n: 'En plan amistad' }, { id: 'igual', e: '✨', n: 'Me da igual' }];
+const planTexto = (p) => ({ romantico: '💞 Le gustaría ir en plan romántico', amistad: '🤝 Le gustaría ir en plan amistad', igual: '✨ Abierto a ir en plan romántico o de amistad' }[p] || '');
 const SOY = [{ id: 'chica', e: '👗', n: 'Chica' }, { id: 'chico', e: '🤵', n: 'Chico' }, { id: 'otro', e: '✨', n: 'Prefiero no decir' }];
 const VOY = [{ id: 'chicas', e: '👗', n: 'Con una chica' }, { id: 'chicos', e: '🤵', n: 'Con un chico' }, { id: 'cualquiera', e: '💫', n: 'Me da igual' }];
 const MIN_INTERESES = 8;
@@ -513,13 +517,13 @@ function carrusel(persona, extra = '') {
     };
     if (observador) observador.observe(el); else el._cargar();
   });
-  return `<div class="ventanal"><div class="carrusel" id="${id}">
+  return `<div id="${id}"><div class="ventanal"><div class="carrusel">
     <div class="pistas"><div class="vacia">${casa(persona.casa).e}</div></div>
-    <div class="puntos"></div>
     <button type="button" class="flecha izq" hidden aria-label="Foto anterior">‹</button>
     <button type="button" class="flecha der" hidden aria-label="Foto siguiente">›</button>
-    <div class="pie"><h2>${esc(persona.nombre)}</h2><div style="margin-top:4px">${insignia(persona.casa)}</div>${extra}</div>
-  </div></div>`;
+    <div class="pie"><h2>${esc(persona.nombre)}</h2><div style="margin-top:4px">${insignia(persona.casa)}</div>
+      ${persona.plan ? `<span class="plan">${esc(planTexto(persona.plan))}</span>` : ''}${extra}</div>
+  </div></div><div class="puntos"></div></div>`;
 }
 function chipsIntereses(lista, comunes = []) {
   const c = new Set(comunes);
@@ -605,7 +609,7 @@ function hoja(html) {
   return v;
 }
 // Elegir regalo + escribir la carta (invitar, aceptar, lechuza o regalo secreto)
-function elegirRegalo({ titulo, intro, frases, conSorpresa, conRevelar, boton, botonClase = 'carmesi', alEnviar }) {
+function elegirRegalo({ titulo, intro, frases, conSorpresa, conRevelar, conAnonimo, boton, botonClase = 'carmesi', alEnviar }) {
   const notaLibre = S.estado?.cfg?.nota_libre !== false;
   let reg = null, fotoPropia = null, fraseElegida = frases[0];
   const v = hoja(`
@@ -630,7 +634,8 @@ function elegirRegalo({ titulo, intro, frases, conSorpresa, conRevelar, boton, b
       <textarea id="nota" maxlength="${MAX_NOTA}" rows="5" style="margin-top:10px" placeholder="Querid@…">${esc(frases[0])}</textarea>
       <div class="contar" id="contar"></div>`
     : `<div class="frases">${frases.map((f, i) => `<button type="button" class="frase" data-f="${i}" aria-pressed="${i === 0}">${esc(f)}</button>`).join('')}</div>`}
-    ${conRevelar ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="revela" checked> 🤫 Revelar que soy su admirador secreto</label>` : ''}
+    ${conRevelar ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="revela" checked> 🤫 Contarle que los regalos en secreto eran míos</label>` : ''}
+    ${conAnonimo ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="anonimo"> 🤫 Mandarlo en secreto (sin mi nombre)</label>` : ''}
     ${conSorpresa ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="sorpresa"> 🎁 Sorpresa: que lo abra el día del baile</label>` : ''}
     <div class="pila" style="margin-top:16px">
       <button class="btn ${botonClase}" id="enviar" disabled>${esc(boton)}</button>
@@ -667,6 +672,7 @@ function elegirRegalo({ titulo, intro, frases, conSorpresa, conRevelar, boton, b
     }
     if (conRevelar) extra.revela = $('#revela', v).checked;
     if (conSorpresa) extra.sorpresa = $('#sorpresa', v).checked;
+    if (conAnonimo) extra.anonimo = $('#anonimo', v).checked;
     const btn = $('#enviar', v); btn.disabled = true;
     try { await alEnviar(reg, texto, extra); v.remove(); }
     catch (e) { toast(e.message, true); btn.disabled = false; }
@@ -713,8 +719,8 @@ async function portada() {
       <ul class="programa" style="margin-top:8px">
         <li>${ic()}<span><span class="cuando">Al primer toque de varita</span>Crea tu perfil con tus fotos y lo que te gusta.</span></li>
         <li>${ic()}<span><span class="cuando">Al segundo toque de varita</span>Vas conociendo a la gente con la que tienes <b>varias cosas en común</b>: quienes más se parecen a ti aparecen primero.</span></li>
-        <li>${ic()}<span><span class="cuando">Al tercer toque de varita</span>Invitas al baile a quien más te guste, con <b>un regalo y una carta</b>. Si acepta… ¡tienen pareja!</span></li>
-        <li>${ic()}<span><span class="cuando">Al cuarto toque de varita</span>¿Te gusta alguien? Mándale regalos como <b>admirador secreto</b> 🤫</span></li>
+        <li>${ic()}<span><span class="cuando">Al tercer toque de varita</span>Invitas a quien quieras, <b>en plan romántico o de amistad</b>, con un regalo y una carta. Si acepta… ¡van juntos al baile!</span></li>
+        <li>${ic()}<span><span class="cuando">Al cuarto toque de varita</span>Mándale <b>regalos</b> a quien quieras: con tu nombre o en secreto 🤫</span></li>
         <li>${ic()}<span><span class="cuando">Para quienes ya tienen pareja</span>Confirmen que van juntos y mándense regalos por <b>Correo Lechuza</b> 🦉</span></li>
       </ul>
     </div>`;
@@ -768,7 +774,7 @@ function entrar() {
 
 // ====================================================================== Registro (por pasos)
 function registro() {
-  const R = { nombre: '', pin: '', pin2: '', casa: '', soy: '', voy_con: '', frase: '', estado: '', pareja_id: '', fotos: [], intereses: [] };
+  const R = { nombre: '', pin: '', pin2: '', casa: '', soy: '', voy_con: '', plan: '', frase: '', estado: '', pareja_id: '', fotos: [], intereses: [] };
   const PASOS = ['cuenta', 'sobre', 'pareja', 'fotos', 'intereses'];
   let paso = 0;
   const busca = () => R.estado === 'busca';
@@ -808,16 +814,19 @@ function registro() {
         <label class="campo">Soy…</label><div class="opciones" id="soy">${botonesOpcion(SOY, R.soy)}</div>
         <label class="campo">Me gustaría ir al baile…</label><div class="opciones" id="voy">${botonesOpcion(VOY, R.voy_con)}</div>
         <p class="tenue">Solo verás a personas con las que los dos se sientan a gusto.</p>
+        <label class="campo">¿Cómo te gustaría ir?</label><div class="opciones" id="plan">${botonesOpcion(PLANES, R.plan)}</div>
+        <p class="tenue">Se verá en tu perfil, para que nadie se lleve sorpresas.</p>
         <label class="campo" for="f">Una frase sobre ti (opcional)</label>
         <textarea id="f" maxlength="120" placeholder="Ej.: Bailo fatal pero me río mucho 😄">${esc(R.frase)}</textarea>`;
       activarOpciones($('#soy', c), (v) => (R.soy = v));
       activarOpciones($('#voy', c), (v) => (R.voy_con = v));
+      activarOpciones($('#plan', c), (v) => (R.plan = v));
       $('#f', c).addEventListener('input', (e) => (R.frase = e.target.value));
     },
     pareja(c) {
-      c.innerHTML = `<h2>¿Ya tienes pareja para el baile?</h2>
+      c.innerHTML = `<h2>¿Ya tienes con quién ir al baile?</h2>
         <div class="opciones" id="est" style="grid-template-columns:1fr;margin-top:12px">
-          <button type="button" class="opcion" data-v="busca" aria-pressed="${R.estado === 'busca'}"><span class="e">🎩</span>Todavía no: quiero buscar pareja aquí</button>
+          <button type="button" class="opcion" data-v="busca" aria-pressed="${R.estado === 'busca'}"><span class="e">🎩</span>Todavía no: quiero encontrar con quién ir</button>
           <button type="button" class="opcion" data-v="tiene" aria-pressed="${R.estado === 'tiene'}"><span class="e">💃</span>Sí, ya tengo con quién ir</button>
         </div>
         <div id="elige" style="display:${R.estado === 'tiene' ? 'block' : 'none'}">
@@ -854,7 +863,7 @@ function registro() {
     const ok = {
       cuenta: () => R.nombre.trim().length < 2 ? mal('Escribe tu nombre') : !/^\d{4}$/.test(R.pin) ? mal('El PIN son 4 números')
         : R.pin !== R.pin2 ? mal('Los dos PIN no coinciden') : !R.casa ? mal('Elige tu casa') : true,
-      sobre: () => !R.soy ? mal('Dinos cómo te identificas') : !R.voy_con ? mal('Dinos con quién te gustaría ir') : true,
+      sobre: () => !R.soy ? mal('Dinos cómo te identificas') : !R.voy_con ? mal('Dinos con quién te gustaría ir') : !R.plan ? mal('Dinos cómo te gustaría ir') : true,
       pareja: () => !R.estado ? mal('Elige una opción') : true,
       fotos: () => busca() && !R.fotos.length ? mal('Sube al menos una foto para que el Sombrero pueda presentarte') : true,
       intereses: () => busca() && R.intereses.length < MIN_INTERESES ? mal(`Elige al menos ${MIN_INTERESES} cosas que te gusten`) : true,
@@ -906,11 +915,10 @@ function ir(tab) { S.tab = tab; pintar(); window.scrollTo(0, 0); }
 
 function pintar() {
   const E = S.estado; if (!E) return;
-  if (S.tab === 'secreto' && E.yo.estado === 'pareja') S.tab = 'inicio';
   if (S.tab === 'perfil') return perfil();
   let h = cabecera(E);
   if (S.tab === 'buzon') h += vistaBuzon(E);
-  else if (S.tab === 'secreto') h += vistaSecreto(E);
+  else if (S.tab === 'regalos') h += vistaRegalos(E);
   else h += vistaInicio(E);
   h += `<p class="tenue centro" style="margin-top:24px">${E.resumen.parejas} ${E.resumen.parejas === 1 ? 'pareja formada' : 'parejas formadas'} · ${E.resumen.buscando} buscando pareja</p>`;
   app.innerHTML = h + navegacion(E);
@@ -925,7 +933,7 @@ function pendientesBuzon(E) {
 }
 function navegacion(E) {
   const n = pendientesBuzon(E);
-  const tabs = [['inicio', '✨', 'Inicio'], ['buzon', '📬', 'Buzón'], ...(E.yo.estado === 'pareja' ? [] : [['secreto', '🤫', 'Secreto']]), ['perfil', '👤', 'Perfil']];
+  const tabs = [['inicio', '✨', 'Inicio'], ['buzon', '📬', 'Buzón'], ['regalos', '🎁', 'Regalos'], ['perfil', '👤', 'Perfil']];
   return `<nav class="barra"><div class="dentro">${tabs.map(([id, i, t]) => `<button data-ir="${id}" ${S.tab === id ? 'aria-current="page"' : ''}>
     <span class="i">${i}</span>${t}${id === 'buzon' && n ? `<span class="badge">${n}</span>` : ''}</button>`).join('')}</div></nav>`;
 }
@@ -968,7 +976,7 @@ function vistaInicio(E) {
     h += `<div class="tarjeta centro"><p class="suave" style="margin:0">${cerrado ? '⌛ El plazo para invitar terminó. El organizador se encarga de que nadie se quede sin pareja.'
       : '❄️ Las invitaciones se abren muy pronto. Mientras tanto, ya puedes ir conociendo a la gente.'}</p></div>`;
   }
-  const lista = (S.perfiles || []).filter((p) => !p.me_rechazo).sort((a, b) => (b.es_mi_crush - a.es_mi_crush) || (b.me_invito - a.me_invito));
+  const lista = (S.perfiles || []).filter((p) => !p.me_rechazo).sort((a, b) => b.me_invito - a.me_invito);
   if (!lista.length) {
     h += `<div class="tarjeta brillo centro" style="margin-top:18px"><span class="sombrero">🎩</span>
       <h2>Todavía no hay nadie por aquí</h2>
@@ -989,7 +997,6 @@ function tarjetaPerfil(p, E) {
   return `<article class="perfil-feed">
     ${carrusel(p, p.frase ? `<p style="margin-top:6px">${esc(p.frase)}</p>` : '')}
     <div class="tarjeta" style="margin-top:10px">
-      ${p.es_mi_crush ? `<p style="margin:0 0 8px"><span class="insignia" style="background:rgba(163,32,58,.35);border-color:var(--rosa);color:#ffe6ee">🤫 Tu crush</span></p>` : ''}
       ${p.n ? `<h3>💞 Coinciden en ${p.n === 1 ? '1 cosa' : p.n + ' cosas'}</h3><div style="margin:8px 0 6px">${chipsIntereses(p.comunes, p.comunes)}</div>` : ''}
       ${resto.length ? `<details style="margin:6px 0 4px"><summary class="enlace" style="cursor:pointer">Ver todo lo que le gusta</summary><div style="margin-top:8px">${chipsIntereses(resto)}</div></details>` : ''}
       <div style="margin-top:12px">${btn}</div>
@@ -998,7 +1005,7 @@ function tarjetaPerfil(p, E) {
 function tarjetaEnviada(inv) {
   const info = { regalo: inv.regalo, titulo: inv.titulo, foto: inv.foto };
   return `<div class="tarjeta brillo"><div class="fila" style="align-items:center"><div style="flex:0 0 64px;height:64px">${dibujo(info)}</div>
-      <div><h3>🦉 Invitaste a ${esc(inv.persona.nombre)}</h3><p class="tenue" style="margin:2px 0 0">Le mandaste ${esc(nombreRegalo(info))}${inv.revela ? ' y le revelaste tu secreto 🤫' : ''}. Tiene hasta el ${esc(fecha(inv.vence))} para responder.</p></div></div>
+      <div><h3>🦉 Invitaste a ${esc(inv.persona.nombre)}</h3><p class="tenue" style="margin:2px 0 0">Le mandaste ${esc(nombreRegalo(info))}${inv.revela ? ' y le contaste que los regalos en secreto eran tuyos 🤫' : ''}. Tiene hasta el ${esc(fecha(inv.vence))} para responder.</p></div></div>
     ${carta(inv.nota, 'ti')}
     <div class="centro" style="margin-top:6px"><button class="enlace" id="cancelar-inv">Cancelar invitación</button></div></div>`;
 }
@@ -1017,12 +1024,12 @@ function bloqueTiene(E) {
 }
 function bloquePareja(E) {
   const pa = E.pareja, p = pa.persona;
-  return `${orla('Tu pareja para el baile')}
+  return `${orla('Vas al baile con')}
     <div style="margin:10px 0 14px">${carrusel(p, p.frase ? `<p style="margin-top:6px">${esc(p.frase)}</p>` : '')}</div>
     <div class="invitacion centro">${estrellasEsquinas()}
       ${boleto()}
       <p class="versalitas" style="margin:6px 0 0;font-size:1.05rem">${esc(E.yo.nombre)} &amp; ${esc(p.nombre)}</p>
-      ${pa.era_admirador ? `<div class="secreto-banda" style="text-align:left"><span style="font-size:1.4rem">🤫</span><div>Los regalos secretos eran de ${esc(p.nombre)}.</div></div>` : ''}
+      ${pa.era_admirador ? `<div class="secreto-banda" style="text-align:left"><span style="font-size:1.4rem">🤫</span><div>Los regalos en secreto eran de ${esc(p.nombre)}.</div></div>` : ''}
       ${pa.comunes.length ? `${orlaP('Coinciden en')}<div class="chips" style="justify-content:center">${pa.comunes.map((k) => `<span class="chip fijo" style="background:rgba(255,255,255,.5);border-color:rgba(29,38,84,.2);color:var(--tinta-p)">${iconoCat(k)} ${esc(etiqueta(k))}</span>`).join('')}</div>` : ''}
       <div class="contador" id="cuenta-baile"></div>
       <div class="pila"><button class="btn carmesi" id="lechuza">🦉 Mandarle una lechuza con un regalo</button>
@@ -1044,7 +1051,7 @@ function vistaBuzon(E) {
   }
   if (E.secretos.length) {
     vacio = false;
-    h += `<div class="tarjeta brillo"><h3>🤫 De tu admirador secreto</h3><p class="tenue">Alguien del castillo te manda regalos sin decir quién es… 👀</p>
+    h += `<div class="tarjeta brillo"><h3>🎁 Regalos que te mandaron</h3>
       ${E.secretos.map((x) => `${itemSecreto(x)}<div style="text-align:right;margin:-4px 0 8px"><button class="btn3 peligro" data-bloq="${x.id}">No quiero recibir más de esta persona</button></div>`).join('')}</div>`;
   }
   if (E.enviadas.length) {
@@ -1060,7 +1067,7 @@ function invitacionRecibida(inv) {
   const p = inv.persona, info = { regalo: inv.regalo, titulo: inv.titulo, foto: inv.foto };
   return `<div class="invitacion">${estrellasEsquinas()}
     <h3 class="centro" style="font-family:'Almendra SC',serif;font-weight:400;font-size:1.6rem;color:var(--carmesi);margin:0 14px">¡${esc(p.nombre)} te invitó al baile!</h3>
-    ${inv.revela ? `<div class="secreto-banda"><span style="font-size:1.4rem">🤫</span><div><b>…y es tu admirador secreto.</b> Los regalos anónimos eran de ${esc(p.nombre)}.</div></div>` : ''}
+    ${inv.revela ? `<div class="secreto-banda"><span style="font-size:1.4rem">🤫</span><div><b>…y te cuenta un secreto:</b> los regalos que recibías en secreto eran de ${esc(p.nombre)}.</div></div>` : ''}
     <div class="fila" style="align-items:center;margin-top:12px">
       <div class="mini" data-mini="${p.id}" style="flex:0 0 52px;width:52px;height:52px">${casa(p.casa).e}</div>
       <div><b>${esc(p.nombre)}</b> ${insignia(p.casa)}<div class="tenue">Coinciden en ${inv.comunes.length === 1 ? '1 cosa' : inv.comunes.length + ' cosas'}</div></div>
@@ -1083,30 +1090,70 @@ function itemBuzon(l) {
 }
 function itemSecreto(x) {
   const info = { regalo: x.regalo, titulo: x.titulo, foto: x.foto };
+  const de = x.anonimo ? 'alguien en secreto 🤫' : x.de;
   return `<div class="item"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>${!x.leida ? '<span class="nuevo">nuevo</span>' : ''}
-    <div class="tenue">de tu admirador secreto · ${esc(fechaCorta(x.creada))}</div>${carta(x.nota, 'tu admirador secreto')}</div></div>`;
+    <div class="tenue">de ${esc(de)} · ${esc(fechaCorta(x.creada))}</div>${carta(x.nota, x.anonimo ? 'alguien en secreto' : x.de)}</div></div>`;
 }
 
-// ---- Admirador secreto
-function vistaSecreto(E) {
-  let h = orla('Admirador secreto');
-  if (E.secretos.length) h += `<button class="secreto-banda" style="width:100%;text-align:left" data-ir="buzon"><span style="font-size:1.6rem">🤫</span>
-    <div><b>Tienes ${E.secretos.length === 1 ? 'un regalo' : E.secretos.length + ' regalos'} de un admirador secreto</b><br><span class="tenue">Toca para verlos en tu buzón</span></div></button>`;
-  const c = E.crush;
-  if (!c) return h + `<div class="tarjeta brillo centro"><div style="font-size:2.4rem">💌</div><h2>¿Te gusta alguien?</h2>
-    <p class="suave">Elige a una persona y mándale regalos con carta <b>sin que sepa que eres tú</b> (hasta 3 al día).
-    Si son compatibles, le verás primero en tu inicio, y al invitarle al baile podrás revelar tu secreto.</p>
-    <div style="margin-top:12px"><button class="btn carmesi" id="elegir-crush">🤫 Elegir a mi crush</button></div></div>`;
-  const quedan = Math.max(0, 3 - (E.secretos_hoy || 0));
-  h += `<div class="tarjeta brillo"><h3>💌 Tu crush: ${esc(c.nombre)} ${insignia(c.casa)}</h3>`;
-  if (c.tiene_pareja) h += `<p class="suave">${esc(c.nombre)} ya tiene pareja para el baile 💔 Puedes elegir a otra persona.</p>`;
-  else if (c.bloqueado) h += `<p class="suave">${esc(c.nombre)} prefiere no recibir más regalos secretos. Puedes elegir a otra persona.</p>`;
-  else h += `<p class="suave">No sabe que eres tú. ${c.enviados.length ? `Le has mandado ${c.enviados.length} regalo${c.enviados.length > 1 ? 's' : ''} secreto${c.enviados.length > 1 ? 's' : ''}${c.enviados[0].leida ? ' y ya vio el último 👀' : ''}.` : 'Todavía no le has mandado nada.'}</p>
-    <div style="margin-top:10px"><button class="btn carmesi" id="mandar-secreto" ${quedan ? '' : 'disabled'}>🤫 Mandar regalo secreto ${quedan ? `(te quedan ${quedan} hoy)` : '(mañana puedes más)'}</button></div>`;
-  if (c.enviados.length) h += `<details style="margin-top:12px"><summary class="enlace" style="cursor:pointer">Ver lo que le mandaste</summary>
-    ${c.enviados.map((x) => { const info = { regalo: x.regalo, titulo: x.titulo, foto: x.foto };
-      return `<div class="item"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b><div class="tenue">${esc(fechaCorta(x.creada))}${x.leida ? ' · visto 👀' : ''}</div>${carta(x.nota, 'ti')}</div></div>`; }).join('')}</details>`;
-  return h + `<div class="centro"><button class="enlace" id="cambiar-crush">Cambiar de crush</button></div></div>`;
+// ---- Regalos: para quien quieras, con tu nombre o en secreto
+function vistaRegalos(E) {
+  let h = orla('Regalos');
+  if (E.secretos.length) h += `<button class="secreto-banda" style="width:100%;text-align:left" data-ir="buzon"><span style="font-size:1.6rem">🎁</span>
+    <div><b>Te ${E.secretos.length === 1 ? 'mandaron un regalo' : `mandaron ${E.secretos.length} regalos`}</b><br><span class="tenue">Toca para verlos en tu buzón</span></div></button>`;
+  const quedan = Math.max(0, (E.limite_regalos || 5) - (E.secretos_hoy || 0));
+  h += `<div class="tarjeta brillo centro"><div style="width:84px;height:84px;margin:0 auto">${dibujo({ regalo: 'lechuza' })}</div>
+    <h2>Mándale un detalle a alguien</h2>
+    <p class="suave">Un regalo con carta para quien quieras: tu persona especial, un amigo o una amiga.
+    Tú eliges si va <b>con tu nombre</b> o <b>en secreto</b> 🤫</p>
+    <div style="margin-top:12px"><button class="btn carmesi" id="mandar-regalo" ${quedan ? '' : 'disabled'}>🎁 Elegir a quién ${quedan ? `(te quedan ${quedan} hoy)` : '(mañana puedes más)'}</button></div>
+    <p class="tenue" style="margin-top:10px">Si mandas regalos en secreto y luego invitas a esa persona al baile, podrás contarle que eran tuyos.</p></div>`;
+  if (E.regalos_enviados.length) h += `<div class="tarjeta"><h3>📤 Lo que has regalado</h3>${E.regalos_enviados.map((x) => {
+    const info = { regalo: x.regalo, titulo: x.titulo, foto: x.foto };
+    return `<div class="item"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>
+      <div class="tenue">para ${esc(x.para)} · ${x.anonimo ? '🤫 en secreto' : 'con tu nombre'} · ${esc(fechaCorta(x.creada))}${x.leida ? ' · visto 👀' : ''}${x.bloqueado ? ' · no quiere recibir más' : ''}</div>
+      ${carta(x.nota, 'ti')}</div></div>`; }).join('')}</div>`;
+  return h;
+}
+async function elegirDestinatario() {
+  let lista;
+  try { lista = await api({ accion: 'nombres', token: S.token }); } catch (e) { return toast(e.message, true); }
+  const v = hoja(`<h2>🎁 ¿Para quién es?</h2>
+    <input type="text" id="buscar" placeholder="Buscar nombre…" style="margin:10px 0">
+    <div id="lista" class="pila" style="max-height:55vh;overflow:auto"></div>
+    <div style="margin-top:12px"><button class="btn2" id="cancelar">Cancelar</button></div>`);
+  const pintarL = () => {
+    const t = norm($('#buscar', v).value);
+    const l = lista.filter((p) => !t || norm(p.nombre).includes(t));
+    $('#lista', v).innerHTML = l.length ? l.map((p) => `<button class="opcion" style="text-align:left;display:flex;gap:10px;align-items:center" data-id="${p.id}">
+      <span style="font-size:1.4rem">${casa(p.casa).e}</span><span style="flex:1">${esc(p.nombre)}</span></button>`).join('') : `<p class="tenue">No aparece nadie con ese nombre.</p>`;
+    $('#lista', v).querySelectorAll('[data-id]').forEach((b) => b.addEventListener('click', () => {
+      const p = lista.find((x) => x.id === +b.dataset.id); v.remove(); mandarRegalo(p);
+    }));
+  };
+  $('#buscar', v).addEventListener('input', pintarL);
+  $('#cancelar', v).addEventListener('click', () => v.remove());
+  pintarL();
+}
+function mandarRegalo(p) {
+  elegirRegalo({
+    titulo: `Regalo para ${p.nombre}`,
+    intro: 'Si lo mandas en secreto, le aparecerá “de alguien en secreto”.',
+    frases: FRASES_REGALO,
+    conAnonimo: true,
+    boton: '🎁 Enviar regalo',
+    alEnviar: async (reg, nota, extra) => {
+      await accion({ accion: 'secreto', para: p.id, regalo: reg, nota, ...extra }, extra.anonimo ? '🤫 Tu regalo secreto ya va volando' : '🎁 ¡Regalo enviado!');
+      pintar();
+    },
+  });
+}
+function vistaPrevia(yo) {
+  const v = hoja(`<p class="tenue centro" style="margin:0 0 10px">Así te ven las demás personas 👀</p>
+    ${carrusel(yo, yo.frase ? `<p style="margin-top:6px">${esc(yo.frase)}</p>` : '')}
+    <div class="tarjeta" style="margin-top:10px"><h3>Lo que te gusta</h3><div style="margin-top:8px">${chipsIntereses(yo.intereses)}</div>
+    <p class="tenue" style="margin-top:10px">A cada persona le saldrá en qué cosas coinciden contigo.</p></div>
+    <button class="btn2" id="cerrar-vp">Cerrar</button>`);
+  $('#cerrar-vp', v).addEventListener('click', () => v.remove());
 }
 
 // ---- Conectar botones
@@ -1124,15 +1171,13 @@ function conectar(E) {
   on('[data-rechazar]', (b) => rechazarInv(E.recibidas.find((x) => x.id === +b.dataset.rechazar)));
   on('[data-verperfil]', (b) => verPerfil(E.recibidas.find((x) => x.id === +b.dataset.verperfil)));
   on('[data-bloq]', async (b) => {
-    if (!confirm('¿Dejar de recibir regalos secretos de esta persona? No sabrás quién es, y no podrá mandarte más.')) return;
+    if (!confirm('¿Dejar de recibir regalos de esta persona? No podrá mandarte más.')) return;
     try { await accion({ accion: 'bloquear_secreto', id: +b.dataset.bloq }, 'Listo, ya no recibirás más de esa persona'); pintar(); } catch (e) { toast(e.message, true); }
   });
   on('#lechuza', mandarLechuza);
   on('#ya-tengo', elegirMiPareja);
   on('#cambiar-pareja', elegirMiPareja);
-  on('#elegir-crush', elegirCrush);
-  on('#cambiar-crush', elegirCrush);
-  on('#mandar-secreto', mandarSecreto);
+  on('#mandar-regalo', elegirDestinatario);
   on('#cancelar-inv', async () => {
     if (!confirm('¿Cancelar tu invitación? Podrás invitar a otra persona.')) return;
     try { await accion({ accion: 'cancelar_invitacion' }, 'Invitación cancelada'); await refrescar(true); } catch (e) { toast(e.message, true); }
@@ -1166,7 +1211,7 @@ function invitarA(id) {
     boton: '🦉 Enviar mi invitación',
     alEnviar: async (reg, nota, extra) => {
       await accion({ accion: 'invitar', para: id, regalo: reg, nota, ...extra });
-      toast(S.estado.pareja ? '¡Tienen pareja! 💃' : '¡Tu invitación ya va volando! 🦉');
+      toast(S.estado.pareja ? '¡Van juntos al baile! 💃' : '¡Tu invitación ya va volando! 🦉');
       await refrescar(true);
     },
   });
@@ -1198,43 +1243,6 @@ function verPerfil(inv) {
     ${resto.length ? `<h3 style="margin-top:14px">También le gusta</h3><div style="margin-top:8px">${chipsIntereses(resto)}</div>` : ''}
     <div style="margin-top:16px"><button class="btn2" id="cerrar-perfil">Cerrar</button></div>`);
   $('#cerrar-perfil', v).addEventListener('click', () => v.remove());
-}
-async function elegirCrush() {
-  let lista;
-  try { lista = await api({ accion: 'nombres', token: S.token }); } catch (e) { return toast(e.message, true); }
-  const libres = lista.filter((p) => p.estado !== 'pareja');
-  const v = hoja(`<h2>🤫 ¿Quién es tu crush?</h2>
-    <p class="suave">Solo tú lo sabrás. Podrás mandarle regalos anónimos, y si son compatibles le verás primero en tu inicio.</p>
-    <input type="text" id="buscar" placeholder="Buscar nombre…" style="margin:10px 0">
-    <div id="lista" class="pila" style="max-height:50vh;overflow:auto"></div>
-    <div class="pila" style="margin-top:12px">${S.estado.crush ? '<button class="btn2" id="quitar">Ya no tengo crush</button>' : ''}<button class="btn2" id="cancelar">Cancelar</button></div>`);
-  const pintarL = () => {
-    const t = norm($('#buscar', v).value);
-    const l = libres.filter((p) => !t || norm(p.nombre).includes(t));
-    $('#lista', v).innerHTML = l.length ? l.map((p) => `<button class="opcion" style="text-align:left;display:flex;gap:10px;align-items:center" data-id="${p.id}">
-      <span style="font-size:1.4rem">${casa(p.casa).e}</span><span style="flex:1">${esc(p.nombre)}</span></button>`).join('') : `<p class="tenue">No aparece nadie con ese nombre.</p>`;
-    $('#lista', v).querySelectorAll('[data-id]').forEach((b) => b.addEventListener('click', async () => {
-      try { await accion({ accion: 'crush', para: +b.dataset.id }); v.remove(); toast('🤫 Secreto guardado'); await refrescar(true); }
-      catch (e) { toast(e.message, true); }
-    }));
-  };
-  $('#buscar', v).addEventListener('input', pintarL);
-  $('#cancelar', v).addEventListener('click', () => v.remove());
-  if ($('#quitar', v)) $('#quitar', v).addEventListener('click', async () => { try { await accion({ accion: 'crush', para: null }); v.remove(); await refrescar(true); } catch (e) { toast(e.message, true); } });
-  pintarL();
-}
-function mandarSecreto() {
-  const c = S.estado.crush;
-  elegirRegalo({
-    titulo: `Regalo secreto para ${c.nombre}`,
-    intro: 'No verá tu nombre: le aparecerá “de tu admirador secreto”.',
-    frases: FRASES_SECRETO,
-    boton: '🤫 Enviar en secreto',
-    alEnviar: async (reg, nota, extra) => {
-      await accion({ accion: 'secreto', regalo: reg, nota, ...extra }, '🤫 Tu regalo secreto ya va volando');
-      pintar();
-    },
-  });
 }
 function mandarLechuza() {
   const E = S.estado;
@@ -1282,11 +1290,11 @@ async function celebrar(E) {
   f.innerHTML = `<div class="dentro">
     <p class="sub">✦ El Sombrero lo sabía ✦</p>
     <div class="duo"><div id="f1">${casa(E.yo.casa).e}</div><div id="f2">${casa(p.casa).e}</div></div>
-    <h1 class="titulo claro" style="font-size:2.7rem">¡Tienen pareja!</h1>
+    <h1 class="titulo claro" style="font-size:2.5rem">¡Van juntos al baile!</h1>
     <div class="invitacion" style="margin-top:16px">${estrellasEsquinas()}
       ${boleto()}
       <p style="font-size:1.08rem;margin:8px 0 0">${esc(E.yo.nombre)} y ${esc(p.nombre)} irán juntos al Baile de Navidad 💃🕺</p>
-      ${E.pareja.era_admirador ? `<div class="secreto-banda" style="text-align:left"><span style="font-size:1.4rem">🤫</span><div>Los regalos secretos eran de ${esc(p.nombre)}.</div></div>` : ''}
+      ${E.pareja.era_admirador ? `<div class="secreto-banda" style="text-align:left"><span style="font-size:1.4rem">🤫</span><div>Los regalos en secreto eran de ${esc(p.nombre)}.</div></div>` : ''}
       ${E.pareja.origen === 'invitacion' ? `<p class="tenue">Los regalos de la invitación ya están en su buzón 📬</p>` : ''}
       <div style="margin-top:14px"><button class="btn carmesi" id="ok-fiesta">¡A bailar!</button></div></div></div>`;
   document.body.appendChild(f); confeti();
@@ -1302,7 +1310,7 @@ async function celebrar(E) {
 // ====================================================================== Mi perfil
 async function perfil() {
   const E = S.estado, yo = E.yo;
-  const P = { casa: yo.casa, soy: yo.soy, voy_con: yo.voy_con, frase: yo.frase, intereses: [...yo.intereses], fotos: [], vetos: [...E.vetos] };
+  const P = { casa: yo.casa, soy: yo.soy, voy_con: yo.voy_con, plan: yo.plan || 'igual', frase: yo.frase, intereses: [...yo.intereses], fotos: [], vetos: [...E.vetos] };
   let fotosCambiadas = false;
   app.innerHTML = `<div class="cargando">Cargando tu perfil…</div>` + navegacion(E);
   try { P.fotos = [...(await fotosDe(yo))]; } catch (e) {}
@@ -1310,12 +1318,14 @@ async function perfil() {
   try { nombres = await api({ accion: 'nombres', token: S.token }); } catch (e) {}
   if (S.tab !== 'perfil') return;
   app.innerHTML = cabecera(E) + `
+    <button class="btn2" id="vista-previa" style="margin-bottom:6px">👀 Ver cómo me ven los demás</button>
     <div class="tarjeta brillo"><h2>Mi perfil</h2>
       <label class="campo">Mis fotos</label><div id="fe"></div>
       <label class="campo">Mi casa</label>
       <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === P.casa}"><span class="e">${x.e}</span>${x.id}</button>`).join('')}</div>
       <label class="campo">Soy…</label><div class="opciones" id="soy">${botonesOpcion(SOY, P.soy)}</div>
       <label class="campo">Me gustaría ir al baile…</label><div class="opciones" id="voy">${botonesOpcion(VOY, P.voy_con)}</div>
+      <label class="campo">¿Cómo te gustaría ir?</label><div class="opciones" id="plan">${botonesOpcion(PLANES, P.plan)}</div>
       <label class="campo" for="f">Mi frase</label><textarea id="f" maxlength="120">${esc(P.frase)}</textarea>
     </div>
     <div class="tarjeta"><h2>Lo que me gusta</h2><p class="tenue" id="cuenta-int"></p><div id="ei"></div></div>
@@ -1332,7 +1342,9 @@ async function perfil() {
   activarOpciones($('#casas'), (v) => (P.casa = v));
   activarOpciones($('#soy'), (v) => (P.soy = v));
   activarOpciones($('#voy'), (v) => (P.voy_con = v));
+  activarOpciones($('#plan'), (v) => (P.plan = v));
   $('#f').addEventListener('input', (e) => (P.frase = e.target.value));
+  $('#vista-previa').addEventListener('click', () => vistaPrevia({ ...yo, casa: P.casa, plan: P.plan, frase: P.frase, intereses: P.intereses }));
   const cuenta = () => ($('#cuenta-int').textContent = `Llevas ${P.intereses.length} ✓`);
   editorIntereses($('#ei'), P.intereses, (l) => { P.intereses = l; cuenta(); }); cuenta();
   fotosDe(yo).then((l) => { if (l[0] && $('#mifoto')) $('#mifoto').outerHTML = `<img class="mini" id="mifoto" src="${l[0]}" alt="">`; }).catch(() => {});
@@ -1353,7 +1365,7 @@ async function perfil() {
     if (yo.estado === 'busca' && !P.fotos.length) return toast('Necesitas al menos una foto mientras buscas pareja', true);
     const btn = $('#guardar'); btn.disabled = true;
     try {
-      const datos = { accion: 'perfil', casa: P.casa, soy: P.soy, voy_con: P.voy_con, frase: P.frase, intereses: P.intereses };
+      const datos = { accion: 'perfil', casa: P.casa, soy: P.soy, voy_con: P.voy_con, plan: P.plan, frase: P.frase, intereses: P.intereses };
       if (fotosCambiadas) datos.fotos = P.fotos;
       await accion(datos);
       if (yo.estado !== 'pareja' && JSON.stringify([...P.vetos].sort()) !== JSON.stringify([...E.vetos].sort())) await accion({ accion: 'vetos', ids: P.vetos });
@@ -1408,9 +1420,9 @@ async function admin() {
         ${d.parejas.map((pa) => `<div class="admin-persona fila" style="align-items:center"><span style="flex:3">💃 ${esc(pa.a)} &amp; ${esc(pa.b)}
           <span class="tenue">· ${pa.origen === 'invitacion' ? '💌 invitación' : pa.origen === 'admin' ? '🔑 a mano' : 'ya iban juntos'}</span></span>
           <button class="btn3 peligro" style="flex:0" data-deshacer="${pa.id}">Deshacer</button></div>`).join('') || '<p class="tenue">Ninguna todavía</p>'}</div>
-      <div class="tarjeta"><h3>🤫 Regalos secretos (${d.secretos.length})</h3>
-        <p class="tenue">Solo lo ves tú, por si alguien molesta. Nadie más sabe quién manda a quién.</p>
-        ${d.secretos.map((x) => `<div class="admin-persona">${esc(x.de)} → ${esc(x.para)} · ${x.n} regalo${x.n > 1 ? 's' : ''}${x.bloqueado ? ' · <span style="color:var(--rojo)">bloqueado</span>' : ''}</div>`).join('') || '<p class="tenue">Ninguno todavía</p>'}</div>
+      <div class="tarjeta"><h3>🎁 Regalos (${d.secretos.length})</h3>
+        <p class="tenue">Solo lo ves tú, por si alguien molesta. Nadie más sabe quién manda los regalos en secreto.</p>
+        ${d.secretos.map((x) => `<div class="admin-persona">${esc(x.de)} → ${esc(x.para)} · ${x.n} regalo${x.n > 1 ? 's' : ''}${x.anonimos ? ` (${x.anonimos} en secreto)` : ''}${x.bloqueado ? ' · <span style="color:var(--rojo)">bloqueado</span>' : ''}</div>`).join('') || '<p class="tenue">Ninguno todavía</p>'}</div>
       <div class="tarjeta"><h3>Personas (${d.personas.length})</h3>
         ${d.personas.map((x) => `<div class="admin-persona">
           <b>${esc(x.nombre)}</b> ${insignia(x.casa)} <span class="estado e-${x.estado}">${ETQ[x.estado]}</span>

@@ -5,7 +5,8 @@ datos se guardan gratis en **Supabase**.
 
 ## Cómo funciona
 - Cada persona crea su perfil: nombre, **PIN de 4 números**, casa, cómo se identifica, con quién le gustaría ir,
-  una frase, **de 1 a 3 fotos** e **intereses** (mínimo 8). Categorías: música, animales, comida, color, películas
+  **cómo le gustaría ir** (💞 en plan romántico, 🤝 en plan amistad o ✨ le da igual; se ve en su perfil),
+  una frase, **de 1 a 3 fotos** e **intereses** (mínimo 8). En "Perfil" hay una **vista previa** de cómo te ven. Categorías: música, animales, comida, color, películas
   y series, hobbies, deportes y asignatura favorita de Hogwarts; cada una con "Otro: escribe el tuyo".
 - **Ya tengo pareja:** eliges a tu pareja de la lista y ella lo confirma. Luego se pueden mandar regalos.
 - **Buscar pareja:** al entrar vas bajando y aparecen los perfiles de las personas compatibles contigo (los dos se
@@ -17,11 +18,11 @@ datos se guardan gratis en **Supabase**.
   - Si la otra persona **acepta** (con un regalo y carta de vuelta) → ¡pareja! Si te había invitado y tú la invitas, es pareja directa.
   - Si **rechaza** → te sale "*Fulano ha rechazado tu invitación*" y ya no le puedes volver a invitar.
   - Si no responde en **12 horas**, la invitación **caduca** ("*Tu invitación a Fulano ha caducado*", que no es un rechazo).
-- **Barra de abajo:** Inicio · Buzón (invitaciones, cartas, regalos y lo que mandaste) · Secreto · Perfil.
+- **Barra de abajo:** Inicio · Buzón (invitaciones, cartas y regalos) · Regalos · Perfil.
 - **Prefiero no ir con…** (secreto, hasta 3 personas): el Sombrero nunca te las presenta.
-- **Admirador secreto 🤫:** quien no tiene pareja elige a **una** persona (su crush) y le manda regalos con carta
-  **sin que sepa quién es** (hasta 3 al día). Si son compatibles, le ve primero en su inicio; al invitarle
-  puede **revelar** que era su admirador secreto. Quien recibe puede tocar "No quiero recibir más" y se cortan.
+- **Regalos 🎁:** cualquiera puede mandarle un regalo con carta a quien quiera, **con su nombre o en secreto** (lo elige
+  cada vez; hasta 5 al día). Quien recibe puede tocar "No quiero recibir más de esta persona". Si mandaste regalos en
+  secreto y luego invitas a esa persona al baile, puedes contarle que eran tuyos.
   En `#admin` el organizador ve quién manda a quién (solo por seguridad).
 - **Correo Lechuza 🦉:** las parejas se mandan regalos con nota. Opción **🎁 sorpresa**: se abre el día del baile.
 - **Sin chat**: solo regalos y cartas.

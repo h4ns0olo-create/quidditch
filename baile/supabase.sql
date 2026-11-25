@@ -45,6 +45,8 @@ create table if not exists baile_personas (
   creado      timestamptz not null default now()
 );
 alter table baile_personas add column if not exists crush bigint references baile_personas(id) on delete set null;
+-- cómo le gustaría ir al baile: romantico | amistad | igual (se muestra en su perfil)
+alter table baile_personas add column if not exists plan text not null default 'igual';
 create table if not exists baile_fotos (
   persona_id bigint not null references baile_personas(id) on delete cascade,
   orden      int not null,
@@ -113,7 +115,7 @@ create table if not exists baile_regalo_fotos (     -- fotos de los regalos prop
   datos  text not null,
   creada timestamptz not null default now()
 );
-create table if not exists baile_secretos (         -- 🤫 regalos del admirador secreto
+create table if not exists baile_secretos (         -- 🎁 regalos para quien quieras (con tu nombre o en secreto)
   id     bigint generated always as identity primary key,
   de     bigint not null references baile_personas(id) on delete cascade,
   para   bigint not null references baile_personas(id) on delete cascade,
@@ -124,6 +126,8 @@ create table if not exists baile_secretos (         -- 🤫 regalos del admirado
   leida  boolean not null default false,
   creada timestamptz not null default now()
 );
+-- los regalos que ya se mandaron se quedan anónimos (default true)
+alter table baile_secretos add column if not exists anonimo boolean not null default true;
 create table if not exists baile_bloqueos (         -- "no quiero recibir más regalos secretos de esta persona"
   para bigint not null references baile_personas(id) on delete cascade,
   de   bigint not null references baile_personas(id) on delete cascade,
@@ -193,7 +197,7 @@ $$;
 create or replace function baile_publico(pid bigint) returns jsonb
 language sql stable set search_path = public as $$
   select jsonb_build_object('id', p.id, 'nombre', p.nombre, 'casa', p.casa, 'frase', p.frase,
-    'intereses', to_jsonb(p.intereses), 'fotos_ver', p.fotos_ver,
+    'intereses', to_jsonb(p.intereses), 'fotos_ver', p.fotos_ver, 'plan', p.plan,
     'fotos_n', (select count(*) from baile_fotos f where f.persona_id = p.id))
   from baile_personas p where p.id = pid
 $$;
@@ -272,7 +276,7 @@ begin
     regalo_resp = p->>'regalo', nota_resp = left(trim(coalesce(p->>'nota', '')), 500), foto_resp = fid,
     titulo_resp = case when fid is not null then left(trim(p->>'titulo'), 40) end,
     revela_resp = coalesce((p->>'revela')::boolean, false)
-                  and exists (select 1 from baile_secretos where de = inv.para and para = inv.de)
+                  and exists (select 1 from baile_secretos where de = inv.para and para = inv.de and anonimo)
   where id = iid;
   select * into inv from baile_invitaciones where id = iid;
   perform baile_formar_pareja(inv.de, inv.para, 'invitacion');
@@ -292,7 +296,7 @@ language sql stable set search_path = public as $$
         'me_invito', exists (select 1 from baile_invitaciones i where i.de = y.id and i.para = me and i.estado = 'pendiente'),
         'le_invite', exists (select 1 from baile_invitaciones i where i.de = me and i.para = y.id and i.estado = 'pendiente'),
         'me_rechazo', exists (select 1 from baile_invitaciones i where i.de = me and i.para = y.id and i.estado = 'rechazada'),
-        'le_mande_secretos', exists (select 1 from baile_secretos z where z.de = me and z.para = y.id)) as o,
+        'le_mande_secretos', exists (select 1 from baile_secretos z where z.de = me and z.para = y.id and z.anonimo)) as o,
       cardinality(c.comunes) as n, y.nombre
     from baile_personas x
     join baile_personas y on baile_compatibles(x.id, y.id)
@@ -316,6 +320,7 @@ begin
   select * into yo from baile_personas where id = me;
   j := jsonb_build_object(
     'yo', baile_publico(me) || jsonb_build_object('soy', yo.soy, 'voy_con', yo.voy_con, 'estado', yo.estado),
+    'limite_regalos', 5,
     'cfg', jsonb_build_object('abiertas', baile_abiertas(), 'sombrero', baile_cfg('sombrero'), 'cierre', baile_cfg('cierre')::timestamptz,
       'baile', baile_t, 'horas', baile_cfg('horas')::int, 'minimo', baile_cfg('minimo')::int,
       'nota_libre', baile_cfg('nota_libre') = 'si', 'ahora', now()),
@@ -338,7 +343,7 @@ begin
   j := j || jsonb_build_object(
     'recibidas', coalesce((select jsonb_agg(jsonb_build_object('id', i.id, 'persona', baile_publico(i.de),
         'comunes', to_jsonb(baile_comunes(me, i.de)), 'regalo', i.regalo, 'nota', i.nota, 'titulo', i.titulo, 'foto', i.foto,
-        'revela', i.revela, 'le_mande_secretos', exists (select 1 from baile_secretos z where z.de = me and z.para = i.de),
+        'revela', i.revela, 'le_mande_secretos', exists (select 1 from baile_secretos z where z.de = me and z.para = i.de and z.anonimo),
         'vence', i.creada + make_interval(hours => baile_cfg('horas')::int)) order by i.id)
       from baile_invitaciones i where i.para = me and i.estado = 'pendiente'), '[]'),
     'enviada', (select jsonb_build_object('id', i.id, 'persona', baile_publico(i.para), 'regalo', i.regalo, 'nota', i.nota,
@@ -381,10 +386,16 @@ begin
   -- Admirador secreto: lo que recibo (sin decir de quién) y mi crush
   j := j || jsonb_build_object(
     'secretos', coalesce((select jsonb_agg(jsonb_build_object('id', x.id, 'regalo', x.regalo, 'nota', x.nota,
-        'titulo', x.titulo, 'foto', x.foto, 'leida', x.leida, 'creada', x.creada) order by x.id desc)
+        'titulo', x.titulo, 'foto', x.foto, 'leida', x.leida, 'creada', x.creada, 'anonimo', x.anonimo,
+        'de', case when x.anonimo then null else (select nombre from baile_personas where id = x.de) end) order by x.id desc)
       from baile_secretos x where x.para = me
         and not exists (select 1 from baile_bloqueos k where k.para = me and k.de = x.de)), '[]'),
-    'secretos_hoy', (select count(*) from baile_secretos where de = me and creada > now() - interval '1 day'));
+    'secretos_hoy', (select count(*) from baile_secretos where de = me and creada > now() - interval '1 day'),
+    'regalos_enviados', coalesce((select jsonb_agg(jsonb_build_object('id', x.id, 'regalo', x.regalo, 'nota', x.nota,
+        'titulo', x.titulo, 'foto', x.foto, 'leida', x.leida, 'creada', x.creada, 'anonimo', x.anonimo,
+        'para', (select nombre from baile_personas where id = x.para),
+        'bloqueado', exists (select 1 from baile_bloqueos k where k.para = x.para and k.de = me)) order by x.id desc)
+      from baile_secretos x where x.de = me), '[]'));
   if yo.crush is not null then
     j := j || jsonb_build_object('crush', (select jsonb_build_object('id', c.id, 'nombre', c.nombre, 'casa', c.casa,
         'tiene_pareja', c.estado = 'pareja',
@@ -440,11 +451,13 @@ begin
     if coalesce(p->>'soy', '') not in ('chica', 'chico', 'otro') then raise exception 'Dinos cómo te identificas'; end if;
     if coalesce(p->>'voy_con', '') not in ('chicas', 'chicos', 'cualquiera') then raise exception 'Dinos con quién te gustaría ir'; end if;
     if coalesce(p->>'estado', '') not in ('busca', 'tiene') then raise exception 'Dinos si ya tienes pareja'; end if;
+    if coalesce(p->>'plan', 'igual') not in ('romantico', 'amistad', 'igual') then raise exception 'Opción no válida'; end if;
     if p->>'estado' = 'busca' and jsonb_array_length(coalesce(p->'fotos', '[]')) = 0 then
       raise exception 'Sube al menos una foto para que puedan conocerte';
     end if;
-    insert into baile_personas (nombre, nombre_norm, pin_hash, casa, soy, voy_con, frase, intereses, estado)
+    insert into baile_personas (nombre, nombre_norm, pin_hash, casa, soy, voy_con, plan, frase, intereses, estado)
     values (v, baile_norm(v), extensions.crypt(p->>'pin', extensions.gen_salt('bf')), p->>'casa', p->>'soy', p->>'voy_con',
+            coalesce(nullif(p->>'plan', ''), 'igual'),
             left(trim(coalesce(p->>'frase', '')), 120),
             coalesce((select array_agg(distinct left(x, 60)) from jsonb_array_elements_text(coalesce(p->'intereses', '[]')) x
                       where length(x) between 3 and 60), '{}'),
@@ -530,9 +543,9 @@ begin
           'a', (select nombre from baile_personas where id = pa.a), 'b', (select nombre from baile_personas where id = pa.b)
         ) order by pa.id) from baile_parejas pa), '[]'),
       'lechuzas', (select count(*) from baile_lechuzas),
-      'secretos', coalesce((select jsonb_agg(jsonb_build_object('de', d.nombre, 'para', t.nombre, 'n', g.n,
+      'secretos', coalesce((select jsonb_agg(jsonb_build_object('de', d.nombre, 'para', t.nombre, 'n', g.n, 'anonimos', g.anon,
           'bloqueado', exists (select 1 from baile_bloqueos k where k.para = g.para and k.de = g.de)) order by g.n desc)
-        from (select de, para, count(*) n from baile_secretos group by de, para) g
+        from (select de, para, count(*) n, count(*) filter (where anonimo) anon from baile_secretos group by de, para) g
         join baile_personas d on d.id = g.de join baile_personas t on t.id = g.para), '[]'));
   end if;
 
@@ -576,7 +589,9 @@ begin
     if p ? 'casa' and not (p->>'casa' = any (casas)) then raise exception 'Elige tu casa'; end if;
     if p ? 'soy' and p->>'soy' not in ('chica', 'chico', 'otro') then raise exception 'Opción no válida'; end if;
     if p ? 'voy_con' and p->>'voy_con' not in ('chicas', 'chicos', 'cualquiera') then raise exception 'Opción no válida'; end if;
+    if p ? 'plan' and p->>'plan' not in ('romantico', 'amistad', 'igual') then raise exception 'Opción no válida'; end if;
     update baile_personas set
+      plan = coalesce(p->>'plan', plan),
       casa = coalesce(p->>'casa', casa),
       soy = coalesce(p->>'soy', soy),
       voy_con = coalesce(p->>'voy_con', voy_con),
@@ -684,7 +699,7 @@ begin
     insert into baile_invitaciones (de, para, regalo, nota, foto, titulo, revela)
     values (me, otro, p->>'regalo', left(trim(coalesce(p->>'nota', '')), 500), fid,
             case when fid is not null then left(trim(p->>'titulo'), 40) end,
-            coalesce((p->>'revela')::boolean, false) and exists (select 1 from baile_secretos where de = me and para = otro));
+            coalesce((p->>'revela')::boolean, false) and exists (select 1 from baile_secretos where de = me and para = otro and anonimo));
 
   elsif accion = 'responder_invitacion' then
     select * into inv from baile_invitaciones where id = (p->>'id')::bigint and para = me and estado = 'pendiente';
@@ -736,21 +751,19 @@ begin
       update baile_personas set crush = otro where id = me;
     end if;
 
-  elsif accion = 'secreto' then              -- regalo anónimo a tu crush
-    if yo.estado = 'pareja' then raise exception 'Ya tienes pareja: los regalos secretos son para quien todavía busca'; end if;
-    otro := yo.crush;
-    if otro is null then raise exception 'Primero elige a quién se lo mandas'; end if;
-    if (select estado from baile_personas where id = otro) = 'pareja' then raise exception 'Esa persona ya tiene pareja para el baile'; end if;
-    if exists (select 1 from baile_bloqueos where para = otro and de = me) then raise exception 'Esa persona prefiere no recibir regalos secretos'; end if;
-    if (select count(*) from baile_secretos where de = me and creada > now() - interval '1 day') >= 3 then
-      raise exception 'Ya mandaste 3 regalos secretos hoy 🤫 Mañana puedes mandar más.';
+  elsif accion = 'secreto' then              -- 🎁 regalo para quien quieras, con tu nombre o en secreto
+    otro := coalesce(nullif(p->>'para', '')::bigint, yo.crush);
+    if otro is null or otro = me or not exists (select 1 from baile_personas where id = otro) then raise exception 'Elige a quién se lo mandas'; end if;
+    if exists (select 1 from baile_bloqueos where para = otro and de = me) then raise exception 'Esa persona prefiere no recibir regalos tuyos'; end if;
+    if (select count(*) from baile_secretos where de = me and creada > now() - interval '1 day') >= 5 then
+      raise exception 'Ya mandaste 5 regalos hoy 🎁 Mañana puedes mandar más.';
     end if;
     fid := baile_foto_regalo(me, p);
-    insert into baile_secretos (de, para, regalo, nota, foto, titulo)
+    insert into baile_secretos (de, para, regalo, nota, foto, titulo, anonimo)
     values (me, otro, p->>'regalo', left(trim(coalesce(p->>'nota', '')), 500), fid,
-            case when fid is not null then left(trim(p->>'titulo'), 40) end);
+            case when fid is not null then left(trim(p->>'titulo'), 40) end, coalesce((p->>'anonimo')::boolean, true));
 
-  elsif accion = 'bloquear_secreto' then     -- no quiero recibir más de esa persona (sin saber quién es)
+  elsif accion = 'bloquear_secreto' then     -- no quiero recibir más regalos de esa persona (aunque no sepa quién es)
     insert into baile_bloqueos (para, de)
     select me, de from baile_secretos where id = (p->>'id')::bigint and para = me
     on conflict do nothing;
