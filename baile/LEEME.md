@@ -5,21 +5,24 @@ datos se guardan gratis en **Supabase**.
 
 ## Cómo funciona
 - Cada persona crea su perfil: nombre, **PIN de 4 números**, casa, cómo se identifica, con quién le gustaría ir,
-  una frase, **de 1 a 3 fotos** e **intereses** (listas por categorías + "Otro: escribe el tuyo").
+  una frase, **de 1 a 3 fotos** e **intereses** (mínimo 8). Categorías: música, animales, comida, color, películas
+  y series, hobbies, deportes y asignatura favorita de Hogwarts; cada una con "Otro: escribe el tuyo".
 - **Ya tengo pareja:** eliges a tu pareja de la lista y ella lo confirma. Luego se pueden mandar regalos.
 - **Que el Sombrero me ayude:** el Sombrero te presenta a la persona libre con la que más coincides (lo raro cuenta más:
-  coincidir en "Metal" pesa más que en "Pizza"). Ves sus fotos, su casa, su frase y en qué coinciden.
-  - **Invitar al baile:** eliges un regalo (rosa encantada, rana de chocolate, muérdago…) y un mensaje
-    (frases hechas o uno propio de máx. 140 letras). La otra persona ve tu regalo y tu mensaje.
+  coincidir en "Metal" pesa más que en "Pizza"). **Solo propone si tienen al menos 3 cosas en común** (se cambia en
+  `#admin`); si no hay nadie así, espera a que se registre más gente. Ves sus fotos, su casa, su frase y en qué coinciden.
+  - **Invitar al baile:** eliges un regalo de la lista (18 regalos dibujados, en `regalos.js`) **o tu propio regalo**
+    (foto + qué es), y un mensaje (frases hechas o uno propio de máx. 140 letras). La otra persona ve tu regalo y tu mensaje.
   - Si **los dos dicen que sí** → ¡pareja! (con celebración y los regalos van al buzón).
-  - Si **cualquiera dice que no** → a los dos se les presenta a otra persona. Esa pareja no se vuelve a proponer.
-    Nadie ve quién dijo que no.
-  - Si alguien no responde en **12 horas**, la propuesta caduca y los dos quedan libres.
+  - Si **cualquiera dice que no** → a la otra persona le sale "*Fulano ha rechazado tu invitación*" y a los dos se les
+    presenta a otra persona. Esa pareja no se vuelve a proponer.
+  - Si alguien no responde en **12 horas**, la propuesta **caduca** (a quien invitó le sale "*Tu invitación a Fulano ha
+    caducado*", que no es un rechazo) y los dos quedan libres.
 - **Prefiero no ir con…** (secreto, hasta 3 personas): el Sombrero nunca te las presenta.
 - **Correo Lechuza 🦉:** las parejas se mandan regalos con nota. Opción **🎁 sorpresa**: se abre el día del baile.
 - **Sin chat**: solo regalos y notas cortas.
 - **Administración:** abre la página con `#admin` al final (ej. `https://tu-pagina.netlify.app/#admin`).
-  Ves a todos, pausas/abres el Sombrero, **emparejas a mano** (para que nadie se quede sin pareja al final),
+  Ves a todos, pausas/abres el Sombrero, cambias el **mínimo de cosas en común**, **emparejas a mano** (para que nadie se quede sin pareja al final),
   deshaces parejas, cambias PIN olvidados y borras perfiles.
 
 ## Ponerlo en marcha (una sola vez, ~15 minutos)
