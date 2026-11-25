@@ -178,12 +178,19 @@ language sql immutable as $$
      and (v2 = 'cualquiera' or (v2 = 'chicas' and s1 = 'chica') or (v2 = 'chicos' and s1 = 'chico'))
 $$;
 
--- ¿Pueden verse e invitarse? (los dos buscan pareja, se sienten a gusto y nadie vetó al otro)
+-- 🎓 Profesores con profesores, alumnos con alumnos
+create or replace function baile_mismo_grupo(x bigint, y bigint) returns boolean
+language sql stable set search_path = public as $$
+  select (select casa = 'Profesorado' from baile_personas where id = x) = (select casa = 'Profesorado' from baile_personas where id = y)
+$$;
+
+-- ¿Pueden verse e invitarse? (los dos buscan pareja, mismo grupo, se sienten a gusto y nadie vetó al otro)
 create or replace function baile_compatibles(x bigint, y bigint) returns boolean
 language sql stable set search_path = public as $$
   select exists (
     select 1 from baile_personas p, baile_personas q
     where p.id = x and q.id = y and p.id <> q.id and p.estado = 'busca' and q.estado = 'busca'
+      and (p.casa = 'Profesorado') = (q.casa = 'Profesorado')
       and baile_compat(p.soy, p.voy_con, q.soy, q.voy_con)
       and not exists (select 1 from baile_vetos v
                       where (v.persona_id = x and v.vetado_id = y) or (v.persona_id = y and v.vetado_id = x)))
@@ -422,7 +429,7 @@ declare
   v text;
   i int;
   fid bigint;
-  casas text[] := array['Gryffindor', 'Slytherin', 'Ravenclaw', 'Hufflepuff'];
+  casas text[] := array['Gryffindor', 'Slytherin', 'Ravenclaw', 'Hufflepuff', 'Profesorado'];
 begin
   perform pg_advisory_xact_lock(20261205);   -- una petición a la vez: nadie se queda con la misma pareja dos veces
   perform baile_caducar();
@@ -435,9 +442,10 @@ begin
       'cierre', baile_cfg('cierre')::timestamptz, 'baile', baile_cfg('baile')::timestamptz);
   end if;
 
-  if accion = 'nombres_libres' then        -- para elegir pareja al registrarse
+  if accion = 'nombres_libres' then        -- para elegir pareja al registrarse (solo de su mismo grupo)
     return coalesce((select jsonb_agg(jsonb_build_object('id', id, 'nombre', nombre, 'casa', casa) order by nombre)
-                     from baile_personas where estado <> 'pareja'), '[]');
+                     from baile_personas where estado <> 'pareja'
+                       and (casa = 'Profesorado') = (coalesce(p->>'casa', '') = 'Profesorado')), '[]');
   end if;
 
   if accion = 'registrar' then
@@ -625,9 +633,20 @@ begin
     on conflict do nothing;
     perform baile_limpiar_invitaciones(me);
 
-  elsif accion = 'nombres' then
+  elsif accion = 'nombres' then              -- solo su mismo grupo (profesores o alumnos)
     return coalesce((select jsonb_agg(jsonb_build_object('id', id, 'nombre', nombre, 'casa', casa, 'estado', estado) order by nombre)
-                     from baile_personas where id <> me), '[]');
+                     from baile_personas where id <> me and (casa = 'Profesorado') = (yo.casa = 'Profesorado')), '[]');
+
+  elsif accion = 'sala' then                 -- ☕ Sala de profesores: quién está y qué parejas ya van juntas (sin fotos ni datos privados)
+    if yo.casa <> 'Profesorado' then raise exception 'Solo para profesores'; end if;
+    return jsonb_build_object(
+      'personas', coalesce((select jsonb_agg(jsonb_build_object('nombre', nombre, 'casa', casa, 'estado', estado) order by casa, nombre)
+                            from baile_personas), '[]'),
+      'parejas', coalesce((select jsonb_agg(jsonb_build_object(
+          'a', x.nombre, 'casa_a', x.casa, 'b', y.nombre, 'casa_b', y.casa) order by pa.id desc)
+        from baile_parejas pa join baile_personas x on x.id = pa.a join baile_personas y on y.id = pa.b), '[]'),
+      'invitaciones', (select count(*) from baile_invitaciones),
+      'regalos', (select count(*) from baile_secretos) + (select count(*) from baile_lechuzas));
 
   elsif accion = 'modo' then                 -- 'busca' (busco pareja) o 'tiene' (ya tengo con quién ir)
     if yo.estado = 'pareja' then raise exception 'Ya tienes pareja confirmada'; end if;
@@ -648,6 +667,7 @@ begin
     otro := (p->>'para')::bigint;
     if yo.estado = 'pareja' then raise exception 'Ya tienes pareja confirmada'; end if;
     if otro = me or not exists (select 1 from baile_personas where id = otro) then raise exception 'Elige a otra persona'; end if;
+    if not baile_mismo_grupo(me, otro) then raise exception 'Profesores con profesores y alumnos con alumnos 🎓'; end if;
     if (select estado from baile_personas where id = otro) = 'pareja' then raise exception 'Esa persona ya tiene pareja confirmada'; end if;
     if exists (select 1 from baile_solicitudes where de = otro and para = me and estado = 'pendiente') then
       update baile_solicitudes set estado = 'aceptada' where de = otro and para = me and estado = 'pendiente';
@@ -754,6 +774,7 @@ begin
   elsif accion = 'secreto' then              -- 🎁 regalo para quien quieras, con tu nombre o en secreto
     otro := coalesce(nullif(p->>'para', '')::bigint, yo.crush);
     if otro is null or otro = me or not exists (select 1 from baile_personas where id = otro) then raise exception 'Elige a quién se lo mandas'; end if;
+    if not baile_mismo_grupo(me, otro) then raise exception 'Profesores con profesores y alumnos con alumnos 🎓'; end if;
     if exists (select 1 from baile_bloqueos where para = otro and de = me) then raise exception 'Esa persona prefiere no recibir regalos tuyos'; end if;
     if (select count(*) from baile_secretos where de = me and creada > now() - interval '1 day') >= 5 then
       raise exception 'Ya mandaste 5 regalos hoy 🎁 Mañana puedes mandar más.';
@@ -780,7 +801,7 @@ end $$;
 
 -- Solo la función baile() se puede llamar desde la página.
 revoke execute on function baile_cfg(text), baile_regalos(), baile_norm(text), baile_compat(text, text, text, text),
-  baile_compatibles(bigint, bigint), baile_abiertas(), baile_publico(bigint), baile_comunes(bigint, bigint),
+  baile_compatibles(bigint, bigint), baile_mismo_grupo(bigint, bigint), baile_abiertas(), baile_publico(bigint), baile_comunes(bigint, bigint),
   baile_foto_regalo(bigint, jsonb), baile_caducar(), baile_cancelar_invitaciones(bigint), baile_limpiar_invitaciones(bigint),
   baile_formar_pareja(bigint, bigint, text), baile_aceptar(bigint, jsonb), baile_perfiles(bigint), baile_estado(bigint)
   from public, anon, authenticated;

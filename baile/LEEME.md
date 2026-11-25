@@ -18,6 +18,9 @@ datos se guardan gratis en **Supabase**.
   - Si la otra persona **acepta** (con un regalo y carta de vuelta) → ¡pareja! Si te había invitado y tú la invitas, es pareja directa.
   - Si **rechaza** → te sale "*Fulano ha rechazado tu invitación*" y ya no le puedes volver a invitar.
   - Si no responde en **12 horas**, la invitación **caduca** ("*Tu invitación a Fulano ha caducado*", que no es un rechazo).
+- **Profesores 🎓:** en "Tu casa" hay un botón "Soy profesor/a". Los profesores solo ven e invitan a otros profesores
+  (y solo les mandan regalos a ellos); los alumnos nunca ven ni invitan a profesores. Además tienen la pestaña
+  **☕ Sala de profesores**: quién está registrado en cada casa, quién busca y qué parejas ya van juntas (sin fotos).
 - **Barra de abajo:** Inicio · Buzón (invitaciones, cartas y regalos) · Regalos · Perfil.
 - **Prefiero no ir con…** (secreto, hasta 3 personas): el Sombrero nunca te las presenta.
 - **Regalos 🎁:** cualquiera puede mandarle un regalo con carta a quien quiera, **con su nombre o en secreto** (lo elige

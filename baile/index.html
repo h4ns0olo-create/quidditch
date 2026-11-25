@@ -96,6 +96,10 @@ select option{background:#0d1633}
 .casa-Slytherin[aria-pressed=true]{border-color:#4fae74;background:rgba(26,71,42,.5);box-shadow:inset 0 0 0 1px #4fae74}
 .casa-Ravenclaw[aria-pressed=true]{border-color:#7f9cf0;background:rgba(14,26,64,.75);box-shadow:inset 0 0 0 1px #7f9cf0}
 .casa-Hufflepuff[aria-pressed=true]{border-color:#ecb939;background:rgba(236,185,57,.2);box-shadow:inset 0 0 0 1px #ecb939}
+.casa-Profesorado[aria-pressed=true]{border-color:#b9a2f0;background:rgba(110,80,190,.32);box-shadow:inset 0 0 0 1px #b9a2f0}
+.i-Profesorado{background:rgba(110,80,190,.4);border-color:#a48be0;color:#efe6ff}
+.sala-fila{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--borde)}
+.sala-fila:first-child{border-top:0}
 .insignia{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:800;border:1px solid var(--borde)}
 .i-Gryffindor{background:rgba(174,0,1,.38);border-color:#c0392b;color:#ffd7a8}
 .i-Slytherin{background:rgba(26,71,42,.65);border-color:#3d8b5c;color:#d5f0dc}
@@ -256,7 +260,9 @@ select option{background:#0d1633}
 // ====================================================================== Datos fijos
 const CASAS = [
   { id: 'Gryffindor', e: '🦁' }, { id: 'Slytherin', e: '🐍' }, { id: 'Ravenclaw', e: '🦅' }, { id: 'Hufflepuff', e: '🦡' },
+  { id: 'Profesorado', e: '🎓', n: 'Soy profesor/a' },
 ];
+const esProfe = (c) => c === 'Profesorado';
 const CATALOGO = [
   { id: 'musica', e: '🎵', n: 'Música', ops: ['Rock', 'Pop', 'Reggaetón', 'K-pop', 'Indie', 'Metal', 'Electrónica', 'Baladas', 'Rap / Hip hop', 'Salsa / Cumbia', 'R&B', 'Clásica', 'Jazz', 'Bandas sonoras'] },
   { id: 'animales', e: '🐾', n: 'Animales', ops: ['Perros', 'Gatos', 'Conejos', 'Aves', 'Reptiles', 'Caballos', 'Hámsters', 'Peces', 'Animales salvajes'] },
@@ -443,7 +449,7 @@ async function api(p) {
   if (j && j.error === 'sesion') { salir(true); throw new Error('Tu sesión terminó. Vuelve a entrar.'); }
   return j;
 }
-const S = { token: leer('baile_token'), estado: null, perfiles: [], fotos: {}, timer: null, tab: 'inicio' };
+const S = { token: leer('baile_token'), estado: null, perfiles: [], fotos: {}, timer: null, tab: 'inicio', sala: null };
 
 async function fotosDe(persona) {
   if (!persona || !persona.fotos_n) return [];
@@ -722,6 +728,7 @@ async function portada() {
         <li>${ic()}<span><span class="cuando">Al tercer toque de varita</span>Invitas a quien quieras, <b>en plan romántico o de amistad</b>, con un regalo y una carta. Si acepta… ¡van juntos al baile!</span></li>
         <li>${ic()}<span><span class="cuando">Al cuarto toque de varita</span>Mándale <b>regalos</b> a quien quieras: con tu nombre o en secreto 🤫</span></li>
         <li>${ic()}<span><span class="cuando">Para quienes ya tienen pareja</span>Confirmen que van juntos y mándense regalos por <b>Correo Lechuza</b> 🦉</span></li>
+        <li>${ic()}<span><span class="cuando">Para el profesorado</span>¡También están invitados! Profesores con profesores, y con su propia <b>Sala de profesores</b> ☕</span></li>
       </ul>
     </div>`;
   $('#crear').addEventListener('click', () => registro());
@@ -803,7 +810,8 @@ function registro() {
           <div><label class="campo" for="p2">Repite el PIN</label><input type="password" id="p2" class="pin" inputmode="numeric" maxlength="4" value="${esc(R.pin2)}" autocomplete="new-password"></div>
         </div>
         <label class="campo">Tu casa</label>
-        <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === R.casa}"><span class="e">${x.e}</span>${x.id}</button>`).join('')}</div>`;
+        <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === R.casa}"><span class="e">${x.e}</span>${x.n || x.id}</button>`).join('')}</div>
+        <p class="tenue">🎓 Si eres profesor/a, verás e invitarás solo a otros profesores, y tendrás tu propia <b>Sala de profesores</b> ☕</p>`;
       $('#n', c).addEventListener('input', (e) => (R.nombre = e.target.value));
       $('#p', c).addEventListener('input', (e) => (R.pin = e.target.value.replace(/\D/g, '')));
       $('#p2', c).addEventListener('input', (e) => (R.pin2 = e.target.value.replace(/\D/g, '')));
@@ -835,7 +843,7 @@ function registro() {
           <p class="tenue">Le pediremos que lo confirme. Si todavía no se registra, déjalo en blanco y la eliges después.</p>
         </div>`;
       activarOpciones($('#est', c), (v) => { R.estado = v; $('#elige', c).style.display = v === 'tiene' ? 'block' : 'none'; });
-      api({ accion: 'nombres_libres' }).then((l) => {
+      api({ accion: 'nombres_libres', casa: R.casa }).then((l) => {
         const s = $('#pj', c); if (!s) return;
         s.innerHTML = `<option value="">— Todavía no se registra —</option>` + l.map((p) => `<option value="${p.id}" ${String(p.id) === String(R.pareja_id) ? 'selected' : ''}>${esc(p.nombre)} · ${esc(p.casa)}</option>`).join('');
         s.addEventListener('change', () => (R.pareja_id = s.value));
@@ -919,6 +927,7 @@ function pintar() {
   let h = cabecera(E);
   if (S.tab === 'buzon') h += vistaBuzon(E);
   else if (S.tab === 'regalos') h += vistaRegalos(E);
+  else if (S.tab === 'sala' && esProfe(E.yo.casa)) h += `<div id="sala">${S.sala ? vistaSala(S.sala) : '<div class="cargando">Preparando el té…</div>'}</div>`;
   else h += vistaInicio(E);
   h += `<p class="tenue centro" style="margin-top:24px">${E.resumen.parejas} ${E.resumen.parejas === 1 ? 'pareja formada' : 'parejas formadas'} · ${E.resumen.buscando} buscando pareja</p>`;
   app.innerHTML = h + navegacion(E);
@@ -933,7 +942,7 @@ function pendientesBuzon(E) {
 }
 function navegacion(E) {
   const n = pendientesBuzon(E);
-  const tabs = [['inicio', '✨', 'Inicio'], ['buzon', '📬', 'Buzón'], ['regalos', '🎁', 'Regalos'], ['perfil', '👤', 'Perfil']];
+  const tabs = [['inicio', '✨', 'Inicio'], ['buzon', '📬', 'Buzón'], ['regalos', '🎁', 'Regalos'], ...(esProfe(E.yo.casa) ? [['sala', '☕', 'Sala']] : []), ['perfil', '👤', 'Perfil']];
   return `<nav class="barra"><div class="dentro">${tabs.map(([id, i, t]) => `<button data-ir="${id}" ${S.tab === id ? 'aria-current="page"' : ''}>
     <span class="i">${i}</span>${t}${id === 'buzon' && n ? `<span class="badge">${n}</span>` : ''}</button>`).join('')}</div></nav>`;
 }
@@ -980,6 +989,7 @@ function vistaInicio(E) {
   if (!lista.length) {
     h += `<div class="tarjeta brillo centro" style="margin-top:18px"><span class="sombrero">🎩</span>
       <h2>Todavía no hay nadie por aquí</h2>
+      ${esProfe(E.yo.casa) ? '<p class="suave">Aquí irán apareciendo <b>otros profesores</b> cuando se registren. Mientras, pásate por la <b>Sala</b> ☕</p>' : ''}
       <p class="suave">Aquí irán apareciendo las personas con las que tienes <b>al menos ${E.cfg.minimo} cosas en común</b>. En cuanto se registre más gente, las verás.</p>
       <p class="tenue">Consejo: cuantas más cosas marques en tus intereses, más personas podrás conocer.</p></div>`;
   } else h += lista.map((p) => tarjetaPerfil(p, E)).join('');
@@ -1147,6 +1157,26 @@ function mandarRegalo(p) {
     },
   });
 }
+// ---- ☕ Sala de profesores: quién está y quién va con quién (sin fotos ni datos privados)
+function vistaSala(d) {
+  const alumnos = d.personas.filter((x) => !esProfe(x.casa)), profes = d.personas.filter((x) => esProfe(x.casa));
+  const ETQ = { busca: 'buscando', tiene: 'ya tiene con quién', pareja: 'va con alguien' };
+  const fila = (x) => `<div class="sala-fila"><span style="flex:1">${esc(x.nombre)}</span><span class="estado e-${x.estado}">${ETQ[x.estado]}</span></div>`;
+  let h = orla('Sala de profesores') + `<p class="suave centro" style="margin-top:0">Un rincón para el profesorado: quién está en el baile y quién va con quién ☕</p>
+    <div class="cifras"><div><b>${alumnos.length}</b><span>alumnos</span></div><div><b>${d.parejas.length}</b><span>parejas</span></div>
+      <div><b>${alumnos.filter((x) => x.estado === 'busca').length}</b><span>buscando</span></div></div>
+    <div class="tarjeta brillo"><h3>💃 Ya van juntos</h3>
+      ${d.parejas.length ? d.parejas.map((pa) => `<div class="sala-fila"><span>${esc(pa.a)} ${casa(pa.casa_a).e}</span><span class="tenue">&amp;</span><span>${esc(pa.b)} ${casa(pa.casa_b).e}</span></div>`).join('')
+        : '<p class="tenue">Todavía ninguna pareja… ¡pero ya caerán! 👀</p>'}</div>`;
+  for (const c of CASAS.filter((x) => !esProfe(x.id))) {
+    const l = alumnos.filter((x) => x.casa === c.id);
+    h += `<details class="tarjeta"><summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px"><h3 style="flex:1">${c.e} ${c.id}</h3><span class="tenue">${l.length} ▾</span></summary>
+      <div style="margin-top:8px">${l.length ? l.map(fila).join('') : '<p class="tenue">Nadie todavía</p>'}</div></details>`;
+  }
+  h += `<div class="tarjeta"><h3>🎓 Profesorado (${profes.length})</h3><div style="margin-top:8px">${profes.map(fila).join('')}</div></div>
+    <p class="tenue centro">${d.invitaciones} ${d.invitaciones === 1 ? 'invitación enviada' : 'invitaciones enviadas'} · ${d.regalos} ${d.regalos === 1 ? 'regalo' : 'regalos'}</p>`;
+  return h;
+}
 function vistaPrevia(yo) {
   const v = hoja(`<p class="tenue centro" style="margin:0 0 10px">Así te ven las demás personas 👀</p>
     ${carrusel(yo, yo.frase ? `<p style="margin-top:6px">${esc(yo.frase)}</p>` : '')}
@@ -1194,6 +1224,10 @@ function conectar(E) {
   });
   cuentaAtras($('#cuenta-baile'), E.cfg.baile);
   cargarFotosRegalo(app);
+  if (S.tab === 'sala' && esProfe(E.yo.casa)) api({ accion: 'sala', token: S.token }).then((d) => {
+    const cambio = JSON.stringify(d) !== JSON.stringify(S.sala); S.sala = d;
+    if (cambio && $('#sala')) $('#sala').innerHTML = vistaSala(d);
+  }).catch((e) => { if ($('#sala')) $('#sala').innerHTML = `<p class="tenue centro">${esc(e.message)}</p>`; });
   if (S.tab === 'buzon') {                   // al abrir el buzón, lo nuevo queda leído (la etiqueta "nueva" se ve esta vez)
     if (E.lechuzas.some((l) => !l.leida && !l.cerrada)) api({ accion: 'leer_lechuzas', token: S.token }).then((e) => (S.estado = e)).catch(() => {});
     if (E.secretos.some((x) => !x.leida)) api({ accion: 'leer_secretos', token: S.token }).then((e) => (S.estado = e)).catch(() => {});
@@ -1322,7 +1356,7 @@ async function perfil() {
     <div class="tarjeta brillo"><h2>Mi perfil</h2>
       <label class="campo">Mis fotos</label><div id="fe"></div>
       <label class="campo">Mi casa</label>
-      <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === P.casa}"><span class="e">${x.e}</span>${x.id}</button>`).join('')}</div>
+      <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === P.casa}"><span class="e">${x.e}</span>${x.n || x.id}</button>`).join('')}</div>
       <label class="campo">Soy…</label><div class="opciones" id="soy">${botonesOpcion(SOY, P.soy)}</div>
       <label class="campo">Me gustaría ir al baile…</label><div class="opciones" id="voy">${botonesOpcion(VOY, P.voy_con)}</div>
       <label class="campo">¿Cómo te gustaría ir?</label><div class="opciones" id="plan">${botonesOpcion(PLANES, P.plan)}</div>
