@@ -4,176 +4,237 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Baile de Navidad</title>
-<meta name="theme-color" content="#0a1128">
+<meta name="theme-color" content="#0a1230">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Almendra+SC&family=IM+Fell+English+SC&family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❄️</text></svg>">
 <script src="config.js"></script>
 <script src="regalos.js"></script>
 <style>
 :root{
-  --noche:#0a1128; --noche2:#131f45; --tinta:#eef3fb; --suave:#a7b6d1; --tenue:#7586a6;
-  --oro:#e6c77a; --oro2:#b8923f; --hielo:#cfe0f7; --rosa:#f0a6bd; --rojo:#ef8a8a; --verde:#8fd9b0;
-  --borde:rgba(190,205,230,.18); --tarjeta:rgba(255,255,255,.055); --tarjeta2:rgba(255,255,255,.09);
+  --noche:#0a1230; --tinta:#eef3fb; --suave:#b6c3dc; --tenue:#8a99b9;
+  --plata:#e8eef7; --hielo:#d3e3f9; --borde:rgba(214,228,250,.22); --borde2:rgba(214,228,250,.42);
+  --cristal:linear-gradient(165deg,rgba(214,228,250,.12),rgba(214,228,250,.04) 60%,rgba(214,228,250,.07));
+  --pergamino:#ece8f4; --pergamino2:#d8d0e8; --tinta-p:#1d2654; --tinta-p2:#4a5384;
+  --carmesi:#a3203a; --carmesi2:#7c1528; --vela:#f3cf88; --rosa:#f3a9c2; --verde:#9be0ba; --rojo:#f29a9a;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
 body{
-  min-height:100vh; color:var(--tinta); font:16px/1.5 Nunito,system-ui,sans-serif;
-  background:#070c1d radial-gradient(120% 70% at 50% 0%,#22356e 0%,#111c40 45%,#070c1d 100%) fixed;
+  min-height:100vh; color:var(--tinta); font:16px/1.5 Nunito,system-ui,sans-serif; overflow-x:hidden;
+  background:#070c20 radial-gradient(130% 75% at 50% -5%,#283f7c 0%,#142251 42%,#0a1230 70%,#060a1b 100%) fixed;
 }
-#nieve{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
-#nieve i{position:absolute;top:-12px;color:#fff;opacity:.55;font-style:normal;animation:caer linear infinite}
+/* ---------- Fondo: luna, cúpulas, nieve y guirnalda de carámbanos */
+#fondo{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#luna{position:absolute;z-index:1;top:16px;right:10%;pointer-events:none;width:46px;height:46px;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,#fbfdff,#dfe8f6 60%,#c3d1e8);box-shadow:0 0 40px 14px rgba(210,225,255,.28),0 0 120px 50px rgba(160,190,255,.12)}
+#fondo .cupulas{position:absolute;left:0;right:0;bottom:0;height:150px;opacity:.9}
+#fondo .nieve i{position:absolute;top:-12px;color:#fff;opacity:.6;font-style:normal;animation:caer linear infinite}
 @keyframes caer{to{transform:translate3d(var(--dx),110vh,0) rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){#nieve{display:none}*{animation:none!important;transition:none!important}}
-#app{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:18px 16px 90px}
+#guirnalda{position:absolute;top:0;left:0;right:0;height:92px;z-index:2;pointer-events:none;background-repeat:repeat-x;background-size:240px 92px;
+  filter:drop-shadow(0 0 6px rgba(200,220,255,.35))}
+@media (prefers-reduced-motion:reduce){#fondo .nieve{display:none}*{animation:none!important;transition:none!important}}
+#app{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:78px 16px 170px}
+
+/* ---------- Tipografía */
 h1,h2,h3{font-family:Cinzel,serif;font-weight:700;margin:0;letter-spacing:.02em}
-h2{font-size:1.35rem}
-h3{font-size:1.05rem}
+h2{font-size:1.32rem;color:var(--plata)}
+h3{font-size:1.04rem;color:var(--plata)}
 p{margin:.4em 0}
-.titulo{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,9vw,2.9rem);line-height:1.05;text-align:center;
-  background:linear-gradient(180deg,#fff7df,#e6c77a 55%,#b8923f);-webkit-background-clip:text;background-clip:text;color:transparent;
-  text-shadow:0 0 30px rgba(230,199,122,.15)}
-.sub{text-align:center;color:var(--hielo);font-family:Cinzel,serif;letter-spacing:.18em;font-size:.82rem;text-transform:uppercase}
+.titulo{font-family:'Almendra SC',Cinzel,serif;font-weight:400;font-size:clamp(2.4rem,11vw,3.3rem);line-height:1;text-align:center;color:var(--carmesi);
+  letter-spacing:.01em;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.titulo.claro{color:#f6f0ff;text-shadow:0 0 24px rgba(210,225,255,.55),0 2px 0 rgba(0,0,0,.3)}
+.versalitas{font-family:'IM Fell English SC',Cinzel,serif;letter-spacing:.06em}
+.sub{text-align:center;font-family:'IM Fell English SC',serif;letter-spacing:.14em;font-size:.95rem;color:var(--hielo)}
 .suave{color:var(--suave)} .tenue{color:var(--tenue);font-size:.88rem} .centro{text-align:center}
-.tarjeta{background:var(--tarjeta);border:1px solid var(--borde);border-radius:20px;padding:18px;margin:14px 0;
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.tarjeta.oro{border-color:rgba(230,199,122,.55);box-shadow:0 0 0 1px rgba(230,199,122,.15),0 10px 40px rgba(230,199,122,.08)}
-.orla{display:flex;align-items:center;gap:10px;color:var(--oro);margin:14px 0 6px;font-family:Cinzel,serif;font-size:.8rem;letter-spacing:.2em;text-transform:uppercase}
-.orla:before,.orla:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(230,199,122,.6),transparent)}
+
+/* ---------- Tarjetas */
+.tarjeta{position:relative;background:var(--cristal),rgba(10,18,48,.6);border:1px solid var(--borde);border-top-color:var(--borde2);border-radius:20px;padding:18px;margin:14px 0;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 14px 40px rgba(2,5,20,.35),inset 0 1px 0 rgba(255,255,255,.08)}
+.tarjeta.brillo{border-color:rgba(214,228,250,.55);box-shadow:0 0 0 1px rgba(214,228,250,.12),0 0 34px rgba(170,200,255,.18),0 14px 40px rgba(2,5,20,.4)}
+/* Pergamino lavanda, como la invitación del baile */
+.invitacion{position:relative;color:var(--tinta-p);border-radius:6px;padding:26px 20px 22px;margin:14px 0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%237a6fa6' stroke-opacity='.11' stroke-width='1.2'%3E%3Cpath d='M30 10v40M10 30h40M16 16l28 28M44 16L16 44M90 70v40M70 90h40M76 76l28 28M104 76l-28 28'/%3E%3Ccircle cx='30' cy='30' r='8'/%3E%3Ccircle cx='90' cy='90' r='8'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(120% 90% at 50% 0%,#f6f3fb 0%,#e7e1f1 55%,#d6cde6 100%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.5) inset,0 0 0 6px rgba(236,232,244,.12),0 18px 50px rgba(0,0,0,.45),0 0 60px rgba(190,180,240,.15)}
+.invitacion:before{content:"";position:absolute;inset:8px;border:1px solid rgba(29,38,84,.28);border-radius:3px;pointer-events:none}
+.invitacion h2,.invitacion h3{color:var(--tinta-p)}
+.invitacion .suave{color:var(--tinta-p2)} .invitacion .tenue{color:#6a6f98}
+.invitacion .estrella{position:absolute;width:20px;height:20px}
+.orla{display:flex;align-items:center;gap:10px;color:var(--plata);margin:18px 0 8px;font-family:'IM Fell English SC',serif;font-size:1rem;letter-spacing:.12em}
+.orla:before,.orla:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(214,228,250,.7),transparent)}
+.orla svg{width:14px;height:14px;flex:0 0 14px}
+.invitacion .orla{color:var(--tinta-p)} .invitacion .orla:before,.invitacion .orla:after{background:linear-gradient(90deg,transparent,rgba(29,38,84,.45),transparent)}
+
+/* ---------- Botones y formularios */
 button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 18px;border-radius:14px;font-weight:800;
-  font-size:1rem;color:#241a05;background:linear-gradient(180deg,#f4dc9c,#d9b25c);box-shadow:0 6px 20px rgba(230,199,122,.25),inset 0 1px 0 #fff6d6}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 18px;border-radius:14px;font-weight:800;font-size:1rem;color:#17214d;
+  background:linear-gradient(180deg,#fdfeff 0%,#e1eaf7 48%,#bccce4 100%);box-shadow:inset 0 1px 0 #fff,inset 0 0 0 1px rgba(255,255,255,.5),0 8px 26px rgba(150,180,240,.28)}
+.btn.carmesi{color:#fff5f2;background:linear-gradient(180deg,#c63a55 0%,#a3203a 50%,#86172d 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 8px 26px rgba(163,32,58,.4)}
 .btn:disabled{opacity:.45;cursor:default}
 .btn2{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 18px;border-radius:14px;font-weight:700;
-  border:1px solid rgba(207,224,247,.4);color:var(--hielo);background:rgba(207,224,247,.06)}
-.btn3{padding:8px 12px;border-radius:10px;font-weight:700;font-size:.9rem;color:var(--suave);border:1px solid var(--borde)}
-.btn3.peligro{color:var(--rojo);border-color:rgba(239,138,138,.35)}
+  border:1px solid var(--borde2);color:var(--plata);background:rgba(214,228,250,.06)}
+.invitacion .btn2{color:var(--tinta-p);border-color:rgba(29,38,84,.35);background:rgba(255,255,255,.35)}
+.btn3{padding:8px 12px;border-radius:10px;font-weight:700;font-size:.9rem;color:var(--suave);border:1px solid var(--borde);background:rgba(214,228,250,.04)}
+.btn3.peligro{color:var(--rojo);border-color:rgba(242,154,154,.35)}
 .enlace{color:var(--hielo);text-decoration:underline;text-underline-offset:3px;font-weight:600;padding:6px 0}
 .fila{display:flex;gap:10px} .fila>*{flex:1}
 .pila>*+*{margin-top:10px}
 label.campo{display:block;margin:12px 0 4px;font-weight:700;color:var(--hielo);font-size:.92rem}
-input[type=text],input[type=password],input[type=tel],textarea,select{width:100%;font:inherit;color:var(--tinta);background:rgba(4,8,22,.55);
+input[type=text],input[type=password],textarea,select{width:100%;font:inherit;color:var(--tinta);background:rgba(5,9,28,.55);
   border:1px solid var(--borde);border-radius:12px;padding:12px 14px;outline:none}
-input:focus,textarea:focus,select:focus{border-color:var(--oro)}
-textarea{resize:vertical;min-height:70px}
+input:focus,textarea:focus,select:focus{border-color:var(--hielo);box-shadow:0 0 0 3px rgba(211,227,249,.15)}
+textarea{resize:vertical;min-height:80px}
 select option{background:#0d1633}
 .pin{letter-spacing:.6em;text-align:center;font-size:1.4rem;font-weight:800}
 .opciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
-.opcion{padding:12px 10px;border-radius:14px;border:1px solid var(--borde);background:var(--tarjeta);font-weight:700;text-align:center;line-height:1.25}
+.opcion{padding:12px 10px;border-radius:14px;border:1px solid var(--borde);background:rgba(214,228,250,.05);font-weight:700;text-align:center;line-height:1.25}
 .opcion .e{display:block;font-size:1.6rem;margin-bottom:2px}
-.opcion[aria-pressed=true]{border-color:var(--oro);background:rgba(230,199,122,.14);box-shadow:inset 0 0 0 1px var(--oro)}
-.casa-Gryffindor[aria-pressed=true]{border-color:#e0574f;background:rgba(174,0,1,.28);box-shadow:inset 0 0 0 1px #e0574f}
-.casa-Slytherin[aria-pressed=true]{border-color:#4fae74;background:rgba(26,71,42,.45);box-shadow:inset 0 0 0 1px #4fae74}
-.casa-Ravenclaw[aria-pressed=true]{border-color:#6f8ee8;background:rgba(14,26,64,.7);box-shadow:inset 0 0 0 1px #6f8ee8}
-.casa-Hufflepuff[aria-pressed=true]{border-color:#ecb939;background:rgba(236,185,57,.18);box-shadow:inset 0 0 0 1px #ecb939}
+.opcion[aria-pressed=true]{border-color:var(--hielo);background:rgba(211,227,249,.16);box-shadow:inset 0 0 0 1px var(--hielo),0 0 18px rgba(190,215,255,.18)}
+.casa-Gryffindor[aria-pressed=true]{border-color:#e0574f;background:rgba(174,0,1,.3);box-shadow:inset 0 0 0 1px #e0574f}
+.casa-Slytherin[aria-pressed=true]{border-color:#4fae74;background:rgba(26,71,42,.5);box-shadow:inset 0 0 0 1px #4fae74}
+.casa-Ravenclaw[aria-pressed=true]{border-color:#7f9cf0;background:rgba(14,26,64,.75);box-shadow:inset 0 0 0 1px #7f9cf0}
+.casa-Hufflepuff[aria-pressed=true]{border-color:#ecb939;background:rgba(236,185,57,.2);box-shadow:inset 0 0 0 1px #ecb939}
 .insignia{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:800;border:1px solid var(--borde)}
-.i-Gryffindor{background:rgba(174,0,1,.35);border-color:#c0392b;color:#ffd7a8}
-.i-Slytherin{background:rgba(26,71,42,.6);border-color:#3d8b5c;color:#d5f0dc}
-.i-Ravenclaw{background:rgba(14,26,64,.8);border-color:#5470c6;color:#d6e0ff}
-.i-Hufflepuff{background:rgba(236,185,57,.25);border-color:#ecb939;color:#fff0c4}
+.i-Gryffindor{background:rgba(174,0,1,.38);border-color:#c0392b;color:#ffd7a8}
+.i-Slytherin{background:rgba(26,71,42,.65);border-color:#3d8b5c;color:#d5f0dc}
+.i-Ravenclaw{background:rgba(14,26,64,.85);border-color:#5470c6;color:#d6e0ff}
+.i-Hufflepuff{background:rgba(236,185,57,.28);border-color:#ecb939;color:#fff0c4}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{padding:7px 12px;border-radius:99px;border:1px solid var(--borde);background:var(--tarjeta);font-size:.9rem;font-weight:600}
-.chip[aria-pressed=true]{background:linear-gradient(180deg,#f4dc9c,#d9b25c);color:#241a05;border-color:transparent}
-.chip.comun{background:rgba(240,166,189,.16);border-color:rgba(240,166,189,.5);color:#ffe3ec}
+.chip{padding:7px 12px;border-radius:99px;border:1px solid var(--borde);background:rgba(214,228,250,.06);font-size:.9rem;font-weight:600}
+.chip[aria-pressed=true]{background:linear-gradient(180deg,#fdfeff,#cad8ec);color:#17214d;border-color:transparent;box-shadow:0 0 14px rgba(190,215,255,.3)}
+.chip.comun{background:rgba(163,32,58,.28);border-color:rgba(243,169,194,.55);color:#ffe6ee}
 .chip.fijo{cursor:default}
-.cat{border:1px solid var(--borde);border-radius:16px;margin:8px 0;background:rgba(255,255,255,.03)}
+.cat{border:1px solid var(--borde);border-radius:16px;margin:8px 0;background:rgba(214,228,250,.03)}
 .cat>summary{list-style:none;padding:13px 14px;font-weight:800;display:flex;align-items:center;gap:8px;cursor:pointer}
 .cat>summary::-webkit-details-marker{display:none}
-.cat>summary .n{margin-left:auto;font-size:.8rem;color:var(--oro);font-weight:800}
+.cat>summary .n{margin-left:auto;font-size:.8rem;color:var(--hielo);font-weight:800}
 .cat>summary:after{content:"▾";color:var(--tenue);margin-left:6px}
 .cat[open]>summary:after{content:"▴"}
 .cat .cuerpo{padding:0 14px 14px}
-.otro{display:flex;gap:8px;margin-top:10px} .otro input{padding:9px 12px}
-.otro button{white-space:nowrap}
+.otro{display:flex;gap:8px;margin-top:10px} .otro input{padding:9px 12px} .otro button{white-space:nowrap}
+.interruptor{display:flex;align-items:center;gap:10px;font-weight:700}
+.interruptor input{width:22px;height:22px;accent-color:#c7d6ee;flex:0 0 22px}
+
+/* ---------- Fotos: ventanal gótico */
 .fotos-ed{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.ranura{aspect-ratio:3/4;border-radius:16px;border:1.5px dashed rgba(207,224,247,.35);display:flex;align-items:center;justify-content:center;
-  font-size:2rem;color:var(--suave);background:rgba(255,255,255,.03);position:relative;overflow:hidden}
+.ranura{aspect-ratio:3/4;border-radius:16px;border:1.5px dashed rgba(214,228,250,.4);display:flex;align-items:center;justify-content:center;
+  font-size:2rem;color:var(--suave);background:rgba(214,228,250,.04);position:relative;overflow:hidden}
 .ranura img{width:100%;height:100%;object-fit:cover}
 .ranura .quitar{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:1rem;line-height:28px}
-.carrusel{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:4/5;background:#0b1430}
+.ventanal{padding:3px;background:linear-gradient(180deg,#f4f8ff,#9fb2d2 50%,#e3ebf7);clip-path:url(#arco);-webkit-clip-path:url(#arco);filter:drop-shadow(0 0 18px rgba(180,205,255,.25))}
+.carrusel{position:relative;overflow:hidden;aspect-ratio:4/5;background:#0b1430;clip-path:url(#arco);-webkit-clip-path:url(#arco)}
 .carrusel .pistas{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
 .carrusel .pistas::-webkit-scrollbar{display:none}
 .carrusel img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:center}
-.carrusel .puntos{position:absolute;top:10px;left:0;right:0;display:flex;gap:5px;justify-content:center}
-.carrusel .puntos b{width:28px;height:4px;border-radius:2px;background:rgba(255,255,255,.4)}
+.carrusel .puntos{position:absolute;top:28%;left:0;right:0;display:flex;gap:5px;justify-content:center}
+.carrusel .puntos b{width:24px;height:4px;border-radius:2px;background:rgba(255,255,255,.45)}
 .carrusel .puntos b.on{background:#fff}
-.carrusel .pie{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 14px;background:linear-gradient(transparent,rgba(5,9,25,.92))}
-.carrusel .pie h2{font-size:1.6rem}
-.carrusel .vacia{display:flex;height:100%;align-items:center;justify-content:center;font-size:4rem;color:var(--tenue)}
+.carrusel .pie{position:absolute;left:0;right:0;bottom:0;padding:50px 18px 16px;background:linear-gradient(transparent,rgba(6,10,30,.94))}
+.carrusel .pie h2{font-family:'Almendra SC',Cinzel,serif;font-weight:400;font-size:2rem;color:#fff;text-shadow:0 0 18px rgba(200,220,255,.4)}
+.carrusel .vacia{display:flex;height:100%;align-items:center;justify-content:center;font-size:4rem;color:var(--tenue);flex:0 0 100%}
+
+/* ---------- Cabecera, contador, programa */
 .cabecera{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.mini{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--oro);background:#14214a;display:flex;align-items:center;justify-content:center;font-weight:800}
+.mini{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--hielo);background:#14214a;display:flex;align-items:center;justify-content:center;
+  font-weight:800;box-shadow:0 0 14px rgba(190,215,255,.3)}
 .cabecera .quien{flex:1;min-width:0}
 .cabecera .quien b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .contador{display:flex;justify-content:center;gap:10px;margin:14px 0}
-.contador div{min-width:64px;padding:10px 6px;border-radius:14px;background:var(--tarjeta);border:1px solid var(--borde);text-align:center}
-.contador b{display:block;font-family:Cinzel,serif;font-size:1.5rem;color:var(--oro);line-height:1.1}
-.contador span{font-size:.72rem;color:var(--suave);text-transform:uppercase;letter-spacing:.08em}
+.contador div{min-width:68px;padding:10px 6px;border-radius:14px;background:var(--cristal);border:1px solid var(--borde);border-top-color:var(--borde2);text-align:center}
+.contador b{display:block;font-family:Cinzel,serif;font-size:1.6rem;color:#fff;line-height:1.1;text-shadow:0 0 14px rgba(200,220,255,.55)}
+.contador span{font-size:.72rem;color:var(--suave);text-transform:uppercase;letter-spacing:.1em}
+.invitacion .contador div{background:rgba(255,255,255,.4);border-color:rgba(29,38,84,.2)}
+.invitacion .contador b{color:var(--tinta-p);text-shadow:none} .invitacion .contador span{color:var(--tinta-p2)}
 .cifras{display:flex;gap:10px}
-.cifras div{flex:1;text-align:center;padding:12px 6px;border-radius:14px;background:var(--tarjeta);border:1px solid var(--borde)}
-.cifras b{display:block;font-size:1.6rem;font-family:Cinzel,serif;color:var(--hielo)}
+.cifras div{flex:1;text-align:center;padding:12px 6px;border-radius:14px;background:var(--cristal),rgba(10,18,48,.6);border:1px solid var(--borde)}
+.cifras b{display:block;font-size:1.6rem;font-family:Cinzel,serif;color:#fff}
 .cifras span{font-size:.8rem;color:var(--suave)}
-.pasos{counter-reset:p;list-style:none;padding:0;margin:0}
-.pasos li{counter-increment:p;display:flex;gap:12px;margin:12px 0;align-items:flex-start}
-.pasos li:before{content:counter(p);flex:0 0 28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-family:Cinzel,serif;font-weight:700;color:#241a05;background:var(--oro)}
+.programa{list-style:none;padding:0;margin:0}
+.programa li{padding:12px 0;border-top:1px solid var(--borde);display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.programa li:first-child{border-top:0}
+.programa li svg{width:22px;height:22px;margin-top:2px}
+.programa .cuando{display:block;font-family:'IM Fell English SC',serif;letter-spacing:.08em;color:var(--hielo);font-size:.92rem}
 .progreso{display:flex;gap:5px;margin:4px 0 16px}
 .progreso b{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.12)}
-.progreso b.on{background:var(--oro)}
+.progreso b.on{background:var(--hielo);box-shadow:0 0 8px rgba(200,220,255,.6)}
 .sombrero{font-size:4.2rem;display:block;text-align:center;animation:flotar 3s ease-in-out infinite}
 @keyframes flotar{50%{transform:translateY(-8px) rotate(-4deg)}}
-.regalo-grande{display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:rgba(240,166,189,.1);border:1px solid rgba(240,166,189,.35)}
-.regalo-grande .e{width:76px;height:76px;flex:0 0 76px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden;
-  background:radial-gradient(circle,rgba(255,255,255,.16),rgba(255,255,255,.02));box-shadow:0 0 24px rgba(240,166,189,.25)}
+
+/* ---------- Regalos y cartas */
+.regalo-grande{display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:rgba(255,255,255,.45);border:1px solid rgba(29,38,84,.15)}
+.regalo-grande .e{width:78px;height:78px;flex:0 0 78px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden;
+  background:radial-gradient(circle,#1d2a5c,#0f1838);box-shadow:0 0 0 2px #fff,0 0 22px rgba(120,110,200,.35)}
 .dib{display:block;width:100%;height:100%}
 .foto-regalo{width:100%;height:100%;object-fit:cover;border-radius:12px;background:#14214a}
 .regalo-grande .e .foto-regalo{border-radius:50%}
-.regalo.propio{border-style:dashed}
-.regalo.propio .e{font-size:2rem;height:52px;display:flex;align-items:center;justify-content:center}
-.nota{font-style:italic;color:#ffe9f0}
 .regalos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
-.regalo{padding:10px 6px;border-radius:14px;border:1px solid var(--borde);background:var(--tarjeta);text-align:center;font-size:.78rem;font-weight:700;line-height:1.2}
+.regalo{padding:10px 6px;border-radius:14px;border:1px solid var(--borde);background:rgba(214,228,250,.05);text-align:center;font-size:.78rem;font-weight:700;line-height:1.2}
 .regalo .e{display:block;width:52px;height:52px;margin:0 auto 4px}
-.regalo[aria-pressed=true]{border-color:var(--rosa);background:rgba(240,166,189,.16);box-shadow:inset 0 0 0 1px var(--rosa)}
-.frases{display:flex;flex-direction:column;gap:6px}
-.frase{text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--borde);background:var(--tarjeta);font-size:.93rem}
-.frase[aria-pressed=true]{border-color:var(--oro);background:rgba(230,199,122,.12)}
-.carta{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--borde)}
-.carta:first-child{border-top:0}
-.carta .e{flex:0 0 52px;width:52px;height:52px}
+.regalo[aria-pressed=true]{border-color:var(--rosa);background:rgba(163,32,58,.22);box-shadow:inset 0 0 0 1px var(--rosa),0 0 18px rgba(243,169,194,.2)}
+.regalo.propio{border-style:dashed}
+.regalo.propio .e{font-size:2rem;display:flex;align-items:center;justify-content:center}
+.frases{display:flex;flex-wrap:wrap;gap:6px}
+.frase{text-align:left;padding:8px 11px;border-radius:12px;border:1px solid var(--borde);background:rgba(214,228,250,.05);font-size:.88rem}
+.frase:active{background:rgba(211,227,249,.18)}
+.contar{text-align:right;font-size:.78rem;color:var(--tenue);margin-top:4px}
+.item{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--borde)}
+.item:first-child{border-top:0}
+.item>.e{flex:0 0 52px;width:52px;height:52px}
+.item>div{flex:1;min-width:0}
 .nuevo{display:inline-block;margin-left:6px;padding:0 7px;border-radius:99px;background:var(--rosa);color:#3b0e1c;font-size:.7rem;font-weight:800;vertical-align:middle}
+/* Carta: sobre con sello de lacre que se abre */
+.sobre{display:flex;align-items:center;gap:12px;width:100%;margin-top:8px;padding:10px 12px;border-radius:14px;text-align:left;
+  background:rgba(236,232,244,.08);border:1px solid rgba(236,232,244,.25)}
+.invitacion .sobre{background:rgba(255,255,255,.45);border-color:rgba(29,38,84,.2);color:var(--tinta-p)}
+.sobre svg{width:46px;height:34px;flex:0 0 46px}
+.sobre b{display:block}
+.sobre small{color:var(--tenue)}
+.carta-papel{display:none;margin-top:8px;padding:18px 18px 14px;border-radius:4px;color:var(--tinta-p);position:relative;
+  background:repeating-linear-gradient(180deg,transparent 0 29px,rgba(29,38,84,.08) 29px 30px),linear-gradient(180deg,#faf8fd,#ebe6f3);
+  box-shadow:0 10px 30px rgba(0,0,0,.35);font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.18rem;line-height:30px;
+  white-space:pre-wrap;word-wrap:break-word;transform-origin:top center;animation:desplegar .45s ease-out}
+.carta-papel .firma{display:block;text-align:right;margin-top:6px;font-weight:600;color:var(--carmesi)}
+@keyframes desplegar{from{opacity:0;transform:scaleY(.6) translateY(-8px)}to{opacity:1;transform:none}}
+.carta.abierta .carta-papel{display:block}
 .aviso{display:flex;gap:12px;align-items:flex-start}
 .aviso .e{font-size:1.8rem}
 .cerrar{margin-left:auto;color:var(--tenue);font-size:1.3rem;line-height:1;padding:2px 6px}
 .velo{position:fixed;inset:0;z-index:20;background:rgba(3,6,18,.78);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
-.hoja{width:100%;max-width:560px;max-height:92vh;overflow:auto;background:#0f1a3b;border:1px solid var(--borde);border-bottom:0;
-  border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
-@media (min-width:600px){.velo{align-items:center}.hoja{border-radius:22px;border-bottom:1px solid var(--borde)}}
-.hoja .asa{width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.2);margin:-6px auto 12px}
+.hoja{width:100%;max-width:560px;max-height:92vh;overflow:auto;background:linear-gradient(180deg,#16224f,#0d1638);border:1px solid var(--borde2);border-bottom:0;
+  border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 50px rgba(0,0,0,.5)}
+@media (min-width:600px){.velo{align-items:center}.hoja{border-radius:22px;border-bottom:1px solid var(--borde2)}}
+.hoja .asa{width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.25);margin:-6px auto 12px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:40;max-width:calc(100% - 32px);padding:12px 18px;border-radius:14px;
-  background:#f4e6c0;color:#2a1d04;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4)}
-.toast.mal{background:#ffd2d2;color:#4b0c0c}
-.fiesta{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(circle,rgba(40,56,110,.95),rgba(5,9,25,.97))}
-.fiesta .dentro{max-width:420px;text-align:center}
-.fiesta .duo{display:flex;justify-content:center;margin:18px 0}
-.fiesta .duo>*{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid var(--oro);background:#14214a;
-  display:flex;align-items:center;justify-content:center;font-size:2.4rem}
+  background:linear-gradient(180deg,#fdfeff,#d6e2f3);color:#17214d;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.toast.mal{background:#ffd9d9;color:#4b0c0c}
+.fiesta{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;
+  background:radial-gradient(circle at 50% 35%,rgba(48,70,140,.97),rgba(6,10,28,.98))}
+.fiesta .dentro{max-width:420px;width:100%;text-align:center}
+.fiesta .duo{display:flex;justify-content:center;margin:16px 0 8px}
+.fiesta .duo>*{width:108px;height:108px;border-radius:50%;object-fit:cover;border:3px solid #fff;background:#14214a;
+  display:flex;align-items:center;justify-content:center;font-size:2.4rem;box-shadow:0 0 30px rgba(200,220,255,.45)}
 .fiesta .duo>*+*{margin-left:-18px}
-.confeti{position:fixed;top:-20px;z-index:31;pointer-events:none;animation:caer 3.2s ease-in forwards}
+.boleto{width:110px;height:110px;margin:0 auto}
+.confeti{position:fixed;top:-20px;z-index:31;pointer-events:none;animation:caer 3.4s ease-in forwards}
 .cargando{text-align:center;padding:60px 0;color:var(--suave)}
 .cargando:before{content:"❄";display:block;font-size:2.4rem;animation:girar 2.4s linear infinite}
 @keyframes girar{to{transform:rotate(360deg)}}
 .admin-persona{padding:10px 0;border-top:1px solid var(--borde)}
 .admin-persona .acc{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .estado{font-size:.78rem;font-weight:800;padding:1px 8px;border-radius:99px}
-.e-busca{background:rgba(207,224,247,.14);color:var(--hielo)} .e-tiene{background:rgba(230,199,122,.16);color:var(--oro)} .e-pareja{background:rgba(143,217,176,.16);color:var(--verde)}
-.interruptor{display:flex;align-items:center;gap:10px;font-weight:700}
-.interruptor input{width:22px;height:22px;accent-color:#d9b25c}
+.e-busca{background:rgba(211,227,249,.14);color:var(--hielo)} .e-tiene{background:rgba(243,207,136,.16);color:var(--vela)} .e-pareja{background:rgba(155,224,186,.16);color:var(--verde)}
+.secreto-banda{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;margin:10px 0;background:linear-gradient(90deg,rgba(163,32,58,.35),rgba(163,32,58,.12));border:1px solid rgba(243,169,194,.45)}
+.invitacion .secreto-banda{background:rgba(163,32,58,.1);border-color:rgba(163,32,58,.35);color:var(--carmesi2)}
 </style>
 </head>
 <body>
-<div id="nieve" aria-hidden="true"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <clipPath id="arco" clipPathUnits="objectBoundingBox"><path d="M0,1V0.3C0,0.13 0.27,0.035 0.5,0C0.73,0.035 1,0.13 1,0.3V1Z"/></clipPath>
+</defs></svg>
+<div id="luna" aria-hidden="true"></div><div id="fondo" aria-hidden="true"><div class="nieve"></div><svg class="cupulas" preserveAspectRatio="xMidYMax slice"></svg></div>
+<div id="guirnalda" aria-hidden="true"></div>
 <main id="app"><div class="cargando">Abriendo el Gran Comedor…</div></main>
 <script>
 'use strict';
@@ -202,9 +263,53 @@ const FRASES_LECHUZA = [
   'Cuento los días para el baile ⏳', 'Gracias por ser mi pareja 💛', 'Vamos a ser la pareja más elegante del Gran Comedor',
   'Ya estoy practicando el vals por ti 💃', 'Guárdame el primer baile', 'Un detallito para alegrarte el día ✨',
 ];
+const FRASES_SECRETO = [
+  'Alguien en el castillo piensa mucho en ti ✨', 'Tu sonrisa ilumina más que las velas del Gran Comedor',
+  'Ojalá el Sombrero nos junte… 🎩', 'No sabes quién soy, pero me alegras los días', 'Un pequeño detalle de tu admirador secreto 🤫',
+];
 const SOY = [{ id: 'chica', e: '👗', n: 'Chica' }, { id: 'chico', e: '🤵', n: 'Chico' }, { id: 'otro', e: '✨', n: 'Prefiero no decir' }];
 const VOY = [{ id: 'chicas', e: '👗', n: 'Con una chica' }, { id: 'chicos', e: '🤵', n: 'Con un chico' }, { id: 'cualquiera', e: '💫', n: 'Me da igual' }];
 const MIN_INTERESES = 8;
+const MAX_NOTA = 500;
+
+// ====================================================================== Dibujos del baile
+// Estrella de ocho puntas (como las de la invitación)
+function estrella(color = '#1d2654', claro = '#4a5a9a') {
+  let p1 = '', p2 = '';
+  for (let k = 0; k < 16; k++) {
+    const a = (k * 22.5 - 90) * Math.PI / 180, r = k % 2 ? 4.2 : (k % 4 ? 8.5 : 12);
+    p1 += `${(12 + Math.cos(a) * r).toFixed(2)},${(12 + Math.sin(a) * r).toFixed(2)} `;
+  }
+  for (let k = 0; k < 8; k++) {
+    const a = (k * 45 - 90) * Math.PI / 180, r = k % 2 ? 2.2 : 6;
+    p2 += `${(12 + Math.cos(a) * r).toFixed(2)},${(12 + Math.sin(a) * r).toFixed(2)} `;
+  }
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="${p1}" fill="${color}"/><polygon points="${p2}" fill="${claro}"/></svg>`;
+}
+// Pareja bailando (silueta)
+const PAREJA_SVG = `<svg viewBox="0 0 64 64" aria-hidden="true" fill="#1d2654">
+  <circle cx="23" cy="13" r="3.8"/><circle cx="20.2" cy="10.6" r="2.1"/>
+  <path d="M21 17.5h4l1 10.5c4 5 8 14 9.5 25H9.5c1.5-11 5.5-20 9.5-25z"/>
+  <path d="M24.5 19.5 33 11" stroke="#1d2654" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="40" cy="12.5" r="3.8"/>
+  <path d="M36.6 17.2h6.8l1.3 17-1.8 18.8h-3.2l.6-15.5h-1l-.9 15.5h-3.2l-.6-18.8z"/>
+  <path d="M43.2 29l4.3 10.5-3.6-2.2z"/>
+  <path d="M37 19.5 33 11.3M36.8 22.5 26.5 27.5" stroke="#1d2654" stroke-width="2.2" stroke-linecap="round"/>
+</svg>`;
+// Sobre con sello de lacre
+const SOBRE_SVG = `<svg viewBox="0 0 46 34" aria-hidden="true"><rect x="1" y="2" width="44" height="30" rx="3" fill="#efe9f6" stroke="#b9b0d4"/>
+  <path d="M2 4 23 19 44 4" fill="none" stroke="#b9b0d4" stroke-width="1.4"/><circle cx="23" cy="19" r="6" fill="#a3203a"/>
+  <path d="M23 22.2c-3.2-2.2-4-4.6-2.3-5.6 1-.6 2 0 2.3.7.3-.7 1.3-1.3 2.3-.7 1.7 1 .9 3.4-2.3 5.6z" fill="#e06a80"/></svg>`;
+// Copo de papel recortado: "Admite a dos"
+function boleto() {
+  let brazos = '';
+  for (let k = 0; k < 6; k++) brazos += `<g transform="rotate(${k * 60} 50 50)"><path d="M47 50V6h6v44z"/><path d="M50 22 38 12l3-3 9 8 9-8 3 3zM50 34 41 27l2.5-2.5L50 30l6.5-5.5L59 27z"/><circle cx="50" cy="6" r="4"/></g>`;
+  return `<svg viewBox="0 0 100 100" class="boleto" aria-hidden="true"><g fill="#fff" stroke="#7f8bb8" stroke-width=".9">${brazos}</g>
+    <circle cx="50" cy="50" r="23" fill="#fff" stroke="#7f8bb8" stroke-width=".9"/>
+    <circle cx="50" cy="50" r="19.5" fill="none" stroke="#1d2654" stroke-width="1"/>
+    <text x="50" y="47.5" text-anchor="middle" font-family="IM Fell English SC,serif" font-size="7" fill="#1d2654">ADMITE</text>
+    <text x="50" y="57.5" text-anchor="middle" font-family="IM Fell English SC,serif" font-size="7.5" fill="#a3203a">A DOS</text></svg>`;
+}
 
 // ====================================================================== Utilidades
 const $ = (s, r = document) => r.querySelector(s);
@@ -212,23 +317,6 @@ const app = $('#app');
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const norm = (t) => String(t).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ñ ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const slug = (t) => norm(t).replace(/ /g, '-');
-const regalo = (id) => REGALOS.find((r) => r.id === id) || { id, e: '🎁', n: 'Regalo', d: '' };
-// Un regalo puede ser de la lista o propio (foto + título). info = {regalo, titulo, foto, casa}
-const nombreRegalo = (i) => i.regalo === 'propio' ? (i.titulo || 'Regalo') : regalo(i.regalo).n;
-function dibujo(i) {
-  if (i.regalo === 'propio') return `<img class="foto-regalo" data-fr="${+i.foto || ''}" alt="Foto del regalo">`;
-  return `<span class="dib">${window.dibujoRegalo ? window.dibujoRegalo(i.regalo, i.casa) : regalo(i.regalo).e}</span>`;
-}
-const FOTOS_REGALO = {};
-function cargarFotosRegalo(raiz = document) {
-  raiz.querySelectorAll('img[data-fr]:not([src])').forEach(async (im) => {
-    const id = im.dataset.fr; if (!id) return;
-    try {
-      FOTOS_REGALO[id] = FOTOS_REGALO[id] || api({ accion: 'foto_regalo', token: S.token, id: +id });
-      im.src = await FOTOS_REGALO[id];
-    } catch (e) { delete FOTOS_REGALO[id]; }
-  });
-}
 const casa = (id) => CASAS.find((c) => c.id === id) || { id, e: '🏰' };
 const insignia = (c) => `<span class="insignia i-${esc(c)}">${casa(c).e} ${esc(c)}</span>`;
 const ETIQUETAS = {};
@@ -241,6 +329,31 @@ function etiqueta(k) {
 function iconoCat(k) { const c = CATALOGO.find((x) => x.id === k.split(':')[0]); return c ? c.e : '⭐'; }
 const fecha = (d) => new Date(d).toLocaleString('es', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 const fechaCorta = (d) => new Date(d).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const orla = (t) => `<div class="orla">${estrella('#dfe8f6', '#9fb2d2')}${esc(t)}${estrella('#dfe8f6', '#9fb2d2')}</div>`;
+const orlaP = (t) => `<div class="orla">${estrella()}${esc(t)}${estrella()}</div>`;
+const estrellasEsquinas = () => ['top:12px;left:12px', 'top:12px;right:12px', 'bottom:12px;left:12px', 'bottom:12px;right:12px']
+  .map((pos) => `<span class="estrella" style="${pos}">${estrella()}</span>`).join('');
+
+// Regalos: de la lista (dibujo) o propios (foto + título). info = {regalo, titulo, foto}
+const regalo = (id) => REGALOS.find((r) => r.id === id) || { id, e: '🎁', n: 'Regalo', d: '' };
+const nombreRegalo = (i) => i.regalo === 'propio' ? (i.titulo || 'Regalo') : regalo(i.regalo).n;
+function dibujo(i) {
+  if (i.regalo === 'propio') return `<img class="foto-regalo" data-fr="${+i.foto || ''}" alt="Foto del regalo">`;
+  return `<span class="dib">${window.dibujoRegalo ? window.dibujoRegalo(i.regalo) : regalo(i.regalo).e}</span>`;
+}
+// Carta: sobre cerrado que se abre al tocarlo
+function carta(nota, firma, abierta) {
+  if (!nota) return '';
+  const mia = firma === 'ti';
+  const firmaTxt = mia ? '' : firma.charAt(0).toUpperCase() + firma.slice(1);
+  return `<div class="carta${abierta ? ' abierta' : ''}"><button type="button" class="sobre">${SOBRE_SVG}<span><b>${mia ? 'Tu carta' : 'Una carta de ' + esc(firma)}</b><small>Toca para ${abierta ? 'cerrarla' : 'abrirla'}</small></span></button>
+    <div class="carta-papel">${esc(nota)}${firmaTxt ? `<span class="firma">— ${esc(firmaTxt)}</span>` : ''}</div></div>`;
+}
+document.addEventListener('click', (e) => {
+  const s = e.target.closest('.sobre'); if (!s) return;
+  const c = s.closest('.carta'); c.classList.toggle('abierta');
+  s.querySelector('small').textContent = c.classList.contains('abierta') ? 'Toca para cerrarla' : 'Toca para abrirla';
+});
 
 function toast(msg, mal) {
   document.querySelectorAll('.toast').forEach((t) => t.remove());
@@ -251,19 +364,51 @@ function toast(msg, mal) {
 const guardar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
 const leer = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
-// Nieve
+// ====================================================================== Decorado: nieve, guirnalda de carámbanos y cúpulas
 (function () {
-  const n = $('#nieve'), copos = ['❄', '❅', '❆', '·'];
-  for (let i = 0; i < 26; i++) {
+  const n = $('#fondo .nieve'), copos = ['❄', '❅', '❆', '·', '·'];
+  for (let i = 0; i < 30; i++) {
     const s = document.createElement('i');
     s.textContent = copos[i % copos.length];
     s.style.left = Math.random() * 100 + '%';
-    s.style.fontSize = 8 + Math.random() * 14 + 'px';
-    s.style.animationDuration = 9 + Math.random() * 14 + 's';
-    s.style.animationDelay = -Math.random() * 20 + 's';
+    s.style.fontSize = 7 + Math.random() * 13 + 'px';
+    s.style.animationDuration = 10 + Math.random() * 14 + 's';
+    s.style.animationDelay = -Math.random() * 22 + 's';
     s.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px');
     n.appendChild(s);
   }
+  // Guirnalda: una tela plateada que cae en curva con carámbanos y un cristal colgando
+  const y = (t) => (1 - t) * (1 - t) * 6 + 2 * (1 - t) * t * 44 + t * t * 6;
+  let ic = '';
+  for (let x = 10; x < 240; x += 11) {
+    const t = x / 240, yy = y(t), L = 10 + ((x * 37) % 23) + (Math.abs(x - 120) < 40 ? 8 : 0);
+    ic += `<path d='M${x - 2.6} ${yy.toFixed(1)}L${x + 2.6} ${yy.toFixed(1)}L${x} ${(yy + L).toFixed(1)}Z' fill='url(%23h)'/>`;
+  }
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='240' height='92' viewBox='0 0 240 92'><defs><linearGradient id='h' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23f4f8ff' stop-opacity='.95'/><stop offset='1' stop-color='%23cfe0ff' stop-opacity='.15'/></linearGradient></defs>`
+    + `<path d='M0 2Q120 40 240 2' fill='none' stroke='%23e8f0ff' stroke-opacity='.45' stroke-width='5'/>`
+    + `<path d='M0 6Q120 44 240 6' fill='none' stroke='%23f4f8ff' stroke-opacity='.9' stroke-width='2'/>`
+    + `<path d='M0 0Q120 34 240 0' fill='none' stroke='%23dfe9ff' stroke-opacity='.5' stroke-width='1' stroke-dasharray='1 5' stroke-linecap='round'/>`
+    + ic
+    + `<path d='M120 25V52' stroke='%23e8f0ff' stroke-width='.8'/><path d='M120 52l6 9-6 13-6-13z' fill='%23eef4ff' fill-opacity='.85'/><path d='M120 52l6 9h-12z' fill='%23fff'/>`
+    + `<circle cx='60' cy='18' r='1.4' fill='%23fff'/><circle cx='180' cy='18' r='1.4' fill='%23fff'/><circle cx='95' cy='23' r='1' fill='%23fff'/><circle cx='150' cy='24' r='1' fill='%23fff'/></svg>`;
+  $('#guirnalda').style.backgroundImage = `url("data:image/svg+xml,${svg.replace(/</g, '%3C').replace(/>/g, '%3E').replace(/"/g, "'")}")`;
+  // Cúpulas y torres del castillo al fondo
+  const W = 1200, H = 150, base = 150;
+  const cupula = (cx, w, h, alto) => {
+    const b = base - alto;
+    return `<rect x="${cx - w * 0.42}" y="${b}" width="${w * 0.84}" height="${alto}"/>`
+      + `<path d="M${cx - w / 2} ${b}C${cx - w / 2} ${b - h * 0.45} ${cx - w * 0.12} ${b - h * 0.62} ${cx} ${b - h}C${cx + w * 0.12} ${b - h * 0.62} ${cx + w / 2} ${b - h * 0.45} ${cx + w / 2} ${b}Z"/>`
+      + `<rect x="${cx - 0.8}" y="${b - h - 14}" width="1.6" height="16"/><circle cx="${cx}" cy="${b - h - 15}" r="2"/>`;
+  };
+  const torre = (x, w, alto) => `<rect x="${x}" y="${base - alto}" width="${w}" height="${alto}"/><path d="M${x - 3} ${base - alto}L${x + w / 2} ${base - alto - w * 1.6}L${x + w + 3} ${base - alto}Z"/>`;
+  let d = '';
+  [[60, 34, 46, 40], [190, 48, 64, 58], [330, 30, 40, 34], [470, 40, 52, 50], [610, 58, 78, 70], [750, 40, 52, 46], [880, 32, 42, 38], [1010, 50, 66, 60], [1140, 36, 48, 42]]
+    .forEach(([cx, w, h, a]) => (d += cupula(cx, w, h, a)));
+  [[120, 16, 70], [255, 14, 54], [400, 12, 44], [540, 16, 62], [680, 16, 60], [815, 14, 52], [950, 12, 46], [1075, 16, 66]].forEach(([x, w, a]) => (d += torre(x, w, a)));
+  const c = $('#fondo .cupulas');
+  c.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  c.innerHTML = `<defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2a5e"/><stop offset="1" stop-color="#070c20"/></linearGradient></defs>
+    <g fill="url(#gc)" stroke="rgba(200,220,255,.18)" stroke-width="1">${d}</g><rect x="0" y="${H - 18}" width="${W}" height="18" fill="#070c20"/>`;
 })();
 
 // ====================================================================== Conexión
@@ -290,6 +435,16 @@ async function fotosDe(persona) {
   S.fotos[persona.id] = { ver: persona.fotos_ver, lista };
   return lista;
 }
+const FOTOS_REGALO = {};
+function cargarFotosRegalo(raiz = document) {
+  raiz.querySelectorAll('img[data-fr]:not([src])').forEach(async (im) => {
+    const id = im.dataset.fr; if (!id) return;
+    try {
+      FOTOS_REGALO[id] = FOTOS_REGALO[id] || api({ accion: 'foto_regalo', token: S.token, id: +id });
+      im.src = await FOTOS_REGALO[id];
+    } catch (e) { delete FOTOS_REGALO[id]; }
+  });
+}
 async function accion(p, msgOk) {
   const e = await api({ ...p, token: S.token });
   if (e && e.yo) S.estado = e;
@@ -304,7 +459,7 @@ function salir(silencio) {
 
 // ====================================================================== Componentes
 function botonesOpcion(lista, valor, clase = '') {
-  return lista.map((o) => `<button type="button" class="opcion ${clase}${o.clase || ''}" data-v="${esc(o.id)}" aria-pressed="${o.id === valor}">
+  return lista.map((o) => `<button type="button" class="opcion ${clase}" data-v="${esc(o.id)}" aria-pressed="${o.id === valor}">
     <span class="e">${o.e}</span>${esc(o.n || o.id)}</button>`).join('');
 }
 function activarOpciones(cont, alElegir) {
@@ -313,7 +468,7 @@ function activarOpciones(cont, alElegir) {
     alElegir(b.dataset.v);
   }));
 }
-
+// Fotos de una persona en un ventanal gótico
 function carrusel(persona, extra = '') {
   const id = 'car' + Math.random().toString(36).slice(2);
   setTimeout(async () => {
@@ -332,17 +487,16 @@ function carrusel(persona, extra = '') {
       }, { passive: true });
     } catch (e) {}
   });
-  return `<div class="carrusel" id="${id}">
-    <div class="pistas"><div class="vacia" style="flex:0 0 100%">${casa(persona.casa).e}</div></div>
+  return `<div class="ventanal"><div class="carrusel" id="${id}">
+    <div class="pistas"><div class="vacia">${casa(persona.casa).e}</div></div>
     <div class="puntos"></div>
     <div class="pie"><h2>${esc(persona.nombre)}</h2><div style="margin-top:4px">${insignia(persona.casa)}</div>${extra}</div>
-  </div>`;
+  </div></div>`;
 }
 function chipsIntereses(lista, comunes = []) {
   const c = new Set(comunes);
   return `<div class="chips">${lista.map((k) => `<span class="chip fijo ${c.has(k) ? 'comun' : ''}">${iconoCat(k)} ${esc(etiqueta(k))}</span>`).join('')}</div>`;
 }
-
 // Editor de intereses: categorías con opciones + "otro"
 function editorIntereses(cont, elegidos, alCambiar) {
   const sel = new Set(elegidos);
@@ -386,8 +540,7 @@ function editorIntereses(cont, elegidos, alCambiar) {
   }
   pintar();
 }
-
-// Editor de fotos (máx. 3), se comprimen en el celular antes de subir
+// Fotos (máx. 3), comprimidas en el celular antes de subir
 async function comprimir(file) {
   const url = URL.createObjectURL(file);
   try {
@@ -414,7 +567,6 @@ function editorFotos(cont, fotos, alCambiar) {
   }
   pintar();
 }
-
 // Hoja inferior (modal)
 function hoja(html) {
   const v = document.createElement('div');
@@ -424,37 +576,36 @@ function hoja(html) {
   document.body.appendChild(v);
   return v;
 }
-
-// Elegir regalo + mensaje (para invitar, aceptar o mandar una lechuza)
-function elegirRegalo({ titulo, frases, conSorpresa, boton, alEnviar }) {
+// Elegir regalo + escribir la carta (invitar, aceptar, lechuza o regalo secreto)
+function elegirRegalo({ titulo, intro, frases, conSorpresa, conRevelar, boton, botonClase = 'carmesi', alEnviar }) {
   const notaLibre = S.estado?.cfg?.nota_libre !== false;
-  let reg = null, frase = frases[0], propia = false, fotoPropia = null;
-  const miCasa = S.estado?.yo?.casa;
+  let reg = null, fotoPropia = null, fraseElegida = frases[0];
   const v = hoja(`
-    <h2>${esc(titulo)}</h2>
-    <div class="orla">Elige un regalo</div>
+    <h2>${esc(titulo)}</h2>${intro ? `<p class="suave">${intro}</p>` : ''}
+    ${orla('Elige un regalo')}
     <div class="regalos">
-      <button type="button" class="regalo propio" data-r="propio" aria-pressed="false"><span class="e">📷</span>Mi propio regalo</button>
-      ${REGALOS.map((r) => `<button type="button" class="regalo" data-r="${r.id}" aria-pressed="false"><span class="e">${dibujo({ regalo: r.id, casa: miCasa })}</span>${esc(r.n)}</button>`).join('')}</div>
+      ${REGALOS.map((r) => `<button type="button" class="regalo" data-r="${r.id}" aria-pressed="false"><span class="e">${dibujo({ regalo: r.id })}</span>${esc(r.n)}</button>`).join('')}
+      <button type="button" class="regalo propio" data-r="propio" aria-pressed="false"><span class="e">📷</span>Mi propio regalo</button></div>
     <p class="tenue centro" id="rdesc" style="min-height:1.5em"></p>
     <div id="propio" style="display:none" class="tarjeta">
       <h3>📷 Tu propio regalo</h3>
-      <p class="tenue">Sube una foto de lo que le regalas (algo que hiciste, compraste o dibujaste).</p>
+      <p class="tenue">Sube una foto de lo que regalas: algo que hiciste, compraste o dibujaste.</p>
       <div class="fila" style="align-items:center;margin-top:8px">
         <label class="ranura" style="cursor:pointer;flex:0 0 96px;aspect-ratio:1"><input type="file" accept="image/*" hidden id="foto-propia"><span id="vista-propia">＋</span></label>
         <div><label class="campo" for="tit-propio" style="margin-top:0">¿Qué es?</label>
         <input type="text" id="tit-propio" maxlength="40" placeholder="Ej.: Galletas que hice"></div>
       </div>
     </div>
-    <div class="orla">Tu mensaje</div>
-    <div class="frases">
-      ${frases.map((f, i) => `<button type="button" class="frase" data-f="${i}" aria-pressed="${i === 0}">${esc(f)}</button>`).join('')}
-      ${notaLibre ? `<button type="button" class="frase" data-f="propia" aria-pressed="false">✍️ Escribir el mío</button>` : ''}
-    </div>
-    <textarea id="nota" maxlength="140" placeholder="Máximo 140 letras" style="display:none;margin-top:8px"></textarea>
+    ${orla('Tu carta')}
+    ${notaLibre ? `<p class="tenue">Escribe lo que quieras o toca una frase para empezar.</p>
+      <div class="frases">${frases.map((f, i) => `<button type="button" class="frase" data-f="${i}">${esc(f)}</button>`).join('')}</div>
+      <textarea id="nota" maxlength="${MAX_NOTA}" rows="5" style="margin-top:10px" placeholder="Querid@…">${esc(frases[0])}</textarea>
+      <div class="contar" id="contar"></div>`
+    : `<div class="frases">${frases.map((f, i) => `<button type="button" class="frase" data-f="${i}" aria-pressed="${i === 0}">${esc(f)}</button>`).join('')}</div>`}
+    ${conRevelar ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="revela" checked> 🤫 Revelar que soy su admirador secreto</label>` : ''}
     ${conSorpresa ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="sorpresa"> 🎁 Sorpresa: que lo abra el día del baile</label>` : ''}
     <div class="pila" style="margin-top:16px">
-      <button class="btn" id="enviar" disabled>${esc(boton)}</button>
+      <button class="btn ${botonClase}" id="enviar" disabled>${esc(boton)}</button>
       <button class="btn2" id="cancelar">Cancelar</button>
     </div>`);
   v.querySelectorAll('.regalo').forEach((b) => b.addEventListener('click', () => {
@@ -470,40 +621,42 @@ function elegirRegalo({ titulo, frases, conSorpresa, boton, alEnviar }) {
     try { fotoPropia = await comprimir(f); $('#vista-propia', v).outerHTML = `<img id="vista-propia" src="${fotoPropia}" alt="Tu regalo">`; }
     catch (err) { toast(err.message, true); }
   });
+  const nota = $('#nota', v), contar = () => { if (nota) $('#contar', v).textContent = `${nota.value.length} / ${MAX_NOTA}`; };
+  if (nota) { nota.addEventListener('input', contar); contar(); }
   v.querySelectorAll('.frase').forEach((b) => b.addEventListener('click', () => {
-    v.querySelectorAll('.frase').forEach((x) => x.setAttribute('aria-pressed', x === b));
-    propia = b.dataset.f === 'propia';
-    if (!propia) frase = frases[+b.dataset.f];
-    $('#nota', v).style.display = propia ? 'block' : 'none';
-    if (propia) $('#nota', v).focus();
+    const f = frases[+b.dataset.f];
+    if (nota) { nota.value = f; contar(); nota.focus(); }
+    else { fraseElegida = f; v.querySelectorAll('.frase').forEach((x) => x.setAttribute('aria-pressed', x === b)); }
   }));
   $('#cancelar', v).addEventListener('click', () => v.remove());
   $('#enviar', v).addEventListener('click', async () => {
-    const nota = propia ? $('#nota', v).value.trim() : frase;
+    const texto = nota ? nota.value.trim() : fraseElegida;
     const extra = {};
     if (reg === 'propio') {
       extra.titulo = $('#tit-propio', v).value.trim(); extra.foto = fotoPropia;
       if (!extra.foto) return toast('Sube una foto de tu regalo', true);
       if (extra.titulo.length < 2) return toast('Escribe qué es tu regalo', true);
     }
+    if (conRevelar) extra.revela = $('#revela', v).checked;
+    if (conSorpresa) extra.sorpresa = $('#sorpresa', v).checked;
     const btn = $('#enviar', v); btn.disabled = true;
-    try { await alEnviar(reg, nota, conSorpresa && $('#sorpresa', v).checked, extra); v.remove(); }
+    try { await alEnviar(reg, texto, extra); v.remove(); }
     catch (e) { toast(e.message, true); btn.disabled = false; }
   });
 }
-
 function confeti() {
-  const piezas = ['❄', '✨', '💛', '❅', '⭐', '💫'];
-  for (let i = 0; i < 40; i++) {
+  const piezas = ['❄', '✦', '❅', '✧', '❆', '·'];
+  for (let i = 0; i < 44; i++) {
     const s = document.createElement('div');
     s.className = 'confeti'; s.textContent = piezas[i % piezas.length];
-    s.style.left = Math.random() * 100 + 'vw'; s.style.fontSize = 14 + Math.random() * 16 + 'px';
+    s.style.color = i % 3 ? '#eef4ff' : '#f3a9c2';
+    s.style.left = Math.random() * 100 + 'vw'; s.style.fontSize = 12 + Math.random() * 18 + 'px';
     s.style.animationDelay = Math.random() * 0.8 + 's'; s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
-    document.body.appendChild(s); setTimeout(() => s.remove(), 4500);
+    document.body.appendChild(s); setTimeout(() => s.remove(), 4700);
   }
 }
 
-// ====================================================================== Portada
+// ====================================================================== Portada: la invitación
 async function portada() {
   pararSondeo();
   if (!CFG.url || !CFG.key) {
@@ -511,25 +664,31 @@ async function portada() {
       <p class="suave">Abre el archivo <b>config.js</b> y pega la dirección y la clave pública de tu proyecto de Supabase.</p></div>`;
     return;
   }
+  const ic = () => estrella('#dfe8f6', '#9fb2d2');
   app.innerHTML = `
-    <div style="text-align:center;margin-top:16px;font-size:2.6rem">❄️🎩❄️</div>
-    <h1 class="titulo" style="margin-top:8px">Baile de Navidad</h1>
-    <p class="sub" style="margin-top:8px">Hogwarts · 5 de diciembre</p>
-    <div class="contador" id="cuenta"></div>
+    <div class="invitacion centro">
+      ${estrellasEsquinas()}
+      <p class="versalitas" style="font-size:.95rem;line-height:1.35;margin:0 18px">El Colegio Hogwarts de Magia y Hechicería<br>tiene el placer de invitarte al</p>
+      <div style="width:84px;height:84px;margin:6px auto -4px">${PAREJA_SVG}</div>
+      <h1 class="titulo">Baile de<br>Navidad</h1>
+      <p class="versalitas" style="margin-top:12px;font-size:1.05rem">5 de diciembre · Gran Comedor</p>
+      <div class="contador" id="cuenta"></div>
+      <p class="versalitas tenue" style="margin:0">Se ruega vestir para impresionar</p>
+    </div>
     <div class="cifras" id="cifras"><div><b>·</b><span>parejas</span></div><div><b>·</b><span>buscando pareja</span></div></div>
-    <div class="pila" style="margin-top:22px">
-      <button class="btn" id="crear">✨ Crear mi perfil</button>
+    <div class="pila" style="margin-top:18px">
+      <button class="btn carmesi" id="crear">✨ Crear mi perfil</button>
       <button class="btn2" id="entrar">Ya tengo perfil · Entrar</button>
     </div>
     <div class="tarjeta" style="margin-top:22px">
-      <h3>¿Cómo funciona?</h3>
-      <ol class="pasos">
-        <li><span>Crea tu perfil con tus fotos y lo que te gusta.</span></li>
-        <li><span>El <b>Sombrero Seleccionador</b> te presenta a la persona con la que más coincides.</span></li>
-        <li><span>Si te late, la invitas al baile <b>con un regalo</b>. Si los dos dicen que sí… ¡tienen pareja!</span></li>
-        <li><span>Si no, el Sombrero les busca a otra persona. Solo te presenta a alguien si tienen <b>varias cosas en común</b>.</span></li>
-      </ol>
-      <p class="tenue">¿Ya tienes pareja? Regístrate igual: confirman que van juntos y se pueden mandar regalos por <b>Correo Lechuza</b> 🦉</p>
+      <h2 class="centro versalitas" style="font-family:'IM Fell English SC',serif;font-weight:400;font-size:1.5rem">Programa</h2>
+      <ul class="programa" style="margin-top:8px">
+        <li>${ic()}<span><span class="cuando">Al primer toque de varita</span>Crea tu perfil con tus fotos y lo que te gusta.</span></li>
+        <li>${ic()}<span><span class="cuando">Al segundo toque de varita</span>El <b>Sombrero Seleccionador</b> te presenta a alguien con quien tienes <b>varias cosas en común</b>.</span></li>
+        <li>${ic()}<span><span class="cuando">Al tercer toque de varita</span>Si te late, le invitas al baile con <b>un regalo y una carta</b>. Si los dos dicen que sí… ¡tienen pareja!</span></li>
+        <li>${ic()}<span><span class="cuando">Al cuarto toque de varita</span>¿Te gusta alguien? Mándale regalos como <b>admirador secreto</b> 🤫</span></li>
+        <li>${ic()}<span><span class="cuando">Para quienes ya tienen pareja</span>Confirmen que van juntos y mándense regalos por <b>Correo Lechuza</b> 🦉</span></li>
+      </ul>
     </div>`;
   $('#crear').addEventListener('click', () => registro());
   $('#entrar').addEventListener('click', entrar);
@@ -545,7 +704,7 @@ function cuentaAtras(el, hasta) {
   const pintar = () => {
     if (!document.body.contains(el)) return clearInterval(t);
     const ms = fin - Date.now();
-    if (ms <= 0) { el.innerHTML = `<p class="sub" style="color:var(--oro)">✨ ¡Hoy es el baile! ✨</p>`; return clearInterval(t); }
+    if (ms <= 0) { el.innerHTML = `<p class="sub">✦ ¡Hoy es el baile! ✦</p>`; return clearInterval(t); }
     const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60;
     el.innerHTML = `<div><b>${d}</b><span>días</span></div><div><b>${h}</b><span>horas</span></div><div><b>${m}</b><span>min</span></div>`;
   };
@@ -556,13 +715,13 @@ function cuentaAtras(el, hasta) {
 function entrar() {
   app.innerHTML = `
     <button class="enlace" id="volver">← Volver</button>
-    <div class="tarjeta">
-      <h2>Entrar</h2>
+    <div class="tarjeta brillo">
+      <h2>Entrar al baile</h2>
       <label class="campo" for="n">Tu nombre</label>
       <input type="text" id="n" autocomplete="username" maxlength="30">
       <label class="campo" for="p">Tu PIN</label>
       <input type="password" id="p" class="pin" inputmode="numeric" maxlength="4" autocomplete="current-password">
-      <div style="margin-top:16px"><button class="btn" id="ok">Entrar al baile</button></div>
+      <div style="margin-top:16px"><button class="btn" id="ok">Entrar</button></div>
       <p class="tenue" style="margin-top:12px">¿Olvidaste tu PIN? Pídele al organizador que te ponga uno nuevo.</p>
     </div>`;
   $('#volver').addEventListener('click', portada);
@@ -585,18 +744,16 @@ function registro() {
   const PASOS = ['cuenta', 'sobre', 'pareja', 'fotos', 'intereses'];
   let paso = 0;
   const busca = () => R.estado === 'busca';
-
   function pintar() {
     const id = PASOS[paso];
     app.innerHTML = `
       <button class="enlace" id="volver">← ${paso ? 'Atrás' : 'Volver'}</button>
       <div class="progreso">${PASOS.map((_, i) => `<b class="${i <= paso ? 'on' : ''}"></b>`).join('')}</div>
-      <div class="tarjeta" id="paso"></div>
-      <div class="pila"><button class="btn" id="seguir">${paso === PASOS.length - 1 ? '🎩 ¡Listo, entrar al baile!' : 'Siguiente'}</button>
+      <div class="tarjeta brillo" id="paso"></div>
+      <div class="pila"><button class="btn ${paso === PASOS.length - 1 ? 'carmesi' : ''}" id="seguir">${paso === PASOS.length - 1 ? '🎩 ¡Listo, entrar al baile!' : 'Siguiente'}</button>
       ${id === 'intereses' && !busca() ? '<button class="btn2" id="saltar">Saltar este paso</button>' : ''}</div>`;
     $('#volver').addEventListener('click', () => { if (paso) { paso--; pintar(); } else portada(); });
-    const c = $('#paso');
-    PINTAR[id](c);
+    PINTAR[id]($('#paso'));
     $('#seguir').addEventListener('click', seguir);
     if ($('#saltar')) $('#saltar').addEventListener('click', () => { R.intereses = []; enviar(); });
     window.scrollTo(0, 0);
@@ -696,14 +853,13 @@ function pararSondeo() { clearInterval(S.timer); S.timer = null; }
 function sondear() {
   pararSondeo();
   S.timer = setInterval(async () => {
-    if (document.hidden || document.querySelector('.velo, .fiesta')) return;
+    if (document.hidden || document.querySelector('.velo, .fiesta, .carta.abierta')) return;
     try { const antes = JSON.stringify(S.estado); await accion({ accion: 'estado' }); if (JSON.stringify(S.estado) !== antes) pintarInicio(); } catch (e) {}
   }, 20000);
 }
 document.addEventListener('visibilitychange', async () => {
-  if (!document.hidden && S.timer && S.token) { try { await accion({ accion: 'estado' }); pintarInicio(); } catch (e) {} }
+  if (!document.hidden && S.timer && S.token && !document.querySelector('.velo, .fiesta')) { try { await accion({ accion: 'estado' }); pintarInicio(); } catch (e) {} }
 });
-
 async function inicio() {
   location.hash = '';
   if (!S.estado) {
@@ -724,38 +880,34 @@ function pintarInicio() {
       <button class="btn3" id="perfil">Mi perfil</button>
       <button class="btn3" id="salir" aria-label="Salir">Salir</button>
     </div>`;
-
   // Avisos
   for (const a of E.avisos) {
     let e = '💫', t = '', d = '';
-    const h_ = E.cfg.horas;
+    const hh = E.cfg.horas;
     if (a.tipo === 'no') {
       e = '💌'; t = a.mi_resp ? `${a.nombre} ha rechazado tu invitación` : `${a.nombre} ha rechazado la propuesta del Sombrero`;
       d = 'El Sombrero ya está buscando a otra persona para ti.';
     } else if (a.tipo === 'caducada') {
       e = '⌛';
-      if (a.mi_resp) { t = `Tu invitación a ${a.nombre} ha caducado`; d = `No respondió en ${h_} horas. No es un rechazo: el Sombrero te presentará a otra persona y puede que vuelva a juntarlos más adelante.`; }
-      else if (a.su_resp) { t = `Se te pasó la invitación de ${a.nombre}`; d = `Te había invitado, pero no respondiste en ${h_} horas y caducó. Puede que el Sombrero vuelva a juntarlos más adelante.`; }
-      else { t = `La propuesta con ${a.nombre} ha caducado`; d = `Ninguno de los dos respondió en ${h_} horas.`; }
-    }
-    else if (a.tipo === 'cancelada') { e = '🎩'; t = 'El Sombrero cambió de planes'; d = 'La propuesta anterior ya no está disponible. Pronto tendrás otra.'; }
+      if (a.mi_resp) { t = `Tu invitación a ${a.nombre} ha caducado`; d = `No respondió en ${hh} horas. No es un rechazo: el Sombrero te presentará a otra persona y puede que vuelva a juntarlos más adelante.`; }
+      else if (a.su_resp) { t = `Se te pasó la invitación de ${a.nombre}`; d = `Te había invitado, pero no respondiste en ${hh} horas y caducó. Puede que el Sombrero vuelva a juntarlos más adelante.`; }
+      else { t = `La propuesta con ${a.nombre} ha caducado`; d = `Ninguno de los dos respondió en ${hh} horas.`; }
+    } else if (a.tipo === 'cancelada') { e = '🎩'; t = 'El Sombrero cambió de planes'; d = 'La propuesta anterior ya no está disponible. Pronto tendrás otra.'; }
     else if (a.tipo === 'solicitud_rechazada') { e = '🤔'; t = `${a.nombre} no confirmó que van juntos`; d = 'Puedes elegir a otra persona o dejar que el Sombrero te ayude.'; }
     h += `<div class="tarjeta aviso"><span class="e">${e}</span><div><h3>${esc(t)}</h3><p class="suave">${esc(d)}</p></div>
       <button class="cerrar" data-aviso="${esc(a.tipo)}" data-id="${a.id}" aria-label="Cerrar">×</button></div>`;
   }
-
-  // Solicitudes recibidas ("X dice que vais juntos")
+  // Solicitudes recibidas
   for (const s of E.solicitudes) {
-    h += `<div class="tarjeta oro"><h3>💃 ${esc(s.persona.nombre)} dice que van juntos al baile</h3>
-      <p class="suave">${insignia(s.persona.casa)} ¿Es verdad?</p>
-      <div class="fila" style="margin-top:10px"><button class="btn" data-sol="${s.id}" data-acepta="1">¡Sí, confirmo!</button>
+    h += `<div class="invitacion">${estrellasEsquinas()}<h3 class="centro">💃 ${esc(s.persona.nombre)} dice que van juntos al baile</h3>
+      <p class="suave centro">${insignia(s.persona.casa)} ¿Es verdad?</p>
+      <div class="fila" style="margin-top:12px"><button class="btn carmesi" data-sol="${s.id}" data-acepta="1">¡Sí, confirmo!</button>
       <button class="btn2" data-sol="${s.id}" data-acepta="0">No es así</button></div></div>`;
   }
-
   if (E.pareja) h += bloquePareja(E);
   else if (yo.estado === 'tiene') h += bloqueTiene(E);
   else h += bloqueBusca(E);
-
+  h += bloqueSecretos(E);
   h += `<p class="tenue centro" style="margin-top:24px">${E.resumen.parejas} ${E.resumen.parejas === 1 ? 'pareja formada' : 'parejas formadas'} · ${E.resumen.buscando} buscando pareja</p>`;
   app.innerHTML = h;
 
@@ -779,6 +931,10 @@ function pintarInicio() {
   on('#abrir-buzon', abrirBuzon);
   on('#ya-tengo', () => elegirMiPareja());
   on('#cambiar-pareja', () => elegirMiPareja());
+  on('#elegir-crush', elegirCrush);
+  on('#cambiar-crush', elegirCrush);
+  on('#mandar-secreto', mandarSecreto);
+  on('#ver-secretos', abrirSecretos);
   on('#cancelar-sol', async () => { try { await accion({ accion: 'cancelar_solicitud' }, 'Solicitud cancelada'); pintarInicio(); } catch (e) { toast(e.message, true); } });
   on('#quiero-sombrero', async () => {
     try { await accion({ accion: 'modo', estado: 'busca' }, '🎩 El Sombrero ya te tiene en cuenta'); pintarInicio(); }
@@ -787,40 +943,45 @@ function pintarInicio() {
   cuentaAtras($('#cuenta-baile'), E.cfg.baile);
   cargarFotosRegalo(app);
   if (E.pareja && E.pareja.nueva) celebrar(E);
-  if (sinLeer && $('#buzon')) $('#buzon').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function bloqueBusca(E) {
   const q = E.propuesta;
   if (q) {
     const p = q.persona;
-    let h = `<div class="orla">🎩 El Sombrero ha elegido</div>`;
+    let h = orla('El Sombrero ha elegido');
+    if (q.es_mi_crush) h += `<div class="secreto-banda"><span style="font-size:1.6rem">✨</span><div><b>¡Es tu crush!</b> El Sombrero los juntó.
+      ${q.le_mande_secretos ? 'Invítale y, si quieres, revela que eras su admirador secreto.' : ''}</div></div>`;
     if (q.su_regalo) {
-      const info = { regalo: q.su_regalo, titulo: q.su_titulo, foto: q.su_foto, casa: p.casa };
-      h += `<div class="tarjeta oro"><h3>💌 ¡${esc(p.nombre)} te invitó al baile!</h3>
-        <div class="regalo-grande" style="margin-top:10px"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>
-        ${q.su_nota ? `<p class="nota">“${esc(q.su_nota)}”</p>` : `<p class="tenue">${esc(q.su_regalo === 'propio' ? 'Un regalo hecho por ' + p.nombre : regalo(q.su_regalo).d)}</p>`}</div></div></div>`;
+      const info = { regalo: q.su_regalo, titulo: q.su_titulo, foto: q.su_foto };
+      h += `<div class="invitacion">${estrellasEsquinas()}
+        <h3 class="centro" style="font-family:'Almendra SC',serif;font-weight:400;font-size:1.7rem;color:var(--carmesi)">¡${esc(p.nombre)} te invitó al baile!</h3>
+        ${q.su_revela ? `<div class="secreto-banda"><span style="font-size:1.4rem">🤫</span><div><b>…y es tu admirador secreto.</b> Los regalos anónimos eran de ${esc(p.nombre)}.</div></div>` : ''}
+        <div class="regalo-grande" style="margin-top:12px"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>
+        <p class="tenue" style="margin:2px 0 0">${esc(q.su_regalo === 'propio' ? 'Un regalo de ' + p.nombre : regalo(q.su_regalo).d)}</p></div></div>
+        ${carta(q.su_nota, p.nombre, true)}</div>`;
     }
-    h += `<div class="tarjeta" style="padding:10px">${carrusel(p, p.frase ? `<p style="margin-top:6px">${esc(p.frase)}</p>` : '')}
-      <div style="padding:12px 6px 4px">
-        ${q.comunes.length ? `<h3>💞 Coinciden en ${q.comunes.length === 1 ? '1 cosa' : q.comunes.length + ' cosas'}</h3><div style="margin:8px 0 12px">${chipsIntereses(q.comunes, q.comunes)}</div>`
-          : `<p class="suave">El Sombrero ve algo especial aquí, aunque todavía no coincidan en sus gustos 😉</p>`}
-        ${p.intereses.filter((k) => !q.comunes.includes(k)).length ? `<details><summary class="enlace" style="cursor:pointer">Ver todo lo que le gusta</summary><div style="margin-top:8px">${chipsIntereses(p.intereses.filter((k) => !q.comunes.includes(k)))}</div></details>` : ''}
-      </div></div>`;
+    h += `<div style="margin:14px 0">${carrusel(p, p.frase ? `<p style="margin-top:6px">${esc(p.frase)}</p>` : '')}</div>
+      <div class="tarjeta">
+        ${q.comunes.length ? `<h3>💞 Coinciden en ${q.comunes.length === 1 ? '1 cosa' : q.comunes.length + ' cosas'}</h3><div style="margin:8px 0 6px">${chipsIntereses(q.comunes, q.comunes)}</div>`
+          : `<p class="suave">El Sombrero ve algo especial aquí 😉</p>`}
+        ${p.intereses.filter((k) => !q.comunes.includes(k)).length ? `<details style="margin-top:8px"><summary class="enlace" style="cursor:pointer">Ver todo lo que le gusta</summary><div style="margin-top:8px">${chipsIntereses(p.intereses.filter((k) => !q.comunes.includes(k)))}</div></details>` : ''}
+      </div>`;
     if (q.mi_resp) {
-      const info = { regalo: q.mi_regalo, titulo: q.mi_titulo, foto: q.mi_foto, casa: E.yo.casa };
-      h += `<div class="tarjeta centro"><div style="width:72px;height:72px;margin:0 auto">${dibujo(info)}</div><h3>🦉 Tu lechuza ya va volando</h3>
-        <p class="suave">Le mandaste <b>${esc(nombreRegalo(info))}</b>${q.mi_nota ? ` con “${esc(q.mi_nota)}”` : ''}.</p>
-        <p class="tenue">Esperando su respuesta… tiene hasta el ${esc(fecha(q.vence))}.</p></div>`;
+      const info = { regalo: q.mi_regalo, titulo: q.mi_titulo, foto: q.mi_foto };
+      h += `<div class="tarjeta brillo centro"><div style="width:76px;height:76px;margin:0 auto">${dibujo(info)}</div><h3>🦉 Tu lechuza ya va volando</h3>
+        <p class="suave">Le mandaste <b>${esc(nombreRegalo(info))}</b>${q.mi_revela ? ' y le revelaste que eras su admirador secreto 🤫' : ''}.</p>
+        ${carta(q.mi_nota, 'ti')}
+        <p class="tenue" style="margin-top:10px">Esperando su respuesta… tiene hasta el ${esc(fecha(q.vence))}.</p></div>`;
     } else {
-      h += `<div class="pila"><button class="btn" id="invitar">💌 ${q.su_regalo ? 'Aceptar y mandarle un regalo' : 'Invitar al baile con un regalo'}</button>
+      h += `<div class="pila"><button class="btn carmesi" id="invitar">💌 ${q.su_regalo ? 'Aceptar y mandarle un regalo' : 'Invitar al baile con un regalo'}</button>
         <button class="btn2" id="rechazar">No, gracias</button></div>
         <p class="tenue centro" style="margin-top:8px">Tienes hasta el ${esc(fecha(q.vence))} para responder. ${q.su_regalo ? '' : 'Si los dos dicen que sí, ¡tienen pareja!'}</p>`;
     }
     return h;
   }
   const cerrado = new Date(E.cfg.cierre) < new Date(E.cfg.ahora);
-  let h = `<div class="tarjeta centro" style="margin-top:20px"><span class="sombrero">🎩</span>`;
+  let h = `<div class="tarjeta brillo centro" style="margin-top:20px"><span class="sombrero">🎩</span>`;
   if (cerrado) h += `<h2>El Sombrero ya cerró</h2><p class="suave">El plazo terminó. No te preocupes: el organizador se encarga de que nadie se quede sin pareja.</p>`;
   else if (E.cfg.sombrero !== 'si') h += `<h2>El Sombrero está descansando</h2><p class="suave">Muy pronto empezará a proponer parejas. Mientras tanto, completa bien tu perfil para que acierte.</p>`;
   else h += `<h2>El Sombrero está pensando…</h2>
@@ -832,12 +993,12 @@ function bloqueBusca(E) {
 
 function bloqueTiene(E) {
   const s = E.solicitud_enviada;
-  if (s) return `<div class="tarjeta centro" style="margin-top:20px"><div style="font-size:2.6rem">💌</div>
+  if (s) return `<div class="tarjeta brillo centro" style="margin-top:20px"><div style="font-size:2.6rem">💌</div>
       <h2>Esperando a ${esc(s.persona.nombre)}</h2><p class="suave">Le pedimos que confirme que van juntos al baile. Cuando lo haga, aparecerá aquí.</p>
       <div class="pila" style="margin-top:12px"><button class="btn2" id="cambiar-pareja">Elegir a otra persona</button>
       <button class="enlace" id="cancelar-sol">Cancelar solicitud</button></div></div>
       <div class="centro"><button class="enlace" id="quiero-sombrero">Prefiero que el Sombrero me ayude</button></div>`;
-  return `<div class="tarjeta centro" style="margin-top:20px"><div style="font-size:2.6rem">💃</div>
+  return `<div class="tarjeta brillo centro" style="margin-top:20px"><div style="font-size:2.6rem">💃</div>
       <h2>¿Con quién vas al baile?</h2><p class="suave">Elige a tu pareja y le pediremos que lo confirme. Si todavía no se registra, vuelve cuando lo haga.</p>
       <div style="margin-top:12px"><button class="btn" id="cambiar-pareja">Elegir a mi pareja</button></div></div>
       <div class="centro"><button class="enlace" id="quiero-sombrero">Mejor que el Sombrero me ayude 🎩</button></div>`;
@@ -846,26 +1007,113 @@ function bloqueTiene(E) {
 function bloquePareja(E) {
   const pa = E.pareja, p = pa.persona;
   const sinLeer = E.lechuzas.filter((l) => !l.leida && !l.cerrada).length;
-  let h = `<div class="orla">Tu pareja para el baile</div>
-    <div class="tarjeta oro" style="padding:10px">${carrusel(p, p.frase ? `<p style="margin-top:6px">${esc(p.frase)}</p>` : '')}
-      <div style="padding:12px 6px 4px">
-        ${pa.comunes.length ? `<h3>💞 Coinciden en</h3><div style="margin-top:8px">${chipsIntereses(pa.comunes, pa.comunes)}</div>` : ''}
-        <div class="contador" id="cuenta-baile"></div>
-        <button class="btn" id="lechuza">🦉 Mandarle una lechuza con un regalo</button>
-      </div></div>`;
-  h += `<div class="tarjeta" id="buzon"><div class="fila" style="align-items:center"><h3>📬 Tu buzón ${sinLeer ? `<span class="nuevo">${sinLeer} nueva${sinLeer > 1 ? 's' : ''}</span>` : ''}</h3>
-    ${E.lechuzas.length ? `<button class="btn3" id="abrir-buzon" style="flex:0">${sinLeer ? 'Abrir' : 'Ver todo'}</button>` : ''}</div>
-    ${E.lechuzas.length ? E.lechuzas.slice(0, 3).map(carta).join('') : `<p class="tenue">Todavía no tienes lechuzas. ¿Y si mandas tú la primera? 😉</p>`}
-    ${E.enviadas.length ? `<p class="tenue" style="margin-top:8px">Has mandado ${E.enviadas.length} lechuza${E.enviadas.length > 1 ? 's' : ''} 🦉</p>` : ''}</div>`;
+  return `${orla('Tu pareja para el baile')}
+    <div style="margin:10px 0 14px">${carrusel(p, p.frase ? `<p style="margin-top:6px">${esc(p.frase)}</p>` : '')}</div>
+    <div class="invitacion centro">${estrellasEsquinas()}
+      ${boleto()}
+      <p class="versalitas" style="margin:6px 0 0;font-size:1.05rem">${esc(E.yo.nombre)} &amp; ${esc(p.nombre)}</p>
+      ${pa.comunes.length ? `${orlaP('Coinciden en')}<div class="chips" style="justify-content:center">${pa.comunes.map((k) => `<span class="chip fijo" style="background:rgba(255,255,255,.5);border-color:rgba(29,38,84,.2);color:var(--tinta-p)">${iconoCat(k)} ${esc(etiqueta(k))}</span>`).join('')}</div>` : ''}
+      <div class="contador" id="cuenta-baile"></div>
+      <button class="btn carmesi" id="lechuza">🦉 Mandarle una lechuza con un regalo</button>
+    </div>
+    <div class="tarjeta" id="buzon"><div class="fila" style="align-items:center"><h3>📬 Tu buzón ${sinLeer ? `<span class="nuevo">${sinLeer} nueva${sinLeer > 1 ? 's' : ''}</span>` : ''}</h3>
+      ${E.lechuzas.length ? `<button class="btn3" id="abrir-buzon" style="flex:0">${sinLeer ? 'Abrir' : 'Ver todo'}</button>` : ''}</div>
+      ${E.lechuzas.length ? E.lechuzas.slice(0, 3).map(itemBuzon).join('') : `<p class="tenue">Todavía no tienes lechuzas. ¿Y si mandas tú la primera? 😉</p>`}
+      ${E.enviadas.length ? `<p class="tenue" style="margin-top:8px">Has mandado ${E.enviadas.length} lechuza${E.enviadas.length > 1 ? 's' : ''} 🦉</p>` : ''}</div>`;
+}
+function itemBuzon(l) {
+  if (l.cerrada) return `<div class="item"><span class="e" style="font-size:2.3rem;display:flex;align-items:center;justify-content:center">🎁</span><div><b>Sorpresa de ${esc(l.de)}</b>
+    <p class="tenue">Se abre el día del baile ✨</p></div></div>`;
+  const info = { regalo: l.regalo, titulo: l.titulo, foto: l.foto };
+  return `<div class="item"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>${!l.leida ? '<span class="nuevo">nueva</span>' : ''}
+    <div class="tenue">de ${esc(l.de)} · ${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 era sorpresa' : ''}</div>
+    ${carta(l.nota, l.de)}</div></div>`;
+}
+
+// ---- Admirador secreto
+function bloqueSecretos(E) {
+  let h = '';
+  const recibidos = E.secretos || [];
+  if (recibidos.length) {
+    const nuevos = recibidos.filter((x) => !x.leida).length;
+    h += `${orla('Admirador secreto')}<div class="tarjeta brillo"><div class="fila" style="align-items:center"><h3>🤫 Tienes un admirador secreto ${nuevos ? `<span class="nuevo">${nuevos} nuevo${nuevos > 1 ? 's' : ''}</span>` : ''}</h3>
+      <button class="btn3" id="ver-secretos" style="flex:0">${nuevos ? 'Abrir' : 'Ver todo'}</button></div>
+      <p class="tenue">Alguien del castillo te manda regalos sin decir quién es… ¿quizás el Sombrero les junte? 👀</p>
+      ${recibidos.slice(0, 2).map((x) => itemSecreto(x)).join('')}</div>`;
+  }
+  if (E.yo.estado === 'pareja') return h;
+  const c = E.crush;
+  h += recibidos.length ? '' : orla('Admirador secreto');
+  if (!c) {
+    h += `<div class="tarjeta centro"><div style="font-size:2.2rem">💌</div><h3>¿Te gusta alguien?</h3>
+      <p class="suave">Elige a una persona y mándale regalos <b>sin que sepa que eres tú</b> (hasta 3 al día). Si el Sombrero los junta, podrás invitarle al baile… y revelar tu secreto.</p>
+      <div style="margin-top:10px"><button class="btn2" id="elegir-crush">🤫 Elegir a mi crush</button></div></div>`;
+    return h;
+  }
+  const quedan = Math.max(0, 3 - (E.secretos_hoy || 0));
+  h += `<div class="tarjeta"><h3>💌 Tu crush: ${esc(c.nombre)} ${insignia(c.casa)}</h3>`;
+  if (c.tiene_pareja) h += `<p class="suave">${esc(c.nombre)} ya tiene pareja para el baile 💔 Puedes elegir a otra persona.</p>`;
+  else if (c.bloqueado) h += `<p class="suave">${esc(c.nombre)} prefiere no recibir más regalos secretos. Puedes elegir a otra persona.</p>`;
+  else h += `<p class="suave">No sabe que eres tú. ${c.enviados.length ? `Le has mandado ${c.enviados.length} regalo${c.enviados.length > 1 ? 's' : ''} secreto${c.enviados.length > 1 ? 's' : ''}${c.enviados[0].leida ? ' y ya vio el último 👀' : ''}.` : 'Todavía no le has mandado nada.'}</p>
+    <div style="margin-top:10px"><button class="btn carmesi" id="mandar-secreto" ${quedan ? '' : 'disabled'}>🤫 Mandar regalo secreto ${quedan ? `(te quedan ${quedan} hoy)` : '(mañana puedes más)'}</button></div>`;
+  h += `<div class="centro"><button class="enlace" id="cambiar-crush">Cambiar de crush</button></div></div>`;
   return h;
 }
-function carta(l) {
-  if (l.cerrada) return `<div class="carta"><span class="e" style="font-size:2.3rem;display:flex;align-items:center;justify-content:center">🎁</span><div><b>Sorpresa de ${esc(l.de)}</b>
-    <p class="tenue">Se abre el día del baile ✨</p></div></div>`;
-  const info = { regalo: l.regalo, titulo: l.titulo, foto: l.foto, casa: l.de_casa };
-  return `<div class="carta"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>${!l.leida ? '<span class="nuevo">nueva</span>' : ''}
-    <div class="tenue">de ${esc(l.de)} · ${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 era sorpresa' : ''}</div>
-    ${l.nota ? `<p class="nota">“${esc(l.nota)}”</p>` : ''}</div></div>`;
+function itemSecreto(x) {
+  const info = { regalo: x.regalo, titulo: x.titulo, foto: x.foto };
+  return `<div class="item"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>${!x.leida ? '<span class="nuevo">nuevo</span>' : ''}
+    <div class="tenue">de tu admirador secreto · ${esc(fechaCorta(x.creada))}</div>${carta(x.nota, 'tu admirador secreto')}</div></div>`;
+}
+async function elegirCrush() {
+  let lista;
+  try { lista = await api({ accion: 'nombres', token: S.token }); } catch (e) { return toast(e.message, true); }
+  const libres = lista.filter((p) => p.estado !== 'pareja');
+  const v = hoja(`<h2>🤫 ¿Quién es tu crush?</h2>
+    <p class="suave">Solo tú lo sabrás. Le podrás mandar regalos anónimos, y el Sombrero intentará presentarlos primero si son compatibles.</p>
+    <input type="text" id="buscar" placeholder="Buscar nombre…" style="margin:10px 0">
+    <div id="lista" class="pila" style="max-height:50vh;overflow:auto"></div>
+    <div class="pila" style="margin-top:12px">${S.estado.crush ? '<button class="btn2" id="quitar">Ya no tengo crush</button>' : ''}<button class="btn2" id="cancelar">Cancelar</button></div>`);
+  const pintar = () => {
+    const t = norm($('#buscar', v).value);
+    const l = libres.filter((p) => !t || norm(p.nombre).includes(t));
+    $('#lista', v).innerHTML = l.length ? l.map((p) => `<button class="opcion" style="text-align:left;display:flex;gap:10px;align-items:center" data-id="${p.id}">
+      <span style="font-size:1.4rem">${casa(p.casa).e}</span><span style="flex:1">${esc(p.nombre)}</span></button>`).join('') : `<p class="tenue">No aparece nadie con ese nombre.</p>`;
+    $('#lista', v).querySelectorAll('[data-id]').forEach((b) => b.addEventListener('click', async () => {
+      try { await accion({ accion: 'crush', para: +b.dataset.id }); v.remove(); toast('🤫 Secreto guardado'); pintarInicio(); }
+      catch (e) { toast(e.message, true); }
+    }));
+  };
+  $('#buscar', v).addEventListener('input', pintar);
+  $('#cancelar', v).addEventListener('click', () => v.remove());
+  if ($('#quitar', v)) $('#quitar', v).addEventListener('click', async () => { try { await accion({ accion: 'crush', para: null }); v.remove(); pintarInicio(); } catch (e) { toast(e.message, true); } });
+  pintar();
+}
+function mandarSecreto() {
+  const c = S.estado.crush;
+  elegirRegalo({
+    titulo: `Regalo secreto para ${c.nombre}`,
+    intro: 'No verá tu nombre: le aparecerá “de tu admirador secreto”.',
+    frases: FRASES_SECRETO,
+    boton: '🤫 Enviar en secreto',
+    alEnviar: async (reg, nota, extra) => {
+      await accion({ accion: 'secreto', regalo: reg, nota, ...extra }, '🤫 Tu regalo secreto ya va volando');
+      pintarInicio();
+    },
+  });
+}
+async function abrirSecretos() {
+  const E = S.estado;
+  const v = hoja(`<h2>🤫 Tu admirador secreto</h2><p class="tenue">No sabemos quién es… pero tú quizás lo adivines.</p>
+    <div style="margin-top:8px">${E.secretos.map((x) => `${itemSecreto(x)}<div style="text-align:right;margin:-4px 0 8px"><button class="btn3 peligro" data-bloq="${x.id}">No quiero recibir más de esta persona</button></div>`).join('')}</div>
+    <div style="margin-top:14px"><button class="btn2" id="cerrar-sec">Cerrar</button></div>`);
+  cargarFotosRegalo(v);
+  $('#cerrar-sec', v).addEventListener('click', () => { v.remove(); pintarInicio(); });
+  v.querySelectorAll('[data-bloq]').forEach((b) => b.addEventListener('click', async () => {
+    if (!confirm('¿Dejar de recibir regalos secretos de esta persona? No sabrás quién es, y no podrá mandarte más.')) return;
+    try { await accion({ accion: 'bloquear_secreto', id: +b.dataset.bloq }, 'Listo, ya no recibirás más de esa persona'); v.remove(); pintarInicio(); }
+    catch (e) { toast(e.message, true); }
+  }));
+  if (E.secretos.some((x) => !x.leida)) { try { await accion({ accion: 'leer_secretos' }); } catch (e) {} }
 }
 
 // ---- Acciones del inicio
@@ -874,8 +1122,9 @@ function invitar() {
   elegirRegalo({
     titulo: q.su_regalo ? `Aceptar a ${q.persona.nombre}` : `Invitar a ${q.persona.nombre}`,
     frases: q.su_regalo ? FRASES_ACEPTAR.concat(FRASES_INVITAR) : FRASES_INVITAR,
+    conRevelar: q.le_mande_secretos,
     boton: '🦉 Enviar mi lechuza',
-    alEnviar: async (reg, nota, _s, extra) => {
+    alEnviar: async (reg, nota, extra) => {
       await accion({ accion: 'responder_propuesta', id: q.id, si: true, regalo: reg, nota, ...extra });
       if (!S.estado.pareja) toast('¡Tu lechuza ya va volando! 🦉');
       pintarInicio();
@@ -895,17 +1144,17 @@ function mandarLechuza() {
     frases: FRASES_LECHUZA,
     conSorpresa: new Date(E.cfg.baile) > new Date(E.cfg.ahora),
     boton: '🦉 Enviar',
-    alEnviar: async (reg, nota, sorpresa, extra) => {
-      await accion({ accion: 'lechuza', regalo: reg, nota, sorpresa, ...extra }, sorpresa ? '🎁 Sorpresa enviada: la abrirá el día del baile' : '¡Lechuza enviada! 🦉');
+    alEnviar: async (reg, nota, extra) => {
+      await accion({ accion: 'lechuza', regalo: reg, nota, ...extra }, extra.sorpresa ? '🎁 Sorpresa enviada: la abrirá el día del baile' : '¡Lechuza enviada! 🦉');
       pintarInicio();
     },
   });
 }
 async function abrirBuzon() {
   const E = S.estado;
-  const v = hoja(`<h2>📬 Tu buzón</h2><div style="margin-top:8px">${E.lechuzas.map(carta).join('')}</div>
-    ${E.enviadas.length ? `<div class="orla">Lo que tú mandaste</div>${E.enviadas.map((l) => { const info = { ...l, casa: E.yo.casa }; return `<div class="carta"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>
-      <div class="tenue">${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 sorpresa' : ''}</div>${l.nota ? `<p class="nota">“${esc(l.nota)}”</p>` : ''}</div></div>`; }).join('')}` : ''}
+  const v = hoja(`<h2>📬 Tu buzón</h2><div style="margin-top:8px">${E.lechuzas.map(itemBuzon).join('')}</div>
+    ${E.enviadas.length ? `${orla('Lo que tú mandaste')}${E.enviadas.map((l) => `<div class="item"><span class="e">${dibujo(l)}</span><div><b>${esc(nombreRegalo(l))}</b>
+      <div class="tenue">${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 sorpresa' : ''}</div>${carta(l.nota, 'ti')}</div></div>`).join('')}` : ''}
     <div style="margin-top:14px"><button class="btn2" id="cerrar-buzon">Cerrar</button></div>`);
   cargarFotosRegalo(v);
   $('#cerrar-buzon', v).addEventListener('click', () => { v.remove(); pintarInicio(); });
@@ -942,12 +1191,14 @@ async function celebrar(E) {
   const f = document.createElement('div');
   f.className = 'fiesta';
   f.innerHTML = `<div class="dentro">
-    <p class="sub">✨ El Sombrero lo sabía ✨</p>
+    <p class="sub">✦ El Sombrero lo sabía ✦</p>
     <div class="duo"><div id="f1">${casa(E.yo.casa).e}</div><div id="f2">${casa(p.casa).e}</div></div>
-    <h1 class="titulo" style="font-size:2rem">¡Tienen pareja!</h1>
-    <p style="font-size:1.1rem;margin-top:10px">${esc(E.yo.nombre)} y ${esc(p.nombre)} irán juntos al Baile de Navidad 💃🕺</p>
-    ${E.pareja.origen === 'sombrero' ? `<p class="suave">Los regalos de la invitación ya están en su buzón 📬</p>` : ''}
-    <div style="margin-top:18px"><button class="btn" id="ok-fiesta">¡A bailar!</button></div></div>`;
+    <h1 class="titulo claro" style="font-size:2.7rem">¡Tienen pareja!</h1>
+    <div class="invitacion" style="margin-top:16px">${estrellasEsquinas()}
+      ${boleto()}
+      <p style="font-size:1.08rem;margin:8px 0 0">${esc(E.yo.nombre)} y ${esc(p.nombre)} irán juntos al Baile de Navidad 💃🕺</p>
+      ${E.pareja.origen === 'sombrero' ? `<p class="tenue">Los regalos de la invitación ya están en su buzón 📬</p>` : ''}
+      <div style="margin-top:14px"><button class="btn carmesi" id="ok-fiesta">¡A bailar!</button></div></div></div>`;
   document.body.appendChild(f); confeti();
   const poner = async (id, persona) => { try { const l = await fotosDe(persona); if (l[0]) f.querySelector('#' + id).outerHTML = `<img src="${l[0]}" alt="">`; } catch (e) {} };
   poner('f1', E.yo); poner('f2', p);
@@ -970,7 +1221,7 @@ async function perfil() {
   try { nombres = await api({ accion: 'nombres', token: S.token }); } catch (e) {}
   app.innerHTML = `
     <button class="enlace" id="volver">← Volver</button>
-    <div class="tarjeta"><h2>Mi perfil</h2>
+    <div class="tarjeta brillo"><h2>Mi perfil</h2>
       <label class="campo">Mis fotos</label><div id="fe"></div>
       <label class="campo">Mi casa</label>
       <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === P.casa}"><span class="e">${x.e}</span>${x.id}</button>`).join('')}</div>
@@ -1024,7 +1275,7 @@ async function admin() {
   pararSondeo();
   let clave = (() => { try { return sessionStorage.getItem('baile_admin') || ''; } catch (e) { return ''; } })();
   const pedir = () => {
-    app.innerHTML = `<div class="tarjeta"><h2>🔑 Administración</h2>
+    app.innerHTML = `<div class="tarjeta brillo"><h2>🔑 Administración</h2>
       <label class="campo" for="c">Clave</label><input type="password" id="c">
       <div style="margin-top:14px"><button class="btn" id="ok">Entrar</button></div></div>
       <div class="centro"><button class="enlace" id="volver">← Ir al baile</button></div>`;
@@ -1065,6 +1316,9 @@ async function admin() {
         ${d.parejas.map((pa) => `<div class="admin-persona fila" style="align-items:center"><span style="flex:3">💃 ${esc(pa.a)} &amp; ${esc(pa.b)}
           <span class="tenue">· ${pa.origen === 'sombrero' ? '🎩 Sombrero' : pa.origen === 'admin' ? '🔑 a mano' : 'ya iban juntos'}</span></span>
           <button class="btn3 peligro" style="flex:0" data-deshacer="${pa.id}">Deshacer</button></div>`).join('') || '<p class="tenue">Ninguna todavía</p>'}</div>
+      <div class="tarjeta"><h3>🤫 Regalos secretos (${d.secretos.length})</h3>
+        <p class="tenue">Solo lo ves tú, por si alguien molesta. Nadie más sabe quién manda a quién.</p>
+        ${d.secretos.map((x) => `<div class="admin-persona">${esc(x.de)} → ${esc(x.para)} · ${x.n} regalo${x.n > 1 ? 's' : ''}${x.bloqueado ? ' · <span style="color:var(--rojo)">bloqueado</span>' : ''}</div>`).join('') || '<p class="tenue">Ninguno todavía</p>'}</div>
       <div class="tarjeta"><h3>Personas (${d.personas.length})</h3>
         ${d.personas.map((x) => `<div class="admin-persona">
           <b>${esc(x.nombre)}</b> ${insignia(x.casa)} <span class="estado e-${x.estado}">${ETQ[x.estado]}</span>
