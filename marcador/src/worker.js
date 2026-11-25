@@ -60,6 +60,14 @@ const BLOQUEO_MS = 15 * 60 * 1000;
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/salud") {
+      // Diagnóstico: cuántas contraseñas ve el servidor (nunca muestra cuáles son)
+      const id = env.MARCADOR.idFromName("principal");
+      const objeto = await (await env.MARCADOR.get(id).fetch(new Request(url.origin + "/api/salud-objeto"))).json();
+      return new Response(JSON.stringify({ version: VERSION, puerta: contarClaves(env), ...objeto }), {
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+      });
+    }
     if (url.pathname.startsWith("/api/") || url.pathname === "/ws") {
       const id = env.MARCADOR.idFromName("principal");
       return env.MARCADOR.get(id).fetch(request);
@@ -123,6 +131,9 @@ export class Marcador extends DurableObject {
     try {
       if (ruta === "/ws") return this.conectarEnVivo(request);
       if (ruta === "/api/estado" && metodo === "GET") return json(this.estado());
+      if (ruta === "/api/salud-objeto") {
+        return json({ guardian: contarClaves(this.env), enMemoria: this.huellas ? this.huellas.size : null });
+      }
 
       if (ruta === "/api/entrar" && metodo === "POST") return await this.entrar(request);
 
@@ -520,6 +531,12 @@ export class Marcador extends DurableObject {
 // =====================================================================
 //  Ayudantes
 // =====================================================================
+const VERSION = "2026-11-25b";
+
+function contarClaves(env) {
+  return CUENTAS.filter((c) => typeof env[c.secreto] === "string" && env[c.secreto].trim().length >= LARGO_MIN_CLAVE).length;
+}
+
 class ErrorUsuario extends Error {
   constructor(mensaje, estado = 400) {
     super(mensaje);
