@@ -358,6 +358,7 @@ export class Marcador extends DurableObject {
       ...(cuenta.rol === "curso" ? { curso: cuenta.curso || null, cursos: CURSOS } : {}),
       rol: cuenta.rol,
       maximo: this.maximo(),
+      sinLimite: cuenta.rol === "desarrollador", // la desarrolladora no tiene máximo por cambio
       puedeVerRegistro: cuenta.rol !== "curso",
       herramientas: cuenta.rol === "desarrollador",
     };
@@ -373,7 +374,8 @@ export class Marcador extends DurableObject {
     const casa = validarCasa(datos.casa);
     const modo = datos.modo === "restar" ? "restar" : datos.modo === "sumar" ? "sumar" : null;
     if (!modo) throw new ErrorUsuario("Elige sumar o restar.");
-    const maximo = this.maximo();
+    // La desarrolladora no tiene máximo por cambio (solo el tope total del marcador)
+    const maximo = cuenta.rol === "desarrollador" ? PUNTOS_TOPE : this.maximo();
     const cantidad = Number(datos.cantidad);
     if (!Number.isInteger(cantidad) || cantidad < 1) throw new ErrorUsuario("La cantidad debe ser un número entero mayor que 0.");
     if (cantidad > maximo) throw new ErrorUsuario(`Máximo ${maximo} puntos por cambio.`);

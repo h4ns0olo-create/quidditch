@@ -129,6 +129,10 @@ ok((await api("/api/deshacer", { token: dir, datos: {} })).status === 403, "la d
 ok((await api("/api/reiniciar", { token: curso, datos: { confirmacion: "REINICIAR" } })).status === 403, "un curso NO puede reiniciar");
 ok((await api("/api/maximo", { token: dir, datos: { maximo: 500 } })).status === 403, "la directora NO cambia el máximo");
 ok((await api("/api/cambio", { token: curso, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 101, motivo: "demasiado" } })).status === 400, "más de 100 por cambio: rechazado");
+const grande = await api("/api/cambio", { token: dev, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 250, motivo: "la desarrolladora no tiene límite" } });
+ok(grande.ok, "la desarrolladora SÍ puede sumar más de 100 de una vez");
+await api("/api/cambio", { token: dev, datos: { casa: "ravenclaw", modo: "restar", cantidad: 250, motivo: "devolver" } });
+ok((await api("/api/cambio", { token: dir, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 101, motivo: "demasiado" } })).status === 400, "la directora NO puede pasar de 100");
 ok((await api("/api/cambio", { token: curso, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 5.5, motivo: "decimal" } })).status === 400, "cantidades con decimales: rechazadas");
 ok((await api("/api/cambio", { token: curso, datos: { casa: "ravenclaw", modo: "sumar", cantidad: -5, motivo: "negativo" } })).status === 400, "cantidades negativas: rechazadas");
 ok((await api("/api/cambio", { token: curso, datos: { casa: "durmstrang", modo: "sumar", cantidad: 5, motivo: "casa rara" } })).status === 400, "casa inexistente: rechazada");

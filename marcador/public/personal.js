@@ -35,9 +35,9 @@
     const el = $("aviso");
     el.textContent = texto;
     el.classList.toggle("malo", malo);
-    el.classList.add("ver");
+    el.classList.add("visible");
     clearTimeout(avisoTimer);
-    avisoTimer = setTimeout(() => el.classList.remove("ver"), 3500);
+    avisoTimer = setTimeout(() => el.classList.remove("visible"), 3500);
   }
 
   async function api(ruta, { metodo = "GET", datos } = {}) {
@@ -258,13 +258,17 @@
   }
 
   function actualizarMaximo(m) {
-    $("nota-maximo").textContent = `Máximo ${plural(m)} por cambio.`;
-    $("otra").max = m;
+    $("nota-maximo").textContent =
+      sesion && sesion.sinLimite
+        ? `Como desarrolladora no tienes límite por cambio (los demás: máximo ${m}).`
+        : `Máximo ${plural(m)} por cambio.`;
+    if (sesion && sesion.sinLimite) $("otra").removeAttribute("max");
+    else $("otra").max = m;
   }
 
   function actualizarResumen() {
     const n = cantidadElegida();
-    const max = sesion ? sesion.maximo : 100;
+    const max = sesion && sesion.sinLimite ? 999999 : sesion ? sesion.maximo : 100;
     const sumar = form.modo === "sumar";
     const motivoOk = $("motivo").value.trim().length >= 3;
     let texto;

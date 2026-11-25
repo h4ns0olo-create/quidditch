@@ -95,7 +95,7 @@ Reglas de las contraseñas:
 | Directora | ✔ | ✔ (solo lectura) | |
 | Desarrolladora | ✔ | ✔ | ✔ |
 
-- Máximo 100 puntos por cambio (la desarrolladora puede cambiarlo, hasta 1000).
+- Máximo 100 puntos por cambio para profesores y directora (la desarrolladora puede cambiarlo, hasta 1000). La desarrolladora no tiene límite por cambio.
 - Ninguna casa puede quedar en negativo.
 - Tras 5 contraseñas equivocadas seguidas desde el mismo lugar, se bloquea 15 minutos.
 - Todo esto lo revisa el servidor, no solo la pantalla.
