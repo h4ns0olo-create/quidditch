@@ -19,9 +19,9 @@
 
   // ---- Medidas del tubo (unidades del dibujo) ----
   const T = {
-    ancho: 142, alto: 440,
+    ancho: 142, alto: 800,
     cx: 40,               // centro del tubo
-    fondo: 405,           // donde se apoyan las gemas de abajo
+    fondo: 765,           // donde se apoyan las gemas de abajo (tubo largo)
     techo: 118,           // parte más alta del tubo largo
   };
   T.altura = T.fondo - T.techo;
@@ -80,7 +80,7 @@
       </radialGradient>
       ${gemaMarcado(c, "gema-" + p, "mesa-" + p)}
       <g id="gemita-${p}"><use href="#gema-${p}" transform="scale(.9)"/></g>
-      <pattern id="monton-${p}" width="24" height="19" patternUnits="userSpaceOnUse" patternTransform="translate(1 0) scale(1.3)">
+      <pattern id="monton-${p}" width="24" height="19" patternUnits="userSpaceOnUse" patternTransform="translate(1 0) scale(1.05)">
         <rect width="24" height="19" fill="${c.oscuro}"/>
         <use href="#gema-${p}" transform="translate(6 5) rotate(8)"/>
         <use href="#gema-${p}" transform="translate(18 4.5) rotate(-14)"/>
@@ -192,10 +192,11 @@
 
     // Marquitas de escala junto al tubo
     let marcas = `<line x1="78" y1="${techo}" x2="78" y2="${fondo}" stroke="#e2c46f" stroke-opacity=".35" stroke-width=".8"/>`;
-    for (let t = 0; t <= 10; t++) {
-      const y = f(fondo - (t / 10) * T.altura);
-      const largo = t % 5 === 0;
-      marcas += `<line x1="${largo ? 73.5 : 75.5}" y1="${y}" x2="${largo ? 82.5 : 80.5}" y2="${y}" stroke="#e2c46f" stroke-width="${largo ? 1.3 : 0.8}" stroke-linecap="round"/>`;
+    for (let t = 0; t <= 20; t++) {
+      const y = f(fondo - (t / 20) * T.altura);
+      const largo = t % 10 === 0;
+      const medio = !largo && t % 2 === 0;
+      marcas += `<line x1="${largo ? 73.5 : medio ? 74.5 : 76}" y1="${y}" x2="${largo ? 82.5 : medio ? 81.5 : 80}" y2="${y}" stroke="#e2c46f" stroke-width="${largo ? 1.3 : medio ? 1 : 0.7}" stroke-linecap="round"/>`;
     }
 
     // Gemas de la superficie del montón (forma de lomita)
@@ -214,13 +215,13 @@
 
     // Corriente de gemas que cae
     let corriente = "";
-    const N = 7;
+    const N = 10;
     for (let i = 0; i < N; i++) {
-      const dx = [0, -1.6, 1.4, -0.6, 1.8, -1.2, 0.8][i];
-      corriente += `<use href="#gemita-${p}" x="${cx + dx}" y="96" class="cae" style="animation-delay:${f((-i * 1.7) / N)}s"/>`;
+      const dx = [0, -1.6, 1.4, -0.6, 1.8, -1.2, 0.8, -1.8, 1.1, -0.3][i];
+      corriente += `<use href="#gemita-${p}" x="${cx + dx}" y="96" class="cae" style="animation-delay:${f((-i * 2.6) / N)}s"/>`;
     }
     // Versión quieta (para quien pide "reducir movimiento")
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 20; i++) {
       corriente += `<use href="#gemita-${p}" x="${cx + (i % 2 ? 1 : -1)}" y="${104 + i * 34}" class="estatica"/>`;
     }
 
@@ -240,8 +241,8 @@
   </defs>
 
   <!-- varillas de latón -->
-  <rect x="7.5" y="12" width="5" height="406" rx="2.5" fill="url(#laton-${p})"/>
-  <rect x="67.5" y="12" width="5" height="406" rx="2.5" fill="url(#laton-${p})"/>
+  <rect x="7.5" y="12" width="5" height="${fondo + 1}" rx="2.5" fill="url(#laton-${p})"/>
+  <rect x="67.5" y="12" width="5" height="${fondo + 1}" rx="2.5" fill="url(#laton-${p})"/>
 
   <!-- depósito de arriba: siempre lleno -->
   <path d="${bulbo}" fill="rgba(8,10,28,.6)"/>
@@ -258,7 +259,7 @@
   <g clip-path="url(#caida-${p})" class="corriente">${corriente}</g>
   <g clip-path="url(#int-${p})">
     <g class="monton" style="transform:translateY(${fondo + 20}px)">
-      <rect x="16" y="3" width="48" height="320" fill="url(#monton-${p})"/>
+      <rect x="16" y="3" width="48" height="${T.altura + 40}" fill="url(#monton-${p})"/>
       ${superficie}
       <path class="destello" d="${DESTELLO}" transform="translate(30 4)" fill="#fff"/>
       <path class="destello d2" d="${DESTELLO}" transform="translate(50 9) scale(.8)" fill="#fff"/>

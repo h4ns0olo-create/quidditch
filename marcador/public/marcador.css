@@ -110,7 +110,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(6px, 1.8vw, 24px);
-  max-width: 1040px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 26px 10px 0;
 }
@@ -131,7 +131,7 @@
   transition: box-shadow .6s, transform .6s;
 }
 .tarjeta h2 {
-  font-size: clamp(10px, 2.75vw, 22px);
+  font-size: clamp(10px, 2.75vw, 18px);
   color: var(--casa-claro);
   letter-spacing: .02em;
   text-shadow: 0 1px 6px rgba(0, 0, 0, .8);
@@ -146,7 +146,7 @@
 .tubo-svg {
   width: 100%;
   height: auto;
-  max-height: min(48vh, 540px);
+  max-height: min(76vh, 860px);
   overflow: visible;
 }
 .tarjeta .puntos {
@@ -206,16 +206,16 @@
 /* Animaciones del tubo */
 .monton, .placa { transition: transform 1.4s cubic-bezier(.25, .8, .25, 1); }
 .cae {
-  animation: caer 1.7s cubic-bezier(.55, 0, 1, .6) infinite;
+  animation: caer 2.6s cubic-bezier(.55, 0, 1, .6) infinite;
   opacity: 0;
 }
 .corriente.quieta .cae { animation: none; opacity: 0; }
 @keyframes caer {
   0% { transform: translateY(0); opacity: 0; }
   10% { opacity: 1; }
-  100% { transform: translateY(300px); opacity: 1; }
+  100% { transform: translateY(680px); opacity: 1; }
 }
-.rafaga .cae { animation-duration: .8s; }
+.rafaga .cae { animation-duration: 1.2s; }
 .destello { animation: destello 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; opacity: 0; }
 .destello.d2 { animation-delay: -.9s; }
 .destello.d3 { animation-delay: -1.7s; }
