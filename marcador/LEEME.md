@@ -61,33 +61,28 @@ las 00:00 (hora UTC), cuando el contador se reinicia.
    `claude/harry-potter-house-scoreboard-0hwz57`. Desde entonces, cada cambio que
    se sube a esa rama se publica solo.
 
-### 3. Poner las 14 contraseñas (secretos)
+### 3. Poner las 3 contraseñas (secretos)
 
-Worker `marcador-casas` → **Settings** → **Variables and Secrets** → **Add**.
-Para cada fila de la tabla: en **Type** elige **Secret**, escribe el nombre
-exacto en **Variable name** y la contraseña en **Value**. Con **Add variable**
-agregas la siguiente. Al terminar, toca **Deploy**.
+Worker `marcador-casas` → **Settings** → **Variables and secrets** → **Add**.
+Para cada fila: en **Type** elige **Secret**, escribe el nombre exacto en
+**Variable name** y la contraseña en **Value**. Con **Add variable** agregas la
+siguiente. Al terminar, toca **Deploy**.
 
 | Variable name | Para quién |
 |---|---|
-| `CLAVE_CRIATURAS` | Cuidado de criaturas mágicas |
-| `CLAVE_POCIONES_MAYORES` | Pociones (años mayores) |
-| `CLAVE_POCIONES_MENORES` | Pociones (años menores) |
-| `CLAVE_HISTORIA` | Historia de la magia |
-| `CLAVE_DCLAO` | DCLAO |
-| `CLAVE_ENCANTAMIENTOS` | Encantamientos |
-| `CLAVE_VUELO` | Vuelo |
-| `CLAVE_APARICION` | Aparición |
-| `CLAVE_ARITMANCIA` | Aritmancia |
-| `CLAVE_ASTRONOMIA` | Astronomía |
-| `CLAVE_RUNAS` | Runas antiguas |
-| `CLAVE_ADIVINACION` | Adivinación |
+| `CLAVE_PROFESORES` | Todos los profesores (al entrar eligen su curso) |
 | `CLAVE_DIRECTORA` | Directora |
 | `CLAVE_DESARROLLADOR` | Tú (desarrolladora) |
 
+Con la clave de profesores, la pantalla pregunta "¿De qué curso eres?" y el
+registro anota ese curso en cada cambio. Los cursos son: Cuidado de criaturas
+mágicas, Pociones (años mayores), Pociones (años menores), Historia de la magia,
+DCLAO, Encantamientos, Vuelo, Aparición, Aritmancia, Astronomía, Runas antiguas
+y Adivinación.
+
 Reglas de las contraseñas:
 - Mínimo 6 caracteres (mejor 10 o más). Las más cortas se ignoran.
-- Las 14 tienen que ser distintas.
+- Las 3 tienen que ser distintas.
 - Para cambiar una, edita el secreto y toca **Deploy**. Las sesiones abiertas
   con la contraseña vieja se cierran solas.
 - Los secretos se conservan aunque el código se vuelva a publicar.
@@ -96,7 +91,7 @@ Reglas de las contraseñas:
 
 | | Sumar/restar | Ver el registro | Herramientas (deshacer, fijar, reiniciar, máximo) |
 |---|---|---|---|
-| Curso (12) | ✔ | | |
+| Profesores | ✔ | | |
 | Directora | ✔ | ✔ (solo lectura) | |
 | Desarrolladora | ✔ | ✔ | ✔ |
 
@@ -110,7 +105,7 @@ Reglas de las contraseñas:
 ```bash
 cd marcador
 npm install
-# crea .dev.vars con CLAVE_...="prueba-..." (ver test/prueba-carga.mjs)
+# crea .dev.vars con CLAVE_PROFESORES, CLAVE_DIRECTORA y CLAVE_DESARROLLADOR
 npx wrangler dev        # servidor local en http://127.0.0.1:8787
 npm test                # 80 visitantes, 260 cambios simultáneos, permisos
 ```

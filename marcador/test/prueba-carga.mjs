@@ -5,13 +5,15 @@
 //  Revisa: 80 visitantes conectados a la vez, muchos cambios simultáneos
 //  sin perder ninguno, doble toque que no cuenta doble, permisos,
 //  valores inválidos, deshacer y bloqueo por intentos fallidos.
-//  Las contraseñas de prueba son "prueba-<nombre>" (ver .dev.vars).
+//  Contraseñas de prueba (.dev.vars): prueba-profesores, prueba-directora,
+//  prueba-desarrollador.
 // =====================================================================
 const BASE = process.env.BASE || "http://127.0.0.1:8787";
 const WS = BASE.replace(/^http/, "ws") + "/ws";
 const CASAS = ["gryffindor", "hufflepuff", "ravenclaw", "slytherin"];
-const CURSOS = ["criaturas", "pociones_mayores", "pociones_menores", "historia", "dclao", "encantamientos",
-  "vuelo", "aparicion", "aritmancia", "astronomia", "runas", "adivinacion"];
+const CURSOS = ["Cuidado de criaturas mágicas", "Pociones (años mayores)", "Pociones (años menores)",
+  "Historia de la magia", "DCLAO", "Encantamientos", "Vuelo", "Aparición", "Aritmancia", "Astronomía",
+  "Runas antiguas", "Adivinación"];
 
 let fallos = 0;
 function ok(cond, texto) {
@@ -65,9 +67,18 @@ ok(visitantes.every((v) => v.ultimo && v.ultimo.puntos), "los 80 reciben el marc
 visitantes[0].ws.send("ping");
 
 // ---------------------------------------------------------------
-console.log("— 12 cursos + directora suman y restan a la vez");
-const tokens = await Promise.all([...CURSOS, "directora"].map(entrar));
-ok(tokens.every(Boolean), "las 13 contraseñas (12 cursos + directora) funcionan");
+console.log("— 12 profesores (cada uno con su curso) + directora suman y restan a la vez");
+const tokProf = await entrar("profesores");
+ok((await api("/api/cambio", { token: tokProf, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 5, motivo: "sin curso" } })).status === 400,
+  "con la clave de profesores, primero hay que elegir curso");
+ok((await api("/api/curso", { token: tokProf, datos: { curso: "Quidditch" } })).status === 400, "un curso que no está en la lista: rechazado");
+const tokens = await Promise.all(CURSOS.map(async (curso) => {
+  const t = await entrar("profesores");
+  const r = await api("/api/curso", { token: t, datos: { curso } });
+  return r.nombre === curso ? t : null;
+}));
+tokens.push(await entrar("directora"));
+ok(tokens.every(Boolean), "la clave de profesores funciona en los 12 cursos, y la de la directora también");
 
 // Primero una base para que las restas no dejen nada en negativo
 await Promise.all(CASAS.map((casa) => api("/api/cambio", { token: dev, datos: { casa, modo: "sumar", cantidad: 100, motivo: "base de la prueba" } })));
@@ -110,7 +121,9 @@ const curso = tokens[0];
 const dir = tokens[12];
 ok((await api("/api/cambio", { datos: { casa: "ravenclaw", modo: "sumar", cantidad: 5, motivo: "sin login" } })).status === 401, "sin contraseña no se puede sumar");
 ok((await api("/api/registro", { token: curso })).status === 403, "un curso NO ve el registro");
-ok((await api("/api/registro", { token: dir })).status === 200, "la directora SÍ ve el registro");
+const reg = await api("/api/registro", { token: dir });
+ok(reg.status === 200, "la directora SÍ ve el registro");
+ok(reg.filas.some((f) => f.quien === "Astronomía"), "el registro anota el curso de cada profesor");
 ok((await api("/api/fijar", { token: dir, datos: { casa: "ravenclaw", puntos: 999 } })).status === 403, "la directora NO puede fijar puntajes");
 ok((await api("/api/deshacer", { token: dir, datos: {} })).status === 403, "la directora NO puede deshacer");
 ok((await api("/api/reiniciar", { token: curso, datos: { confirmacion: "REINICIAR" } })).status === 403, "un curso NO puede reiniciar");

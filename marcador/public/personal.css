@@ -202,3 +202,10 @@ dialog h2 { color: var(--dorado); font-size: 20px; }
 dialog p { font-size: 18px; }
 .dialogo-botones { display: flex; gap: 10px; margin-top: 16px; }
 .dialogo-botones .boton { flex: 1; }
+
+/* Elegir curso */
+.lista-cursos { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 14px 0 6px; text-align: left; }
+.lista-cursos .opcion { font-family: var(--cuerpo); font-size: 19px; font-weight: 700; text-align: left; padding: 10px 16px; border-color: rgba(226, 196, 111, .4); }
+.lista-cursos .opcion:hover { border-color: var(--dorado); }
+@media (min-width: 480px) { .lista-cursos { grid-template-columns: 1fr 1fr; } }
+.acciones-barra { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }

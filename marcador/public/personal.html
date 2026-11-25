@@ -32,6 +32,18 @@
     </section>
   </main>
 
+  <!-- ============ Elegir curso (clave de profesores) ============ -->
+  <main id="vista-curso" class="contenedor oculto">
+    <section class="panel piedra arco">
+      <p class="antetitulo">✦ Copa de las Casas ✦</p>
+      <h1>¿De qué curso eres?</h1>
+      <p class="ayuda">Tu curso queda anotado en cada cambio que hagas.</p>
+      <div class="lista-cursos" id="lista-cursos" role="group" aria-label="Elige tu curso"></div>
+      <p class="mensaje error" id="error-curso" role="alert"></p>
+      <button class="boton boton-pequeno" type="button" id="salir-curso">Salir</button>
+    </section>
+  </main>
+
   <!-- ============ Panel ============ -->
   <div id="vista-panel" class="oculto">
     <header class="barra">
@@ -39,7 +51,10 @@
         <p class="rol" id="rol">Curso</p>
         <h1 id="nombre">—</h1>
       </div>
-      <button class="boton boton-pequeno" id="salir" type="button">Salir</button>
+      <div class="acciones-barra">
+        <button class="boton boton-pequeno oculto" id="cambiar-curso" type="button">Cambiar curso</button>
+        <button class="boton boton-pequeno" id="salir" type="button">Salir</button>
+      </div>
     </header>
 
     <nav class="pestanas oculto" id="pestanas" aria-label="Secciones">

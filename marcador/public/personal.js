@@ -92,6 +92,7 @@
   // ------------------------- Entrar / salir -------------------------
   function mostrar(vista) {
     $("vista-entrar").classList.toggle("oculto", vista !== "entrar");
+    $("vista-curso").classList.toggle("oculto", vista !== "curso");
     $("vista-panel").classList.toggle("oculto", vista !== "panel");
   }
 
@@ -140,8 +141,34 @@
   // ------------------------- Panel -------------------------
   const NOMBRES_ROL = { curso: "Curso", directora: "Directora", desarrollador: "Desarrolladora" };
 
-  function abrirPanel(datos) {
+  // Profesores: elegir de qué curso son
+  function pedirCurso(datos) {
     sesion = datos;
+    $("error-curso").textContent = "";
+    $("lista-cursos").innerHTML = datos.cursos
+      .map((c) => `<button type="button" class="opcion" data-curso="${escapar(c)}">${escapar(c)}</button>`)
+      .join("");
+    $("lista-cursos").querySelectorAll("button").forEach((b) =>
+      b.addEventListener("click", async () => {
+        $("lista-cursos").querySelectorAll("button").forEach((x) => (x.disabled = true));
+        try {
+          abrirPanel(await api("/api/curso", { metodo: "POST", datos: { curso: b.dataset.curso } }));
+        } catch (err) {
+          $("error-curso").textContent = err.message;
+          $("lista-cursos").querySelectorAll("button").forEach((x) => (x.disabled = false));
+        }
+      })
+    );
+    mostrar("curso");
+    window.scrollTo(0, 0);
+  }
+  $("salir-curso").addEventListener("click", () => $("salir").click());
+  $("cambiar-curso").addEventListener("click", () => pedirCurso(sesion));
+
+  function abrirPanel(datos) {
+    if (datos.rol === "curso" && !datos.curso) return pedirCurso(datos);
+    sesion = datos;
+    $("cambiar-curso").classList.toggle("oculto", datos.rol !== "curso");
     $("nombre").textContent = datos.nombre;
     $("rol").textContent = NOMBRES_ROL[datos.rol] || "";
     $("pestanas").classList.toggle("oculto", !datos.puedeVerRegistro);

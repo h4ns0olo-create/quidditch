@@ -21,22 +21,27 @@ const CASAS = {
 };
 const ORDEN_CASAS = Object.keys(CASAS);
 
-// ---------- Cuentas (cada una con su secreto en Cloudflare) ----------
+// ---------- Cuentas: 3 contraseñas (cada una es un secreto en Cloudflare) ----------
 const CUENTAS = [
-  { secreto: "CLAVE_CRIATURAS", nombre: "Cuidado de criaturas mágicas", rol: "curso" },
-  { secreto: "CLAVE_POCIONES_MAYORES", nombre: "Pociones (años mayores)", rol: "curso" },
-  { secreto: "CLAVE_POCIONES_MENORES", nombre: "Pociones (años menores)", rol: "curso" },
-  { secreto: "CLAVE_HISTORIA", nombre: "Historia de la magia", rol: "curso" },
-  { secreto: "CLAVE_DCLAO", nombre: "DCLAO", rol: "curso" },
-  { secreto: "CLAVE_ENCANTAMIENTOS", nombre: "Encantamientos", rol: "curso" },
-  { secreto: "CLAVE_VUELO", nombre: "Vuelo", rol: "curso" },
-  { secreto: "CLAVE_APARICION", nombre: "Aparición", rol: "curso" },
-  { secreto: "CLAVE_ARITMANCIA", nombre: "Aritmancia", rol: "curso" },
-  { secreto: "CLAVE_ASTRONOMIA", nombre: "Astronomía", rol: "curso" },
-  { secreto: "CLAVE_RUNAS", nombre: "Runas antiguas", rol: "curso" },
-  { secreto: "CLAVE_ADIVINACION", nombre: "Adivinación", rol: "curso" },
+  { secreto: "CLAVE_PROFESORES", nombre: "Profesores", rol: "curso" },
   { secreto: "CLAVE_DIRECTORA", nombre: "Dirección", rol: "directora" },
   { secreto: "CLAVE_DESARROLLADOR", nombre: "Desarrollo", rol: "desarrollador" },
+];
+
+// Con la clave de profesores, cada uno elige su curso al entrar (queda en el registro).
+const CURSOS = [
+  "Cuidado de criaturas mágicas",
+  "Pociones (años mayores)",
+  "Pociones (años menores)",
+  "Historia de la magia",
+  "DCLAO",
+  "Encantamientos",
+  "Vuelo",
+  "Aparición",
+  "Aritmancia",
+  "Astronomía",
+  "Runas antiguas",
+  "Adivinación",
 ];
 
 // ---------- Reglas ----------
@@ -103,6 +108,9 @@ export class Marcador extends DurableObject {
     for (const c of ORDEN_CASAS) {
       this.sql.exec("INSERT OR IGNORE INTO puntos (casa, puntos) VALUES (?, 0)", c);
     }
+    // Columna para el curso elegido (se agrega una sola vez si no existía)
+    const columnas = this.sql.exec("PRAGMA table_info(sesiones)").toArray().map((c) => c.name);
+    if (!columnas.includes("curso")) this.sql.exec("ALTER TABLE sesiones ADD COLUMN curso TEXT");
     // Los celulares mandan "ping" cada tanto; se responde "pong" sin despertar al objeto.
     ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
   }
@@ -127,7 +135,11 @@ export class Marcador extends DurableObject {
         this.sql.exec("DELETE FROM sesiones WHERE token = ?", tokenDe(request));
         return json({ ok: true });
       }
-      if (ruta === "/api/cambio" && metodo === "POST") return this.cambio(cuenta, await leerJSON(request));
+      if (ruta === "/api/curso" && metodo === "POST") return this.elegirCurso(request, cuenta, await leerJSON(request));
+      if (ruta === "/api/cambio" && metodo === "POST") {
+        if (cuenta.rol === "curso" && !cuenta.curso) return error(400, "Primero elige tu curso.");
+        return this.cambio(cuenta, await leerJSON(request));
+      }
 
       // Registro: directora y desarrollador (solo lectura).
       if (ruta === "/api/registro" && metodo === "GET") {
@@ -313,12 +325,25 @@ export class Marcador extends DurableObject {
     // Si la contraseña se cambió en Cloudflare, las sesiones viejas dejan de valer.
     const huellas = await this.calcularHuellas();
     if (huellas.get(fila.secreto) !== fila.huella) return null;
-    return CUENTAS.find((c) => c.secreto === fila.secreto) || null;
+    const base = CUENTAS.find((c) => c.secreto === fila.secreto);
+    if (!base) return null;
+    if (base.rol !== "curso") return base;
+    // Profesores: el nombre que queda en el registro es el del curso elegido
+    const curso = CURSOS.includes(fila.curso) ? fila.curso : null;
+    return { ...base, curso, nombre: curso || base.nombre };
+  }
+
+  elegirCurso(request, cuenta, datos) {
+    if (cuenta.rol !== "curso") return error(403, "Solo para la clave de profesores.");
+    if (!CURSOS.includes(datos.curso)) return error(400, "Elige un curso de la lista.");
+    this.sql.exec("UPDATE sesiones SET curso = ? WHERE token = ?", datos.curso, tokenDe(request));
+    return json(this.datosSesion({ ...cuenta, curso: datos.curso, nombre: datos.curso }));
   }
 
   datosSesion(cuenta) {
     return {
       nombre: cuenta.nombre,
+      ...(cuenta.rol === "curso" ? { curso: cuenta.curso || null, cursos: CURSOS } : {}),
       rol: cuenta.rol,
       maximo: this.maximo(),
       puedeVerRegistro: cuenta.rol !== "curso",
