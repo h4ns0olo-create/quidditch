@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Baile de Navidad</title>
+<meta name="theme-color" content="#0a1128">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❄️</text></svg>">
+<script src="config.js"></script>
+<style>
+:root{
+  --noche:#0a1128; --noche2:#131f45; --tinta:#eef3fb; --suave:#a7b6d1; --tenue:#7586a6;
+  --oro:#e6c77a; --oro2:#b8923f; --hielo:#cfe0f7; --rosa:#f0a6bd; --rojo:#ef8a8a; --verde:#8fd9b0;
+  --borde:rgba(190,205,230,.18); --tarjeta:rgba(255,255,255,.055); --tarjeta2:rgba(255,255,255,.09);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  min-height:100vh; color:var(--tinta); font:16px/1.5 Nunito,system-ui,sans-serif;
+  background:#070c1d radial-gradient(120% 70% at 50% 0%,#22356e 0%,#111c40 45%,#070c1d 100%) fixed;
+}
+#nieve{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+#nieve i{position:absolute;top:-12px;color:#fff;opacity:.55;font-style:normal;animation:caer linear infinite}
+@keyframes caer{to{transform:translate3d(var(--dx),110vh,0) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){#nieve{display:none}*{animation:none!important;transition:none!important}}
+#app{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:18px 16px 90px}
+h1,h2,h3{font-family:Cinzel,serif;font-weight:700;margin:0;letter-spacing:.02em}
+h2{font-size:1.35rem}
+h3{font-size:1.05rem}
+p{margin:.4em 0}
+.titulo{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,9vw,2.9rem);line-height:1.05;text-align:center;
+  background:linear-gradient(180deg,#fff7df,#e6c77a 55%,#b8923f);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 30px rgba(230,199,122,.15)}
+.sub{text-align:center;color:var(--hielo);font-family:Cinzel,serif;letter-spacing:.18em;font-size:.82rem;text-transform:uppercase}
+.suave{color:var(--suave)} .tenue{color:var(--tenue);font-size:.88rem} .centro{text-align:center}
+.tarjeta{background:var(--tarjeta);border:1px solid var(--borde);border-radius:20px;padding:18px;margin:14px 0;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tarjeta.oro{border-color:rgba(230,199,122,.55);box-shadow:0 0 0 1px rgba(230,199,122,.15),0 10px 40px rgba(230,199,122,.08)}
+.orla{display:flex;align-items:center;gap:10px;color:var(--oro);margin:14px 0 6px;font-family:Cinzel,serif;font-size:.8rem;letter-spacing:.2em;text-transform:uppercase}
+.orla:before,.orla:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(230,199,122,.6),transparent)}
+button{font:inherit;cursor:pointer;border:0;color:inherit;background:none}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 18px;border-radius:14px;font-weight:800;
+  font-size:1rem;color:#241a05;background:linear-gradient(180deg,#f4dc9c,#d9b25c);box-shadow:0 6px 20px rgba(230,199,122,.25),inset 0 1px 0 #fff6d6}
+.btn:disabled{opacity:.45;cursor:default}
+.btn2{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 18px;border-radius:14px;font-weight:700;
+  border:1px solid rgba(207,224,247,.4);color:var(--hielo);background:rgba(207,224,247,.06)}
+.btn3{padding:8px 12px;border-radius:10px;font-weight:700;font-size:.9rem;color:var(--suave);border:1px solid var(--borde)}
+.btn3.peligro{color:var(--rojo);border-color:rgba(239,138,138,.35)}
+.enlace{color:var(--hielo);text-decoration:underline;text-underline-offset:3px;font-weight:600;padding:6px 0}
+.fila{display:flex;gap:10px} .fila>*{flex:1}
+.pila>*+*{margin-top:10px}
+label.campo{display:block;margin:12px 0 4px;font-weight:700;color:var(--hielo);font-size:.92rem}
+input[type=text],input[type=password],input[type=tel],textarea,select{width:100%;font:inherit;color:var(--tinta);background:rgba(4,8,22,.55);
+  border:1px solid var(--borde);border-radius:12px;padding:12px 14px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--oro)}
+textarea{resize:vertical;min-height:70px}
+select option{background:#0d1633}
+.pin{letter-spacing:.6em;text-align:center;font-size:1.4rem;font-weight:800}
+.opciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.opcion{padding:12px 10px;border-radius:14px;border:1px solid var(--borde);background:var(--tarjeta);font-weight:700;text-align:center;line-height:1.25}
+.opcion .e{display:block;font-size:1.6rem;margin-bottom:2px}
+.opcion[aria-pressed=true]{border-color:var(--oro);background:rgba(230,199,122,.14);box-shadow:inset 0 0 0 1px var(--oro)}
+.casa-Gryffindor[aria-pressed=true]{border-color:#e0574f;background:rgba(174,0,1,.28);box-shadow:inset 0 0 0 1px #e0574f}
+.casa-Slytherin[aria-pressed=true]{border-color:#4fae74;background:rgba(26,71,42,.45);box-shadow:inset 0 0 0 1px #4fae74}
+.casa-Ravenclaw[aria-pressed=true]{border-color:#6f8ee8;background:rgba(14,26,64,.7);box-shadow:inset 0 0 0 1px #6f8ee8}
+.casa-Hufflepuff[aria-pressed=true]{border-color:#ecb939;background:rgba(236,185,57,.18);box-shadow:inset 0 0 0 1px #ecb939}
+.insignia{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:800;border:1px solid var(--borde)}
+.i-Gryffindor{background:rgba(174,0,1,.35);border-color:#c0392b;color:#ffd7a8}
+.i-Slytherin{background:rgba(26,71,42,.6);border-color:#3d8b5c;color:#d5f0dc}
+.i-Ravenclaw{background:rgba(14,26,64,.8);border-color:#5470c6;color:#d6e0ff}
+.i-Hufflepuff{background:rgba(236,185,57,.25);border-color:#ecb939;color:#fff0c4}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:7px 12px;border-radius:99px;border:1px solid var(--borde);background:var(--tarjeta);font-size:.9rem;font-weight:600}
+.chip[aria-pressed=true]{background:linear-gradient(180deg,#f4dc9c,#d9b25c);color:#241a05;border-color:transparent}
+.chip.comun{background:rgba(240,166,189,.16);border-color:rgba(240,166,189,.5);color:#ffe3ec}
+.chip.fijo{cursor:default}
+.cat{border:1px solid var(--borde);border-radius:16px;margin:8px 0;background:rgba(255,255,255,.03)}
+.cat>summary{list-style:none;padding:13px 14px;font-weight:800;display:flex;align-items:center;gap:8px;cursor:pointer}
+.cat>summary::-webkit-details-marker{display:none}
+.cat>summary .n{margin-left:auto;font-size:.8rem;color:var(--oro);font-weight:800}
+.cat>summary:after{content:"▾";color:var(--tenue);margin-left:6px}
+.cat[open]>summary:after{content:"▴"}
+.cat .cuerpo{padding:0 14px 14px}
+.otro{display:flex;gap:8px;margin-top:10px} .otro input{padding:9px 12px}
+.otro button{white-space:nowrap}
+.fotos-ed{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ranura{aspect-ratio:3/4;border-radius:16px;border:1.5px dashed rgba(207,224,247,.35);display:flex;align-items:center;justify-content:center;
+  font-size:2rem;color:var(--suave);background:rgba(255,255,255,.03);position:relative;overflow:hidden}
+.ranura img{width:100%;height:100%;object-fit:cover}
+.ranura .quitar{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:1rem;line-height:28px}
+.carrusel{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:4/5;background:#0b1430}
+.carrusel .pistas{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.carrusel .pistas::-webkit-scrollbar{display:none}
+.carrusel img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:center}
+.carrusel .puntos{position:absolute;top:10px;left:0;right:0;display:flex;gap:5px;justify-content:center}
+.carrusel .puntos b{width:28px;height:4px;border-radius:2px;background:rgba(255,255,255,.4)}
+.carrusel .puntos b.on{background:#fff}
+.carrusel .pie{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 14px;background:linear-gradient(transparent,rgba(5,9,25,.92))}
+.carrusel .pie h2{font-size:1.6rem}
+.carrusel .vacia{display:flex;height:100%;align-items:center;justify-content:center;font-size:4rem;color:var(--tenue)}
+.cabecera{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.mini{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--oro);background:#14214a;display:flex;align-items:center;justify-content:center;font-weight:800}
+.cabecera .quien{flex:1;min-width:0}
+.cabecera .quien b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contador{display:flex;justify-content:center;gap:10px;margin:14px 0}
+.contador div{min-width:64px;padding:10px 6px;border-radius:14px;background:var(--tarjeta);border:1px solid var(--borde);text-align:center}
+.contador b{display:block;font-family:Cinzel,serif;font-size:1.5rem;color:var(--oro);line-height:1.1}
+.contador span{font-size:.72rem;color:var(--suave);text-transform:uppercase;letter-spacing:.08em}
+.cifras{display:flex;gap:10px}
+.cifras div{flex:1;text-align:center;padding:12px 6px;border-radius:14px;background:var(--tarjeta);border:1px solid var(--borde)}
+.cifras b{display:block;font-size:1.6rem;font-family:Cinzel,serif;color:var(--hielo)}
+.cifras span{font-size:.8rem;color:var(--suave)}
+.pasos{counter-reset:p;list-style:none;padding:0;margin:0}
+.pasos li{counter-increment:p;display:flex;gap:12px;margin:12px 0;align-items:flex-start}
+.pasos li:before{content:counter(p);flex:0 0 28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:Cinzel,serif;font-weight:700;color:#241a05;background:var(--oro)}
+.progreso{display:flex;gap:5px;margin:4px 0 16px}
+.progreso b{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.12)}
+.progreso b.on{background:var(--oro)}
+.sombrero{font-size:4.2rem;display:block;text-align:center;animation:flotar 3s ease-in-out infinite}
+@keyframes flotar{50%{transform:translateY(-8px) rotate(-4deg)}}
+.regalo-grande{display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:rgba(240,166,189,.1);border:1px solid rgba(240,166,189,.35)}
+.regalo-grande .e{font-size:2.6rem;width:64px;height:64px;flex:0 0 64px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,.02));box-shadow:0 0 24px rgba(240,166,189,.25)}
+.nota{font-style:italic;color:#ffe9f0}
+.regalos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.regalo{padding:10px 6px;border-radius:14px;border:1px solid var(--borde);background:var(--tarjeta);text-align:center;font-size:.78rem;font-weight:700;line-height:1.2}
+.regalo .e{display:block;font-size:2rem;margin-bottom:4px}
+.regalo[aria-pressed=true]{border-color:var(--rosa);background:rgba(240,166,189,.16);box-shadow:inset 0 0 0 1px var(--rosa)}
+.frases{display:flex;flex-direction:column;gap:6px}
+.frase{text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--borde);background:var(--tarjeta);font-size:.93rem}
+.frase[aria-pressed=true]{border-color:var(--oro);background:rgba(230,199,122,.12)}
+.carta{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--borde)}
+.carta:first-child{border-top:0}
+.carta .e{font-size:2rem;flex:0 0 44px;text-align:center}
+.nuevo{display:inline-block;margin-left:6px;padding:0 7px;border-radius:99px;background:var(--rosa);color:#3b0e1c;font-size:.7rem;font-weight:800;vertical-align:middle}
+.aviso{display:flex;gap:12px;align-items:flex-start}
+.aviso .e{font-size:1.8rem}
+.cerrar{margin-left:auto;color:var(--tenue);font-size:1.3rem;line-height:1;padding:2px 6px}
+.velo{position:fixed;inset:0;z-index:20;background:rgba(3,6,18,.78);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+.hoja{width:100%;max-width:560px;max-height:92vh;overflow:auto;background:#0f1a3b;border:1px solid var(--borde);border-bottom:0;
+  border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+@media (min-width:600px){.velo{align-items:center}.hoja{border-radius:22px;border-bottom:1px solid var(--borde)}}
+.hoja .asa{width:44px;height:5px;border-radius:3px;background:rgba(255,255,255,.2);margin:-6px auto 12px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:40;max-width:calc(100% - 32px);padding:12px 18px;border-radius:14px;
+  background:#f4e6c0;color:#2a1d04;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast.mal{background:#ffd2d2;color:#4b0c0c}
+.fiesta{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(circle,rgba(40,56,110,.95),rgba(5,9,25,.97))}
+.fiesta .dentro{max-width:420px;text-align:center}
+.fiesta .duo{display:flex;justify-content:center;margin:18px 0}
+.fiesta .duo>*{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid var(--oro);background:#14214a;
+  display:flex;align-items:center;justify-content:center;font-size:2.4rem}
+.fiesta .duo>*+*{margin-left:-18px}
+.confeti{position:fixed;top:-20px;z-index:31;pointer-events:none;animation:caer 3.2s ease-in forwards}
+.cargando{text-align:center;padding:60px 0;color:var(--suave)}
+.cargando:before{content:"❄";display:block;font-size:2.4rem;animation:girar 2.4s linear infinite}
+@keyframes girar{to{transform:rotate(360deg)}}
+.admin-persona{padding:10px 0;border-top:1px solid var(--borde)}
+.admin-persona .acc{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.estado{font-size:.78rem;font-weight:800;padding:1px 8px;border-radius:99px}
+.e-busca{background:rgba(207,224,247,.14);color:var(--hielo)} .e-tiene{background:rgba(230,199,122,.16);color:var(--oro)} .e-pareja{background:rgba(143,217,176,.16);color:var(--verde)}
+.interruptor{display:flex;align-items:center;gap:10px;font-weight:700}
+.interruptor input{width:22px;height:22px;accent-color:#d9b25c}
+</style>
+</head>
+<body>
+<div id="nieve" aria-hidden="true"></div>
+<main id="app"><div class="cargando">Abriendo el Gran Comedor…</div></main>
+<script>
+'use strict';
+// ====================================================================== Datos fijos
+const CASAS = [
+  { id: 'Gryffindor', e: '🦁' }, { id: 'Slytherin', e: '🐍' }, { id: 'Ravenclaw', e: '🦅' }, { id: 'Hufflepuff', e: '🦡' },
+];
+const CATALOGO = [
+  { id: 'musica', e: '🎵', n: 'Música', ops: ['Rock', 'Pop', 'Reggaetón', 'K-pop', 'Indie', 'Metal', 'Electrónica', 'Baladas', 'Rap / Hip hop', 'Salsa / Cumbia', 'R&B', 'Clásica', 'Jazz', 'Bandas sonoras'] },
+  { id: 'animales', e: '🐾', n: 'Animales', ops: ['Perros', 'Gatos', 'Conejos', 'Aves', 'Reptiles', 'Caballos', 'Hámsters', 'Peces', 'Animales salvajes'] },
+  { id: 'comida', e: '🍕', n: 'Comida favorita', ops: ['Pizza', 'Sushi', 'Tacos', 'Hamburguesas', 'Pasta', 'Pollo frito', 'Comida picante', 'Comida casera', 'Vegetariana', 'Postres', 'Chocolate', 'Helado'] },
+  { id: 'color', e: '🎨', n: 'Color favorito', ops: ['Rojo', 'Azul', 'Verde', 'Amarillo', 'Morado', 'Rosa', 'Negro', 'Blanco', 'Naranja', 'Dorado', 'Plateado', 'Turquesa'] },
+  { id: 'pelis', e: '🎬', n: 'Películas y series', ops: ['Fantasía', 'Terror', 'Comedia', 'Romance', 'Ciencia ficción', 'Anime', 'Acción', 'Animación', 'Misterio', 'Superhéroes', 'Dramas', 'Documentales'] },
+  { id: 'juegos', e: '🎮', n: 'Juegos', ops: ['Aventura', 'Shooters', 'Nintendo', 'Minecraft', 'Juegos de mesa', 'Rol', 'Juegos de celular', 'Estrategia', 'No juego mucho'] },
+  { id: 'libros', e: '📚', n: 'Libros', ops: ['Fantasía', 'Romance', 'Misterio', 'Terror', 'Manga / Cómics', 'Poesía', 'Clásicos', 'Ciencia ficción', 'No leo mucho'] },
+  { id: 'planes', e: '✨', n: 'Planes favoritos', ops: ['Bailar', 'Salir de fiesta', 'Quedarme en casa', 'Viajar', 'Cocinar', 'Ir al cine', 'Hacer deporte', 'Dibujar / Arte', 'Fotografía', 'Naturaleza', 'Café y charla', 'Maratón de series', 'Cantar'] },
+  { id: 'deporte', e: '⚽', n: 'Deportes', ops: ['Fútbol', 'Básquet', 'Vóley', 'Natación', 'Gimnasio', 'Correr', 'Baile', 'Artes marciales', 'Quidditch', 'Ninguno'] },
+  { id: 'asignatura', e: '🧪', n: 'Asignatura favorita de Hogwarts', ops: ['Pociones', 'Defensa Contra las Artes Oscuras', 'Encantamientos', 'Transformaciones', 'Herbología', 'Cuidado de Criaturas Mágicas', 'Adivinación', 'Astronomía', 'Historia de la Magia', 'Runas Antiguas', 'Aritmancia', 'Vuelo'] },
+  { id: 'personaje', e: '⚡', n: 'Personaje favorito', ops: ['Harry', 'Hermione', 'Ron', 'Luna', 'Neville', 'Ginny', 'Draco', 'Snape', 'Dumbledore', 'Sirius', 'Remus', 'Los gemelos Weasley', 'Hagrid', 'McGonagall', 'Dobby', 'Cedric', 'Bellatrix'] },
+  { id: 'patronus', e: '🦌', n: 'Tu patronus sería…', ops: ['Ciervo', 'Nutria', 'Lobo', 'Zorro', 'Gato', 'Liebre', 'Cisne', 'Caballo', 'Fénix', 'Dragón', 'Búho', 'Delfín', 'Perro', 'Jaguar'] },
+];
+const REGALOS = [
+  { id: 'rosa', e: '🌹', n: 'Rosa encantada', d: 'Nunca se marchita' },
+  { id: 'rana', e: '🐸', n: 'Rana de chocolate', d: 'Con cromo de mago incluido' },
+  { id: 'grajeas', e: '🍬', n: 'Grajeas de todos los sabores', d: 'Ojalá no te toque la de cerumen' },
+  { id: 'ramillete', e: '💐', n: 'Ramillete para el baile', d: 'Para la muñeca o la solapa' },
+  { id: 'cerveza', e: '🍺', n: 'Cerveza de mantequilla', d: 'Calentita, de Las Tres Escobas' },
+  { id: 'bufanda', e: '🧣', n: 'Bufanda de tu casa', d: 'Para el frío de diciembre' },
+  { id: 'pluma', e: '🪶', n: 'Pluma de fénix', d: 'Rarísima y brillante' },
+  { id: 'vela', e: '🕯️', n: 'Vela flotante', d: 'Del techo del Gran Comedor' },
+  { id: 'cancion', e: '🎶', n: 'Canción para bailar juntos', d: 'La pedimos a las Brujas de Macbeth' },
+  { id: 'copo', e: '❄️', n: 'Copo de nieve encantado', d: 'Nunca se derrite' },
+  { id: 'pastel', e: '🧁', n: 'Pastel de calabaza', d: 'Recién salido del horno' },
+  { id: 'snitch', e: '✨', n: 'Snitch dorada', d: 'Para que no se te escape' },
+  { id: 'lechuza', e: '🦉', n: 'Lechuza de peluche', d: 'Para que no te olvides de mí' },
+  { id: 'muerdago', e: '🌿', n: 'Muérdago', d: 'Ya sabes lo que significa…' },
+];
+const FRASES_INVITAR = [
+  '¿Me concederías este baile? 💃', 'El Sombrero tiene buen ojo… ¿vamos juntos al baile?', 'Prometo no pisarte (mucho) 😅',
+  'Sería un honor ir al baile contigo ✨', 'Tenemos demasiado en común como para no ir juntos',
+  '¿Bailamos bajo la nieve encantada del Gran Comedor? ❄️',
+];
+const FRASES_ACEPTAR = ['¡Sí! Me encantaría ir contigo 💫', 'Acepto… y prepárate para bailar toda la noche', 'El Sombrero acertó: ¡vamos juntos!'];
+const FRASES_LECHUZA = [
+  'Cuento los días para el baile ⏳', 'Gracias por ser mi pareja 💛', 'Vamos a ser la pareja más elegante del Gran Comedor',
+  'Ya estoy practicando el vals por ti 💃', 'Guárdame el primer baile', 'Un detallito para alegrarte el día ✨',
+];
+const SOY = [{ id: 'chica', e: '👗', n: 'Chica' }, { id: 'chico', e: '🤵', n: 'Chico' }, { id: 'otro', e: '✨', n: 'Prefiero no decir' }];
+const VOY = [{ id: 'chicas', e: '👗', n: 'Con una chica' }, { id: 'chicos', e: '🤵', n: 'Con un chico' }, { id: 'cualquiera', e: '💫', n: 'Me da igual' }];
+const MIN_INTERESES = 5;
+
+// ====================================================================== Utilidades
+const $ = (s, r = document) => r.querySelector(s);
+const app = $('#app');
+const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = (t) => String(t).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9ñ ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const slug = (t) => norm(t).replace(/ /g, '-');
+const regalo = (id) => REGALOS.find((r) => r.id === id) || { e: '🎁', n: 'Regalo', d: '' };
+const casa = (id) => CASAS.find((c) => c.id === id) || { id, e: '🏰' };
+const insignia = (c) => `<span class="insignia i-${esc(c)}">${casa(c).e} ${esc(c)}</span>`;
+const ETIQUETAS = {};
+for (const c of CATALOGO) for (const o of c.ops) ETIQUETAS[`${c.id}:${slug(o)}`] = o;
+function etiqueta(k) {
+  if (ETIQUETAS[k]) return ETIQUETAS[k];
+  const t = k.split(':~')[1] || k.split(':')[1] || k;
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+function iconoCat(k) { const c = CATALOGO.find((x) => x.id === k.split(':')[0]); return c ? c.e : '⭐'; }
+const fecha = (d) => new Date(d).toLocaleString('es', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+const fechaCorta = (d) => new Date(d).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+function toast(msg, mal) {
+  document.querySelectorAll('.toast').forEach((t) => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast' + (mal ? ' mal' : ''); t.textContent = msg; t.setAttribute('role', 'status');
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3800);
+}
+const guardar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+const leer = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+
+// Nieve
+(function () {
+  const n = $('#nieve'), copos = ['❄', '❅', '❆', '·'];
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('i');
+    s.textContent = copos[i % copos.length];
+    s.style.left = Math.random() * 100 + '%';
+    s.style.fontSize = 8 + Math.random() * 14 + 'px';
+    s.style.animationDuration = 9 + Math.random() * 14 + 's';
+    s.style.animationDelay = -Math.random() * 20 + 's';
+    s.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px');
+    n.appendChild(s);
+  }
+})();
+
+// ====================================================================== Conexión
+const CFG = window.BAILE_CONFIG || {};
+async function api(p) {
+  const headers = { 'content-type': 'application/json', apikey: CFG.key };
+  if (!String(CFG.key).startsWith('sb_')) headers.Authorization = 'Bearer ' + CFG.key;
+  let r;
+  try {
+    r = await fetch(String(CFG.url).replace(/\/+$/, '') + '/rest/v1/rpc/baile', { method: 'POST', headers, body: JSON.stringify({ p }) });
+  } catch (e) { throw new Error('Sin conexión. Revisa tu internet e inténtalo de nuevo.'); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.message || 'Algo salió mal. Inténtalo de nuevo.');
+  if (j && j.error === 'sesion') { salir(true); throw new Error('Tu sesión terminó. Vuelve a entrar.'); }
+  return j;
+}
+const S = { token: leer('baile_token'), estado: null, fotos: {}, timer: null };
+
+async function fotosDe(persona) {
+  if (!persona || !persona.fotos_n) return [];
+  const c = S.fotos[persona.id];
+  if (c && c.ver === persona.fotos_ver) return c.lista;
+  const lista = await api({ accion: 'fotos', token: S.token, persona: persona.id });
+  S.fotos[persona.id] = { ver: persona.fotos_ver, lista };
+  return lista;
+}
+async function accion(p, msgOk) {
+  const e = await api({ ...p, token: S.token });
+  if (e && e.yo) S.estado = e;
+  if (msgOk) toast(msgOk);
+  return e;
+}
+function salir(silencio) {
+  if (S.token && !silencio) api({ accion: 'salir', token: S.token }).catch(() => {});
+  S.token = null; S.estado = null; S.fotos = {}; guardar('baile_token', null);
+  location.hash = ''; portada();
+}
+
+// ====================================================================== Componentes
+function botonesOpcion(lista, valor, clase = '') {
+  return lista.map((o) => `<button type="button" class="opcion ${clase}${o.clase || ''}" data-v="${esc(o.id)}" aria-pressed="${o.id === valor}">
+    <span class="e">${o.e}</span>${esc(o.n || o.id)}</button>`).join('');
+}
+function activarOpciones(cont, alElegir) {
+  cont.querySelectorAll('.opcion').forEach((b) => b.addEventListener('click', () => {
+    cont.querySelectorAll('.opcion').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    alElegir(b.dataset.v);
+  }));
+}
+
+function carrusel(persona, extra = '') {
+  const id = 'car' + Math.random().toString(36).slice(2);
+  setTimeout(async () => {
+    const el = document.getElementById(id); if (!el) return;
+    try {
+      const lista = await fotosDe(persona);
+      if (!lista.length) return;
+      const pistas = el.querySelector('.pistas');
+      pistas.innerHTML = '';
+      lista.forEach((src) => { const im = new Image(); im.src = src; im.alt = 'Foto de ' + persona.nombre; pistas.appendChild(im); });
+      const puntos = el.querySelector('.puntos');
+      puntos.innerHTML = lista.length > 1 ? lista.map((_, i) => `<b class="${i ? '' : 'on'}"></b>`).join('') : '';
+      pistas.addEventListener('scroll', () => {
+        const i = Math.round(pistas.scrollLeft / pistas.clientWidth);
+        puntos.querySelectorAll('b').forEach((b, k) => b.classList.toggle('on', k === i));
+      }, { passive: true });
+    } catch (e) {}
+  });
+  return `<div class="carrusel" id="${id}">
+    <div class="pistas"><div class="vacia" style="flex:0 0 100%">${casa(persona.casa).e}</div></div>
+    <div class="puntos"></div>
+    <div class="pie"><h2>${esc(persona.nombre)}</h2><div style="margin-top:4px">${insignia(persona.casa)}</div>${extra}</div>
+  </div>`;
+}
+function chipsIntereses(lista, comunes = []) {
+  const c = new Set(comunes);
+  return `<div class="chips">${lista.map((k) => `<span class="chip fijo ${c.has(k) ? 'comun' : ''}">${iconoCat(k)} ${esc(etiqueta(k))}</span>`).join('')}</div>`;
+}
+
+// Editor de intereses: categorías con opciones + "otro"
+function editorIntereses(cont, elegidos, alCambiar) {
+  const sel = new Set(elegidos);
+  function pintar() {
+    cont.innerHTML = CATALOGO.map((c) => {
+      const propios = [...sel].filter((k) => k.startsWith(c.id + ':~'));
+      const n = [...sel].filter((k) => k.startsWith(c.id + ':')).length;
+      return `<details class="cat" data-cat="${c.id}" ${cont.dataset.abierta === c.id ? 'open' : ''}>
+        <summary><span>${c.e}</span> ${esc(c.n)} <span class="n">${n ? n + ' ✓' : ''}</span></summary>
+        <div class="cuerpo">
+          <div class="chips">
+            ${c.ops.map((o) => { const k = `${c.id}:${slug(o)}`; return `<button type="button" class="chip" data-k="${esc(k)}" aria-pressed="${sel.has(k)}">${esc(o)}</button>`; }).join('')}
+            ${propios.map((k) => `<button type="button" class="chip" data-k="${esc(k)}" aria-pressed="true">${esc(etiqueta(k))} ✕</button>`).join('')}
+          </div>
+          <div class="otro"><input type="text" maxlength="30" placeholder="Otro: escribe el tuyo"><button type="button" class="btn3">Añadir</button></div>
+        </div></details>`;
+    }).join('');
+    cont.querySelectorAll('details').forEach((d) => d.addEventListener('toggle', () => { if (d.open) cont.dataset.abierta = d.dataset.cat; }));
+    cont.querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.k;
+      if (sel.has(k)) sel.delete(k); else sel.add(k);
+      if (k.includes(':~')) { pintar(); } else { b.setAttribute('aria-pressed', sel.has(k)); actualizarN(b.closest('details')); }
+      alCambiar([...sel]);
+    }));
+    cont.querySelectorAll('.otro').forEach((o) => {
+      const inp = o.querySelector('input'), cat = o.closest('details').dataset.cat;
+      const anadir = () => {
+        const t = norm(inp.value); if (t.length < 2) return;
+        const c = CATALOGO.find((x) => x.id === cat);
+        const igual = c.ops.find((op) => norm(op) === t);           // si ya existe en la lista, se marca esa
+        sel.add(igual ? `${cat}:${slug(igual)}` : `${cat}:~${t}`);
+        cont.dataset.abierta = cat; pintar(); alCambiar([...sel]);
+      };
+      o.querySelector('button').addEventListener('click', anadir);
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); anadir(); } });
+    });
+  }
+  function actualizarN(d) {
+    const n = [...sel].filter((k) => k.startsWith(d.dataset.cat + ':')).length;
+    d.querySelector('.n').textContent = n ? n + ' ✓' : '';
+  }
+  pintar();
+}
+
+// Editor de fotos (máx. 3), se comprimen en el celular antes de subir
+async function comprimir(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = url; });
+    const k = Math.min(1, 900 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    for (const q of [0.82, 0.72, 0.62, 0.5, 0.4]) { const d = c.toDataURL('image/jpeg', q); if (d.length < 450000) return d; }
+    throw new Error();
+  } catch (e) { throw new Error('No pudimos leer esa foto. Prueba con otra (JPG o PNG).'); }
+  finally { URL.revokeObjectURL(url); }
+}
+function editorFotos(cont, fotos, alCambiar) {
+  function pintar() {
+    cont.innerHTML = `<div class="fotos-ed">${[0, 1, 2].map((i) => fotos[i]
+      ? `<div class="ranura"><img src="${fotos[i]}" alt="Tu foto ${i + 1}"><button type="button" class="quitar" data-i="${i}" aria-label="Quitar foto">✕</button></div>`
+      : `<label class="ranura" style="cursor:pointer"><input type="file" accept="image/*" hidden>＋</label>`).join('')}</div>`;
+    cont.querySelectorAll('.quitar').forEach((b) => b.addEventListener('click', () => { fotos.splice(+b.dataset.i, 1); pintar(); alCambiar(fotos); }));
+    cont.querySelectorAll('input[type=file]').forEach((inp) => inp.addEventListener('change', async () => {
+      const f = inp.files[0]; if (!f) return;
+      try { fotos.push(await comprimir(f)); pintar(); alCambiar(fotos); } catch (e) { toast(e.message, true); }
+    }));
+  }
+  pintar();
+}
+
+// Hoja inferior (modal)
+function hoja(html) {
+  const v = document.createElement('div');
+  v.className = 'velo';
+  v.innerHTML = `<div class="hoja" role="dialog" aria-modal="true"><div class="asa"></div>${html}</div>`;
+  v.addEventListener('click', (e) => { if (e.target === v) v.remove(); });
+  document.body.appendChild(v);
+  return v;
+}
+
+// Elegir regalo + mensaje (para invitar, aceptar o mandar una lechuza)
+function elegirRegalo({ titulo, frases, conSorpresa, boton, alEnviar }) {
+  const notaLibre = S.estado?.cfg?.nota_libre !== false;
+  let reg = null, frase = frases[0], propia = false;
+  const v = hoja(`
+    <h2>${esc(titulo)}</h2>
+    <div class="orla">Elige un regalo</div>
+    <div class="regalos">${REGALOS.map((r) => `<button type="button" class="regalo" data-r="${r.id}" aria-pressed="false"><span class="e">${r.e}</span>${esc(r.n)}</button>`).join('')}</div>
+    <p class="tenue centro" id="rdesc" style="min-height:1.5em"></p>
+    <div class="orla">Tu mensaje</div>
+    <div class="frases">
+      ${frases.map((f, i) => `<button type="button" class="frase" data-f="${i}" aria-pressed="${i === 0}">${esc(f)}</button>`).join('')}
+      ${notaLibre ? `<button type="button" class="frase" data-f="propia" aria-pressed="false">✍️ Escribir el mío</button>` : ''}
+    </div>
+    <textarea id="nota" maxlength="140" placeholder="Máximo 140 letras" style="display:none;margin-top:8px"></textarea>
+    ${conSorpresa ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="sorpresa"> 🎁 Sorpresa: que lo abra el día del baile</label>` : ''}
+    <div class="pila" style="margin-top:16px">
+      <button class="btn" id="enviar" disabled>${esc(boton)}</button>
+      <button class="btn2" id="cancelar">Cancelar</button>
+    </div>`);
+  v.querySelectorAll('.regalo').forEach((b) => b.addEventListener('click', () => {
+    v.querySelectorAll('.regalo').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    reg = b.dataset.r; const r = regalo(reg);
+    $('#rdesc', v).textContent = r.e + ' ' + r.n + ' — ' + r.d;
+    $('#enviar', v).disabled = false;
+  }));
+  v.querySelectorAll('.frase').forEach((b) => b.addEventListener('click', () => {
+    v.querySelectorAll('.frase').forEach((x) => x.setAttribute('aria-pressed', x === b));
+    propia = b.dataset.f === 'propia';
+    if (!propia) frase = frases[+b.dataset.f];
+    $('#nota', v).style.display = propia ? 'block' : 'none';
+    if (propia) $('#nota', v).focus();
+  }));
+  $('#cancelar', v).addEventListener('click', () => v.remove());
+  $('#enviar', v).addEventListener('click', async () => {
+    const nota = propia ? $('#nota', v).value.trim() : frase;
+    const btn = $('#enviar', v); btn.disabled = true;
+    try { await alEnviar(reg, nota, conSorpresa && $('#sorpresa', v).checked); v.remove(); }
+    catch (e) { toast(e.message, true); btn.disabled = false; }
+  });
+}
+
+function confeti() {
+  const piezas = ['❄', '✨', '💛', '❅', '⭐', '💫'];
+  for (let i = 0; i < 40; i++) {
+    const s = document.createElement('div');
+    s.className = 'confeti'; s.textContent = piezas[i % piezas.length];
+    s.style.left = Math.random() * 100 + 'vw'; s.style.fontSize = 14 + Math.random() * 16 + 'px';
+    s.style.animationDelay = Math.random() * 0.8 + 's'; s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 4500);
+  }
+}
+
+// ====================================================================== Portada
+async function portada() {
+  pararSondeo();
+  if (!CFG.url || !CFG.key) {
+    app.innerHTML = `<div class="tarjeta"><h2>Falta conectar la base de datos</h2>
+      <p class="suave">Abre el archivo <b>config.js</b> y pega la dirección y la clave pública de tu proyecto de Supabase.</p></div>`;
+    return;
+  }
+  app.innerHTML = `
+    <div style="text-align:center;margin-top:16px;font-size:2.6rem">❄️🎩❄️</div>
+    <h1 class="titulo" style="margin-top:8px">Baile de Navidad</h1>
+    <p class="sub" style="margin-top:8px">Hogwarts · 5 de diciembre</p>
+    <div class="contador" id="cuenta"></div>
+    <div class="cifras" id="cifras"><div><b>·</b><span>parejas</span></div><div><b>·</b><span>buscando pareja</span></div></div>
+    <div class="pila" style="margin-top:22px">
+      <button class="btn" id="crear">✨ Crear mi perfil</button>
+      <button class="btn2" id="entrar">Ya tengo perfil · Entrar</button>
+    </div>
+    <div class="tarjeta" style="margin-top:22px">
+      <h3>¿Cómo funciona?</h3>
+      <ol class="pasos">
+        <li><span>Crea tu perfil con tus fotos y lo que te gusta.</span></li>
+        <li><span>El <b>Sombrero Seleccionador</b> te presenta a la persona con la que más coincides.</span></li>
+        <li><span>Si te late, la invitas al baile <b>con un regalo</b>. Si los dos dicen que sí… ¡tienen pareja!</span></li>
+        <li><span>Si no, el Sombrero les busca a otra persona. <b>Nadie ve a quién le dijiste que no.</b></span></li>
+      </ol>
+      <p class="tenue">¿Ya tienes pareja? Regístrate igual: confirman que van juntos y se pueden mandar regalos por <b>Correo Lechuza</b> 🦉</p>
+    </div>`;
+  $('#crear').addEventListener('click', () => registro());
+  $('#entrar').addEventListener('click', entrar);
+  try {
+    const r = await api({ accion: 'resumen' });
+    $('#cifras').innerHTML = `<div><b>${r.parejas}</b><span>${r.parejas === 1 ? 'pareja' : 'parejas'}</span></div><div><b>${r.buscando}</b><span>buscando pareja</span></div>`;
+    cuentaAtras($('#cuenta'), r.baile);
+  } catch (e) { $('#cifras').innerHTML = `<p class="tenue centro" style="flex:1">${esc(e.message)}</p>`; }
+}
+function cuentaAtras(el, hasta) {
+  if (!el) return;
+  const fin = new Date(hasta).getTime();
+  const pintar = () => {
+    if (!document.body.contains(el)) return clearInterval(t);
+    const ms = fin - Date.now();
+    if (ms <= 0) { el.innerHTML = `<p class="sub" style="color:var(--oro)">✨ ¡Hoy es el baile! ✨</p>`; return clearInterval(t); }
+    const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60;
+    el.innerHTML = `<div><b>${d}</b><span>días</span></div><div><b>${h}</b><span>horas</span></div><div><b>${m}</b><span>min</span></div>`;
+  };
+  const t = setInterval(pintar, 30000); pintar();
+}
+
+// ====================================================================== Entrar
+function entrar() {
+  app.innerHTML = `
+    <button class="enlace" id="volver">← Volver</button>
+    <div class="tarjeta">
+      <h2>Entrar</h2>
+      <label class="campo" for="n">Tu nombre</label>
+      <input type="text" id="n" autocomplete="username" maxlength="30">
+      <label class="campo" for="p">Tu PIN</label>
+      <input type="password" id="p" class="pin" inputmode="numeric" maxlength="4" autocomplete="current-password">
+      <div style="margin-top:16px"><button class="btn" id="ok">Entrar al baile</button></div>
+      <p class="tenue" style="margin-top:12px">¿Olvidaste tu PIN? Pídele al organizador que te ponga uno nuevo.</p>
+    </div>`;
+  $('#volver').addEventListener('click', portada);
+  const ir = async () => {
+    const btn = $('#ok'); btn.disabled = true;
+    try {
+      const r = await api({ accion: 'entrar', nombre: $('#n').value, pin: $('#p').value });
+      if (r.error) throw new Error(r.error);
+      S.token = r.token; guardar('baile_token', r.token); S.estado = r.estado; inicio();
+    } catch (e) { toast(e.message, true); btn.disabled = false; }
+  };
+  $('#ok').addEventListener('click', ir);
+  $('#p').addEventListener('keydown', (e) => { if (e.key === 'Enter') ir(); });
+  $('#n').focus();
+}
+
+// ====================================================================== Registro (por pasos)
+function registro() {
+  const R = { nombre: '', pin: '', pin2: '', casa: '', soy: '', voy_con: '', frase: '', estado: '', pareja_id: '', fotos: [], intereses: [] };
+  const PASOS = ['cuenta', 'sobre', 'pareja', 'fotos', 'intereses'];
+  let paso = 0;
+  const busca = () => R.estado === 'busca';
+
+  function pintar() {
+    const id = PASOS[paso];
+    app.innerHTML = `
+      <button class="enlace" id="volver">← ${paso ? 'Atrás' : 'Volver'}</button>
+      <div class="progreso">${PASOS.map((_, i) => `<b class="${i <= paso ? 'on' : ''}"></b>`).join('')}</div>
+      <div class="tarjeta" id="paso"></div>
+      <div class="pila"><button class="btn" id="seguir">${paso === PASOS.length - 1 ? '🎩 ¡Listo, entrar al baile!' : 'Siguiente'}</button>
+      ${id === 'intereses' && !busca() ? '<button class="btn2" id="saltar">Saltar este paso</button>' : ''}</div>`;
+    $('#volver').addEventListener('click', () => { if (paso) { paso--; pintar(); } else portada(); });
+    const c = $('#paso');
+    PINTAR[id](c);
+    $('#seguir').addEventListener('click', seguir);
+    if ($('#saltar')) $('#saltar').addEventListener('click', () => { R.intereses = []; enviar(); });
+    window.scrollTo(0, 0);
+  }
+  const PINTAR = {
+    cuenta(c) {
+      c.innerHTML = `<h2>Tu invitación</h2>
+        <p class="suave">Con tu nombre y un PIN de 4 números podrás entrar desde cualquier celular.</p>
+        <label class="campo" for="n">Tu nombre (como te conocen en la comunidad)</label>
+        <input type="text" id="n" maxlength="30" value="${esc(R.nombre)}" autocomplete="username">
+        <div class="fila">
+          <div><label class="campo" for="p">PIN (4 números)</label><input type="password" id="p" class="pin" inputmode="numeric" maxlength="4" value="${esc(R.pin)}" autocomplete="new-password"></div>
+          <div><label class="campo" for="p2">Repite el PIN</label><input type="password" id="p2" class="pin" inputmode="numeric" maxlength="4" value="${esc(R.pin2)}" autocomplete="new-password"></div>
+        </div>
+        <label class="campo">Tu casa</label>
+        <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === R.casa}"><span class="e">${x.e}</span>${x.id}</button>`).join('')}</div>`;
+      $('#n', c).addEventListener('input', (e) => (R.nombre = e.target.value));
+      $('#p', c).addEventListener('input', (e) => (R.pin = e.target.value.replace(/\D/g, '')));
+      $('#p2', c).addEventListener('input', (e) => (R.pin2 = e.target.value.replace(/\D/g, '')));
+      activarOpciones($('#casas', c), (v) => (R.casa = v));
+    },
+    sobre(c) {
+      c.innerHTML = `<h2>Sobre ti</h2>
+        <label class="campo">Soy…</label><div class="opciones" id="soy">${botonesOpcion(SOY, R.soy)}</div>
+        <label class="campo">Me gustaría ir al baile…</label><div class="opciones" id="voy">${botonesOpcion(VOY, R.voy_con)}</div>
+        <p class="tenue">El Sombrero solo te presentará a personas con las que los dos se sientan a gusto.</p>
+        <label class="campo" for="f">Una frase sobre ti (opcional)</label>
+        <textarea id="f" maxlength="120" placeholder="Ej.: Bailo fatal pero me río mucho 😄">${esc(R.frase)}</textarea>`;
+      activarOpciones($('#soy', c), (v) => (R.soy = v));
+      activarOpciones($('#voy', c), (v) => (R.voy_con = v));
+      $('#f', c).addEventListener('input', (e) => (R.frase = e.target.value));
+    },
+    pareja(c) {
+      c.innerHTML = `<h2>¿Ya tienes pareja para el baile?</h2>
+        <div class="opciones" id="est" style="grid-template-columns:1fr;margin-top:12px">
+          <button type="button" class="opcion" data-v="busca" aria-pressed="${R.estado === 'busca'}"><span class="e">🎩</span>Todavía no: que el Sombrero me ayude</button>
+          <button type="button" class="opcion" data-v="tiene" aria-pressed="${R.estado === 'tiene'}"><span class="e">💃</span>Sí, ya tengo con quién ir</button>
+        </div>
+        <div id="elige" style="display:${R.estado === 'tiene' ? 'block' : 'none'}">
+          <label class="campo" for="pj">¿Con quién vas?</label>
+          <select id="pj"><option value="">Cargando…</option></select>
+          <p class="tenue">Le pediremos que lo confirme. Si todavía no se registra, déjalo en blanco y la eliges después.</p>
+        </div>`;
+      activarOpciones($('#est', c), (v) => { R.estado = v; $('#elige', c).style.display = v === 'tiene' ? 'block' : 'none'; });
+      api({ accion: 'nombres_libres' }).then((l) => {
+        const s = $('#pj', c); if (!s) return;
+        s.innerHTML = `<option value="">— Todavía no se registra —</option>` + l.map((p) => `<option value="${p.id}" ${String(p.id) === String(R.pareja_id) ? 'selected' : ''}>${esc(p.nombre)} · ${esc(p.casa)}</option>`).join('');
+        s.addEventListener('change', () => (R.pareja_id = s.value));
+      }).catch(() => {});
+    },
+    fotos(c) {
+      c.innerHTML = `<h2>Tus fotos</h2>
+        <p class="suave">${busca() ? 'Sube <b>de 1 a 3 fotos</b>. Solo las verá la persona que el Sombrero te presente.' : 'Opcional: solo las verá tu pareja.'}</p>
+        <div id="fe" style="margin-top:12px"></div>`;
+      editorFotos($('#fe', c), R.fotos, () => {});
+    },
+    intereses(c) {
+      c.innerHTML = `<h2>Lo que te gusta</h2>
+        <p class="suave">${busca() ? `Elige <b>al menos ${MIN_INTERESES}</b>. Con esto el Sombrero encuentra a la persona con la que más coincides.` : 'Opcional, pero es divertido: verás en qué coinciden tu pareja y tú.'}</p>
+        <p class="tenue" id="cuenta-int"></p>
+        <div id="ei"></div>`;
+      const cuenta = () => ($('#cuenta-int', c).textContent = R.intereses.length ? `Llevas ${R.intereses.length} ✓` : '');
+      editorIntereses($('#ei', c), R.intereses, (l) => { R.intereses = l; cuenta(); });
+      cuenta();
+    },
+  };
+  function seguir() {
+    const id = PASOS[paso];
+    const mal = (m) => { toast(m, true); return false; };
+    const ok = {
+      cuenta: () => R.nombre.trim().length < 2 ? mal('Escribe tu nombre') : !/^\d{4}$/.test(R.pin) ? mal('El PIN son 4 números')
+        : R.pin !== R.pin2 ? mal('Los dos PIN no coinciden') : !R.casa ? mal('Elige tu casa') : true,
+      sobre: () => !R.soy ? mal('Dinos cómo te identificas') : !R.voy_con ? mal('Dinos con quién te gustaría ir') : true,
+      pareja: () => !R.estado ? mal('Elige una opción') : true,
+      fotos: () => busca() && !R.fotos.length ? mal('Sube al menos una foto para que el Sombrero pueda presentarte') : true,
+      intereses: () => busca() && R.intereses.length < MIN_INTERESES ? mal(`Elige al menos ${MIN_INTERESES} cosas que te gusten`) : true,
+    }[id]();
+    if (!ok) return;
+    if (paso < PASOS.length - 1) { paso++; pintar(); } else enviar();
+  }
+  async function enviar() {
+    const btn = $('#seguir'); btn.disabled = true; btn.textContent = 'Preparando tu invitación…';
+    try {
+      const r = await api({ accion: 'registrar', ...R, nombre: R.nombre.trim() });
+      S.token = r.token; guardar('baile_token', r.token); S.estado = r.estado;
+      toast('¡Bienvenid@ al Baile de Navidad! ❄️'); inicio();
+    } catch (e) {
+      toast(e.message, true); btn.disabled = false; btn.textContent = '🎩 ¡Listo, entrar al baile!';
+      if (/nombre/i.test(e.message)) { paso = 0; pintar(); }
+    }
+  }
+  pintar();
+}
+
+// ====================================================================== Inicio (cuando ya entraste)
+function pararSondeo() { clearInterval(S.timer); S.timer = null; }
+function sondear() {
+  pararSondeo();
+  S.timer = setInterval(async () => {
+    if (document.hidden || document.querySelector('.velo, .fiesta')) return;
+    try { const antes = JSON.stringify(S.estado); await accion({ accion: 'estado' }); if (JSON.stringify(S.estado) !== antes) pintarInicio(); } catch (e) {}
+  }, 20000);
+}
+document.addEventListener('visibilitychange', async () => {
+  if (!document.hidden && S.timer && S.token) { try { await accion({ accion: 'estado' }); pintarInicio(); } catch (e) {} }
+});
+
+async function inicio() {
+  location.hash = '';
+  if (!S.estado) {
+    app.innerHTML = `<div class="cargando">Abriendo el Gran Comedor…</div>`;
+    try { await accion({ accion: 'estado' }); } catch (e) { if (!S.token) return; app.innerHTML = `<div class="tarjeta"><p>${esc(e.message)}</p><button class="btn" onclick="location.reload()">Reintentar</button></div>`; return; }
+  }
+  pintarInicio(); sondear();
+}
+
+function pintarInicio() {
+  const E = S.estado; if (!E) return;
+  const yo = E.yo;
+  const sinLeer = E.lechuzas.filter((l) => !l.leida && !l.cerrada).length;
+  let h = `
+    <div class="cabecera">
+      <div class="mini" id="mifoto">${casa(yo.casa).e}</div>
+      <div class="quien"><b>${esc(yo.nombre)}</b>${insignia(yo.casa)}</div>
+      <button class="btn3" id="perfil">Mi perfil</button>
+      <button class="btn3" id="salir" aria-label="Salir">Salir</button>
+    </div>`;
+
+  // Avisos
+  for (const a of E.avisos) {
+    let e = '💫', t = '', d = '';
+    if (a.tipo === 'no') { t = 'Esta vez la magia no conectó'; d = '¡Sorry, piña! No pasa nada: el Sombrero ya te está buscando a alguien más.'; }
+    else if (a.tipo === 'caducada') { e = '⌛'; t = 'Se acabó el tiempo'; d = a.mi_resp ? 'La otra persona no respondió a tiempo. El Sombrero te buscará otra opción.' : 'No respondiste a tiempo y la propuesta caducó. Puede que vuelva más adelante.'; }
+    else if (a.tipo === 'cancelada') { e = '🎩'; t = 'El Sombrero cambió de planes'; d = 'La propuesta anterior ya no está disponible. Pronto tendrás otra.'; }
+    else if (a.tipo === 'solicitud_rechazada') { e = '🤔'; t = `${a.nombre} no confirmó que van juntos`; d = 'Puedes elegir a otra persona o dejar que el Sombrero te ayude.'; }
+    h += `<div class="tarjeta aviso"><span class="e">${e}</span><div><h3>${esc(t)}</h3><p class="suave">${esc(d)}</p></div>
+      <button class="cerrar" data-aviso="${esc(a.tipo)}" data-id="${a.id}" aria-label="Cerrar">×</button></div>`;
+  }
+
+  // Solicitudes recibidas ("X dice que vais juntos")
+  for (const s of E.solicitudes) {
+    h += `<div class="tarjeta oro"><h3>💃 ${esc(s.persona.nombre)} dice que van juntos al baile</h3>
+      <p class="suave">${insignia(s.persona.casa)} ¿Es verdad?</p>
+      <div class="fila" style="margin-top:10px"><button class="btn" data-sol="${s.id}" data-acepta="1">¡Sí, confirmo!</button>
+      <button class="btn2" data-sol="${s.id}" data-acepta="0">No es así</button></div></div>`;
+  }
+
+  if (E.pareja) h += bloquePareja(E);
+  else if (yo.estado === 'tiene') h += bloqueTiene(E);
+  else h += bloqueBusca(E);
+
+  h += `<p class="tenue centro" style="margin-top:24px">${E.resumen.parejas} ${E.resumen.parejas === 1 ? 'pareja formada' : 'parejas formadas'} · ${E.resumen.buscando} buscando pareja</p>`;
+  app.innerHTML = h;
+
+  // Eventos
+  $('#perfil').addEventListener('click', perfil);
+  $('#salir').addEventListener('click', () => { if (confirm('¿Cerrar sesión en este celular?')) salir(); });
+  fotosDe(yo).then((l) => { if (l[0] && $('#mifoto')) $('#mifoto').outerHTML = `<img class="mini" id="mifoto" src="${l[0]}" alt="">`; }).catch(() => {});
+  app.querySelectorAll('[data-aviso]').forEach((b) => b.addEventListener('click', async () => {
+    b.closest('.tarjeta').remove();
+    try { await accion({ accion: 'visto', tipo: b.dataset.aviso, id: +b.dataset.id }); } catch (e) {}
+  }));
+  app.querySelectorAll('[data-sol]').forEach((b) => b.addEventListener('click', async () => {
+    const acepta = b.dataset.acepta === '1';
+    if (!acepta && !confirm('¿Seguro que no van juntos?')) return;
+    try { await accion({ accion: 'responder_solicitud', id: +b.dataset.sol, acepta }); pintarInicio(); } catch (e) { toast(e.message, true); }
+  }));
+  const on = (sel, fn) => { const el = $(sel); if (el) el.addEventListener('click', fn); };
+  on('#invitar', invitar);
+  on('#rechazar', rechazar);
+  on('#lechuza', mandarLechuza);
+  on('#abrir-buzon', abrirBuzon);
+  on('#ya-tengo', () => elegirMiPareja());
+  on('#cambiar-pareja', () => elegirMiPareja());
+  on('#cancelar-sol', async () => { try { await accion({ accion: 'cancelar_solicitud' }, 'Solicitud cancelada'); pintarInicio(); } catch (e) { toast(e.message, true); } });
+  on('#quiero-sombrero', async () => {
+    try { await accion({ accion: 'modo', estado: 'busca' }, '🎩 El Sombrero ya te tiene en cuenta'); pintarInicio(); }
+    catch (e) { toast(e.message, true); if (/foto/i.test(e.message)) perfil(); }
+  });
+  cuentaAtras($('#cuenta-baile'), E.cfg.baile);
+  if (E.pareja && E.pareja.nueva) celebrar(E);
+  if (sinLeer && $('#buzon')) $('#buzon').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function bloqueBusca(E) {
+  const q = E.propuesta;
+  if (q) {
+    const p = q.persona;
+    let h = `<div class="orla">🎩 El Sombrero ha elegido</div>`;
+    if (q.su_regalo) {
+      const r = regalo(q.su_regalo);
+      h += `<div class="tarjeta oro"><h3>💌 ¡${esc(p.nombre)} te invitó al baile!</h3>
+        <div class="regalo-grande" style="margin-top:10px"><span class="e">${r.e}</span><div><b>${esc(r.n)}</b>
+        ${q.su_nota ? `<p class="nota">“${esc(q.su_nota)}”</p>` : `<p class="tenue">${esc(r.d)}</p>`}</div></div></div>`;
+    }
+    h += `<div class="tarjeta" style="padding:10px">${carrusel(p, p.frase ? `<p style="margin-top:6px">${esc(p.frase)}</p>` : '')}
+      <div style="padding:12px 6px 4px">
+        ${q.comunes.length ? `<h3>💞 Coinciden en ${q.comunes.length === 1 ? '1 cosa' : q.comunes.length + ' cosas'}</h3><div style="margin:8px 0 12px">${chipsIntereses(q.comunes, q.comunes)}</div>`
+          : `<p class="suave">El Sombrero ve algo especial aquí, aunque todavía no coincidan en sus gustos 😉</p>`}
+        ${p.intereses.filter((k) => !q.comunes.includes(k)).length ? `<details><summary class="enlace" style="cursor:pointer">Ver todo lo que le gusta</summary><div style="margin-top:8px">${chipsIntereses(p.intereses.filter((k) => !q.comunes.includes(k)))}</div></details>` : ''}
+      </div></div>`;
+    if (q.mi_resp) {
+      const r = regalo(q.mi_regalo);
+      h += `<div class="tarjeta centro"><div style="font-size:2.4rem">🦉</div><h3>Tu lechuza ya va volando</h3>
+        <p class="suave">Le mandaste ${r.e} <b>${esc(r.n)}</b>${q.mi_nota ? ` con “${esc(q.mi_nota)}”` : ''}.</p>
+        <p class="tenue">Esperando su respuesta… tiene hasta el ${esc(fecha(q.vence))}.</p></div>`;
+    } else {
+      h += `<div class="pila"><button class="btn" id="invitar">💌 ${q.su_regalo ? 'Aceptar y mandarle un regalo' : 'Invitar al baile con un regalo'}</button>
+        <button class="btn2" id="rechazar">No, gracias</button></div>
+        <p class="tenue centro" style="margin-top:8px">Tienes hasta el ${esc(fecha(q.vence))} para responder. ${q.su_regalo ? '' : 'Si los dos dicen que sí, ¡tienen pareja!'}</p>`;
+    }
+    return h;
+  }
+  const cerrado = new Date(E.cfg.cierre) < new Date(E.cfg.ahora);
+  let h = `<div class="tarjeta centro" style="margin-top:20px"><span class="sombrero">🎩</span>`;
+  if (cerrado) h += `<h2>El Sombrero ya cerró</h2><p class="suave">El plazo terminó. No te preocupes: el organizador se encarga de que nadie se quede sin pareja.</p>`;
+  else if (E.cfg.sombrero !== 'si') h += `<h2>El Sombrero está descansando</h2><p class="suave">Muy pronto empezará a proponer parejas. Mientras tanto, completa bien tu perfil para que acierte.</p>`;
+  else h += `<h2>El Sombrero está pensando…</h2><p class="suave">En cuanto haya alguien compatible libre, te lo presentará aquí. ¡Vuelve en un rato!</p>
+    <p class="tenue">Cuantas más cosas marques en tus intereses, mejor elige.</p>`;
+  h += `</div><div class="centro"><button class="enlace" id="ya-tengo">En realidad ya tengo pareja</button></div>`;
+  return h;
+}
+
+function bloqueTiene(E) {
+  const s = E.solicitud_enviada;
+  if (s) return `<div class="tarjeta centro" style="margin-top:20px"><div style="font-size:2.6rem">💌</div>
+      <h2>Esperando a ${esc(s.persona.nombre)}</h2><p class="suave">Le pedimos que confirme que van juntos al baile. Cuando lo haga, aparecerá aquí.</p>
+      <div class="pila" style="margin-top:12px"><button class="btn2" id="cambiar-pareja">Elegir a otra persona</button>
+      <button class="enlace" id="cancelar-sol">Cancelar solicitud</button></div></div>
+      <div class="centro"><button class="enlace" id="quiero-sombrero">Prefiero que el Sombrero me ayude</button></div>`;
+  return `<div class="tarjeta centro" style="margin-top:20px"><div style="font-size:2.6rem">💃</div>
+      <h2>¿Con quién vas al baile?</h2><p class="suave">Elige a tu pareja y le pediremos que lo confirme. Si todavía no se registra, vuelve cuando lo haga.</p>
+      <div style="margin-top:12px"><button class="btn" id="cambiar-pareja">Elegir a mi pareja</button></div></div>
+      <div class="centro"><button class="enlace" id="quiero-sombrero">Mejor que el Sombrero me ayude 🎩</button></div>`;
+}
+
+function bloquePareja(E) {
+  const pa = E.pareja, p = pa.persona;
+  const sinLeer = E.lechuzas.filter((l) => !l.leida && !l.cerrada).length;
+  let h = `<div class="orla">Tu pareja para el baile</div>
+    <div class="tarjeta oro" style="padding:10px">${carrusel(p, p.frase ? `<p style="margin-top:6px">${esc(p.frase)}</p>` : '')}
+      <div style="padding:12px 6px 4px">
+        ${pa.comunes.length ? `<h3>💞 Coinciden en</h3><div style="margin-top:8px">${chipsIntereses(pa.comunes, pa.comunes)}</div>` : ''}
+        <div class="contador" id="cuenta-baile"></div>
+        <button class="btn" id="lechuza">🦉 Mandarle una lechuza con un regalo</button>
+      </div></div>`;
+  h += `<div class="tarjeta" id="buzon"><div class="fila" style="align-items:center"><h3>📬 Tu buzón ${sinLeer ? `<span class="nuevo">${sinLeer} nueva${sinLeer > 1 ? 's' : ''}</span>` : ''}</h3>
+    ${E.lechuzas.length ? `<button class="btn3" id="abrir-buzon" style="flex:0">${sinLeer ? 'Abrir' : 'Ver todo'}</button>` : ''}</div>
+    ${E.lechuzas.length ? E.lechuzas.slice(0, 3).map(carta).join('') : `<p class="tenue">Todavía no tienes lechuzas. ¿Y si mandas tú la primera? 😉</p>`}
+    ${E.enviadas.length ? `<p class="tenue" style="margin-top:8px">Has mandado ${E.enviadas.length} lechuza${E.enviadas.length > 1 ? 's' : ''} 🦉</p>` : ''}</div>`;
+  return h;
+}
+function carta(l) {
+  if (l.cerrada) return `<div class="carta"><span class="e">🎁</span><div><b>Sorpresa de ${esc(l.de)}</b>
+    <p class="tenue">Se abre el día del baile ✨</p></div></div>`;
+  const r = regalo(l.regalo);
+  return `<div class="carta"><span class="e">${r.e}</span><div><b>${esc(r.n)}</b>${!l.leida ? '<span class="nuevo">nueva</span>' : ''}
+    <div class="tenue">de ${esc(l.de)} · ${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 era sorpresa' : ''}</div>
+    ${l.nota ? `<p class="nota">“${esc(l.nota)}”</p>` : ''}</div></div>`;
+}
+
+// ---- Acciones del inicio
+function invitar() {
+  const q = S.estado.propuesta;
+  elegirRegalo({
+    titulo: q.su_regalo ? `Aceptar a ${q.persona.nombre}` : `Invitar a ${q.persona.nombre}`,
+    frases: q.su_regalo ? FRASES_ACEPTAR.concat(FRASES_INVITAR) : FRASES_INVITAR,
+    boton: '🦉 Enviar mi lechuza',
+    alEnviar: async (reg, nota) => {
+      await accion({ accion: 'responder_propuesta', id: q.id, si: true, regalo: reg, nota });
+      if (!S.estado.pareja) toast('¡Tu lechuza ya va volando! 🦉');
+      pintarInicio();
+    },
+  });
+}
+async function rechazar() {
+  const q = S.estado.propuesta;
+  if (!confirm(`¿No quieres ir con ${q.persona.nombre}? No se lo diremos con tu nombre, y el Sombrero te buscará a otra persona.`)) return;
+  try { await accion({ accion: 'responder_propuesta', id: q.id, si: false }, 'El Sombrero buscará a otra persona 🎩'); pintarInicio(); }
+  catch (e) { toast(e.message, true); }
+}
+function mandarLechuza() {
+  const E = S.estado;
+  elegirRegalo({
+    titulo: `Lechuza para ${E.pareja.persona.nombre}`,
+    frases: FRASES_LECHUZA,
+    conSorpresa: new Date(E.cfg.baile) > new Date(E.cfg.ahora),
+    boton: '🦉 Enviar',
+    alEnviar: async (reg, nota, sorpresa) => {
+      await accion({ accion: 'lechuza', regalo: reg, nota, sorpresa }, sorpresa ? '🎁 Sorpresa enviada: la abrirá el día del baile' : '¡Lechuza enviada! 🦉');
+      pintarInicio();
+    },
+  });
+}
+async function abrirBuzon() {
+  const E = S.estado;
+  const v = hoja(`<h2>📬 Tu buzón</h2><div style="margin-top:8px">${E.lechuzas.map(carta).join('')}</div>
+    ${E.enviadas.length ? `<div class="orla">Lo que tú mandaste</div>${E.enviadas.map((l) => { const r = regalo(l.regalo); return `<div class="carta"><span class="e">${r.e}</span><div><b>${esc(r.n)}</b>
+      <div class="tenue">${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 sorpresa' : ''}</div>${l.nota ? `<p class="nota">“${esc(l.nota)}”</p>` : ''}</div></div>`; }).join('')}` : ''}
+    <div style="margin-top:14px"><button class="btn2" id="cerrar-buzon">Cerrar</button></div>`);
+  $('#cerrar-buzon', v).addEventListener('click', () => { v.remove(); pintarInicio(); });
+  if (E.lechuzas.some((l) => !l.leida && !l.cerrada)) { try { await accion({ accion: 'leer_lechuzas' }); } catch (e) {} }
+}
+async function elegirMiPareja() {
+  let lista;
+  try { lista = await api({ accion: 'nombres', token: S.token }); } catch (e) { return toast(e.message, true); }
+  const libres = lista.filter((p) => p.estado !== 'pareja');
+  const v = hoja(`<h2>¿Con quién vas al baile?</h2>
+    <p class="suave">Le pediremos que lo confirme.</p>
+    <input type="text" id="buscar" placeholder="Buscar nombre…" style="margin:10px 0">
+    <div id="lista" class="pila" style="max-height:50vh;overflow:auto"></div>
+    <div style="margin-top:12px"><button class="btn2" id="cancelar">Cancelar</button></div>`);
+  const pintar = () => {
+    const t = norm($('#buscar', v).value);
+    const l = libres.filter((p) => !t || norm(p.nombre).includes(t));
+    $('#lista', v).innerHTML = l.length ? l.map((p) => `<button class="opcion" style="text-align:left;display:flex;gap:10px;align-items:center" data-id="${p.id}">
+      <span style="font-size:1.4rem">${casa(p.casa).e}</span><span style="flex:1">${esc(p.nombre)}</span></button>`).join('')
+      : `<p class="tenue">No aparece. Si todavía no se registra, pídele que lo haga y vuelve aquí.</p>`;
+    $('#lista', v).querySelectorAll('[data-id]').forEach((b) => b.addEventListener('click', async () => {
+      try {
+        await accion({ accion: 'pedir_pareja', para: +b.dataset.id });
+        v.remove(); toast(S.estado.pareja ? '¡Pareja confirmada! 💃' : 'Le pedimos que lo confirme 💌'); pintarInicio();
+      } catch (e) { toast(e.message, true); }
+    }));
+  };
+  $('#buscar', v).addEventListener('input', pintar);
+  $('#cancelar', v).addEventListener('click', () => v.remove());
+  pintar();
+}
+async function celebrar(E) {
+  const p = E.pareja.persona;
+  const f = document.createElement('div');
+  f.className = 'fiesta';
+  f.innerHTML = `<div class="dentro">
+    <p class="sub">✨ El Sombrero lo sabía ✨</p>
+    <div class="duo"><div id="f1">${casa(E.yo.casa).e}</div><div id="f2">${casa(p.casa).e}</div></div>
+    <h1 class="titulo" style="font-size:2rem">¡Tienen pareja!</h1>
+    <p style="font-size:1.1rem;margin-top:10px">${esc(E.yo.nombre)} y ${esc(p.nombre)} irán juntos al Baile de Navidad 💃🕺</p>
+    ${E.pareja.origen === 'sombrero' ? `<p class="suave">Los regalos de la invitación ya están en su buzón 📬</p>` : ''}
+    <div style="margin-top:18px"><button class="btn" id="ok-fiesta">¡A bailar!</button></div></div>`;
+  document.body.appendChild(f); confeti();
+  const poner = async (id, persona) => { try { const l = await fotosDe(persona); if (l[0]) f.querySelector('#' + id).outerHTML = `<img src="${l[0]}" alt="">`; } catch (e) {} };
+  poner('f1', E.yo); poner('f2', p);
+  f.querySelector('#ok-fiesta').addEventListener('click', async () => {
+    f.remove(); S.estado.pareja.nueva = false;
+    try { await accion({ accion: 'visto', tipo: 'pareja' }); } catch (e) {}
+    pintarInicio();
+  });
+}
+
+// ====================================================================== Mi perfil
+async function perfil() {
+  pararSondeo();
+  const E = S.estado, yo = E.yo;
+  const P = { casa: yo.casa, soy: yo.soy, voy_con: yo.voy_con, frase: yo.frase, intereses: [...yo.intereses], fotos: [], vetos: [...E.vetos] };
+  let fotosCambiadas = false;
+  app.innerHTML = `<div class="cargando">Cargando tu perfil…</div>`;
+  try { P.fotos = [...(await fotosDe(yo))]; } catch (e) {}
+  let nombres = [];
+  try { nombres = await api({ accion: 'nombres', token: S.token }); } catch (e) {}
+  app.innerHTML = `
+    <button class="enlace" id="volver">← Volver</button>
+    <div class="tarjeta"><h2>Mi perfil</h2>
+      <label class="campo">Mis fotos</label><div id="fe"></div>
+      <label class="campo">Mi casa</label>
+      <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === P.casa}"><span class="e">${x.e}</span>${x.id}</button>`).join('')}</div>
+      <label class="campo">Soy…</label><div class="opciones" id="soy">${botonesOpcion(SOY, P.soy)}</div>
+      <label class="campo">Me gustaría ir al baile…</label><div class="opciones" id="voy">${botonesOpcion(VOY, P.voy_con)}</div>
+      <label class="campo" for="f">Mi frase</label><textarea id="f" maxlength="120">${esc(P.frase)}</textarea>
+    </div>
+    <div class="tarjeta"><h2>Lo que me gusta</h2><p class="tenue" id="cuenta-int"></p><div id="ei"></div></div>
+    ${yo.estado !== 'pareja' ? `<div class="tarjeta"><h2>🤫 Prefiero no ir con…</h2>
+      <p class="suave">Opcional y <b>secreto</b>: nadie se entera. El Sombrero nunca te presentará a estas personas (máximo 3).</p>
+      <div class="chips" id="vetos" style="margin-top:10px"></div>
+      <select id="nuevo-veto" style="margin-top:10px"><option value="">＋ Añadir a alguien</option>
+        ${nombres.map((p) => `<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></div>` : ''}
+    <div class="pila"><button class="btn" id="guardar">Guardar cambios</button></div>`;
+  $('#volver').addEventListener('click', () => { pintarInicio(); sondear(); });
+  editorFotos($('#fe'), P.fotos, () => (fotosCambiadas = true));
+  activarOpciones($('#casas'), (v) => (P.casa = v));
+  activarOpciones($('#soy'), (v) => (P.soy = v));
+  activarOpciones($('#voy'), (v) => (P.voy_con = v));
+  $('#f').addEventListener('input', (e) => (P.frase = e.target.value));
+  const cuenta = () => ($('#cuenta-int').textContent = `Llevas ${P.intereses.length} ✓`);
+  editorIntereses($('#ei'), P.intereses, (l) => { P.intereses = l; cuenta(); }); cuenta();
+  const pintarVetos = () => {
+    const c = $('#vetos'); if (!c) return;
+    c.innerHTML = P.vetos.length ? P.vetos.map((id) => { const p = nombres.find((x) => x.id === id); return `<button type="button" class="chip" data-id="${id}">${esc(p ? p.nombre : '¿?')} ✕</button>`; }).join('') : '<span class="tenue">Nadie</span>';
+    c.querySelectorAll('[data-id]').forEach((b) => b.addEventListener('click', () => { P.vetos = P.vetos.filter((x) => x !== +b.dataset.id); pintarVetos(); }));
+  };
+  pintarVetos();
+  if ($('#nuevo-veto')) $('#nuevo-veto').addEventListener('change', (e) => {
+    const id = +e.target.value; e.target.value = '';
+    if (!id || P.vetos.includes(id)) return;
+    if (P.vetos.length >= 3) return toast('Máximo 3 personas', true);
+    P.vetos.push(id); pintarVetos();
+  });
+  $('#guardar').addEventListener('click', async () => {
+    if (yo.estado === 'busca' && P.intereses.length < MIN_INTERESES) return toast(`Elige al menos ${MIN_INTERESES} cosas que te gusten`, true);
+    if (yo.estado === 'busca' && !P.fotos.length) return toast('Necesitas al menos una foto mientras buscas pareja', true);
+    const btn = $('#guardar'); btn.disabled = true;
+    try {
+      const datos = { accion: 'perfil', casa: P.casa, soy: P.soy, voy_con: P.voy_con, frase: P.frase, intereses: P.intereses };
+      if (fotosCambiadas) datos.fotos = P.fotos;
+      await accion(datos);
+      if (yo.estado !== 'pareja' && JSON.stringify([...P.vetos].sort()) !== JSON.stringify([...E.vetos].sort())) await accion({ accion: 'vetos', ids: P.vetos });
+      toast('Perfil guardado ✓'); pintarInicio(); sondear();
+    } catch (e) { toast(e.message, true); btn.disabled = false; }
+  });
+}
+
+// ====================================================================== Administración (#admin)
+async function admin() {
+  pararSondeo();
+  let clave = (() => { try { return sessionStorage.getItem('baile_admin') || ''; } catch (e) { return ''; } })();
+  const pedir = () => {
+    app.innerHTML = `<div class="tarjeta"><h2>🔑 Administración</h2>
+      <label class="campo" for="c">Clave</label><input type="password" id="c">
+      <div style="margin-top:14px"><button class="btn" id="ok">Entrar</button></div></div>
+      <div class="centro"><button class="enlace" id="volver">← Ir al baile</button></div>`;
+    $('#volver').addEventListener('click', () => { location.hash = ''; arrancar(); });
+    const ir = () => { clave = $('#c').value; cargar({ accion: 'admin_panel' }); };
+    $('#ok').addEventListener('click', ir);
+    $('#c').addEventListener('keydown', (e) => { if (e.key === 'Enter') ir(); });
+  };
+  async function cargar(p) {
+    try {
+      const d = await api({ ...p, clave });
+      try { sessionStorage.setItem('baile_admin', clave); } catch (e) {}
+      pintar(d);
+    } catch (e) { toast(e.message, true); if (/clave/i.test(e.message)) pedir(); }
+  }
+  function pintar(d) {
+    const libres = d.personas.filter((x) => x.estado !== 'pareja');
+    const n = (est) => d.personas.filter((x) => x.estado === est).length;
+    const ETQ = { busca: 'busca pareja', tiene: 'dice que tiene', pareja: 'con pareja' };
+    app.innerHTML = `
+      <div class="fila" style="align-items:center"><h2>🔑 Administración</h2><button class="btn3" id="refrescar" style="flex:0">↻</button></div>
+      <div class="cifras" style="margin-top:12px"><div><b>${d.personas.length}</b><span>registrados</span></div><div><b>${d.parejas.length}</b><span>parejas</span></div>
+        <div><b>${n('busca')}</b><span>buscando</span></div><div><b>${n('tiene')}</b><span>esperando confirmar</span></div></div>
+      <div class="tarjeta">
+        <label class="interruptor"><input type="checkbox" id="somb" ${d.sombrero === 'si' ? 'checked' : ''}> 🎩 El Sombrero propone parejas</label>
+        <p class="tenue">Plazo hasta el ${esc(fecha(d.cierre))}. Cada propuesta caduca a las ${d.horas} h si alguien no responde. ${d.lechuzas} lechuzas enviadas.</p>
+      </div>
+      <div class="tarjeta"><h3>Emparejar a mano</h3>
+        <p class="tenue">Para que nadie se quede sin pareja al final.</p>
+        <div class="fila" style="margin-top:8px">
+          <select id="ea"><option value="">Persona 1</option>${libres.map((x) => `<option value="${x.id}">${esc(x.nombre)}</option>`).join('')}</select>
+          <select id="eb"><option value="">Persona 2</option>${libres.map((x) => `<option value="${x.id}">${esc(x.nombre)}</option>`).join('')}</select>
+        </div>
+        <div style="margin-top:10px"><button class="btn2" id="emparejar">Emparejar</button></div></div>
+      <div class="tarjeta"><h3>Parejas (${d.parejas.length})</h3>
+        ${d.parejas.map((pa) => `<div class="admin-persona fila" style="align-items:center"><span style="flex:3">💃 ${esc(pa.a)} &amp; ${esc(pa.b)}
+          <span class="tenue">· ${pa.origen === 'sombrero' ? '🎩 Sombrero' : pa.origen === 'admin' ? '🔑 a mano' : 'ya iban juntos'}</span></span>
+          <button class="btn3 peligro" style="flex:0" data-deshacer="${pa.id}">Deshacer</button></div>`).join('') || '<p class="tenue">Ninguna todavía</p>'}</div>
+      <div class="tarjeta"><h3>Personas (${d.personas.length})</h3>
+        ${d.personas.map((x) => `<div class="admin-persona">
+          <b>${esc(x.nombre)}</b> ${insignia(x.casa)} <span class="estado e-${x.estado}">${ETQ[x.estado]}</span>
+          <div class="tenue">${x.soy} → ${x.voy_con} · ${x.fotos} foto${x.fotos === 1 ? '' : 's'} · ${x.intereses} intereses
+            ${x.propuesta_con ? ` · 🎩 propuesta con <b>${esc(x.propuesta_con)}</b>` : ''}${x.rechazos ? ` · ${x.rechazos} “no”` : ''}</div>
+          <div class="acc"><button class="btn3" data-pin="${x.id}" data-n="${esc(x.nombre)}">Cambiar PIN</button>
+          <button class="btn3 peligro" data-borrar="${x.id}" data-n="${esc(x.nombre)}">Borrar</button></div></div>`).join('') || '<p class="tenue">Nadie todavía</p>'}</div>
+      <div class="centro"><button class="enlace" id="volver">← Ir al baile</button></div>`;
+    $('#refrescar').addEventListener('click', () => cargar({ accion: 'admin_panel' }));
+    $('#volver').addEventListener('click', () => { location.hash = ''; arrancar(); });
+    $('#somb').addEventListener('change', (e) => cargar({ accion: 'admin_sombrero', abierto: e.target.checked }));
+    $('#emparejar').addEventListener('click', () => {
+      const a = +$('#ea').value, b = +$('#eb').value;
+      if (!a || !b) return toast('Elige a las dos personas', true);
+      cargar({ accion: 'admin_emparejar', a, b });
+    });
+    app.querySelectorAll('[data-deshacer]').forEach((b) => b.addEventListener('click', () => {
+      if (confirm('¿Deshacer esta pareja? Los dos volverán a buscar pareja.')) cargar({ accion: 'admin_deshacer', pareja: +b.dataset.deshacer });
+    }));
+    app.querySelectorAll('[data-borrar]').forEach((b) => b.addEventListener('click', () => {
+      if (confirm(`¿Borrar a ${b.dataset.n} y todo lo suyo? No se puede deshacer.`)) cargar({ accion: 'admin_borrar', persona: +b.dataset.borrar });
+    }));
+    app.querySelectorAll('[data-pin]').forEach((b) => b.addEventListener('click', () => {
+      const pin = prompt(`Nuevo PIN de 4 números para ${b.dataset.n}:`);
+      if (pin) cargar({ accion: 'admin_pin', persona: +b.dataset.pin, pin: pin.trim() });
+    }));
+  }
+  if (clave) cargar({ accion: 'admin_panel' }); else pedir();
+}
+
+// ====================================================================== Arranque
+function arrancar() {
+  if (location.hash === '#admin') return admin();
+  if (S.token && CFG.url) return inicio();
+  portada();
+}
+window.addEventListener('hashchange', arrancar);
+arrancar();
+</script>
+</body>
+</html>

@@ -84,6 +84,9 @@ nombre, en su retrato y en el pecho de su jugador en el campo.
 
 Todavía NO incluye: corrección del marcador por la administración.
 
+**❄️ Baile de Navidad** (carpeta `baile/`): página aparte para encontrar pareja para el baile del 5 de diciembre
+(Sombrero Seleccionador por intereses, invitaciones con regalo y Correo Lechuza). No usa Render: ver `baile/LEEME.md`.
+
 ## Probarlo en tu computadora (opcional)
 Necesita Node.js 18 o más nuevo.
 ```bash

@@ -1,0 +1,3 @@
+# Netlify: la página del baile es estática (no gasta horas de Render).
+[build]
+  publish = "."
