@@ -331,8 +331,9 @@ begin
     'cfg', jsonb_build_object('abiertas', baile_abiertas(), 'sombrero', baile_cfg('sombrero'), 'cierre', baile_cfg('cierre')::timestamptz,
       'baile', baile_t, 'horas', baile_cfg('horas')::int, 'minimo', baile_cfg('minimo')::int,
       'nota_libre', baile_cfg('nota_libre') = 'si', 'ahora', now()),
-    'resumen', jsonb_build_object('parejas', (select count(*) from baile_parejas),
-      'buscando', (select count(*) from baile_personas where estado = 'busca')),
+    'resumen', jsonb_build_object(
+      'parejas', (select count(*) from baile_parejas pa join baile_personas x on x.id = pa.a where x.casa <> 'Profesorado'),
+      'buscando', (select count(*) from baile_personas where estado = 'busca' and casa <> 'Profesorado')),
     'vetos', coalesce((select jsonb_agg(vetado_id) from baile_vetos where persona_id = me), '[]'));
 
   -- Pareja confirmada (y si era su admirador secreto y lo reveló)
@@ -436,9 +437,10 @@ begin
 
   -- ======== Sin cuenta
   if accion = 'resumen' then
-    return jsonb_build_object('parejas', (select count(*) from baile_parejas),
-      'buscando', (select count(*) from baile_personas where estado = 'busca'),
-      'personas', (select count(*) from baile_personas),
+    return jsonb_build_object(
+      'parejas', (select count(*) from baile_parejas pa join baile_personas x on x.id = pa.a where x.casa <> 'Profesorado'),
+      'buscando', (select count(*) from baile_personas where estado = 'busca' and casa <> 'Profesorado'),
+      'personas', (select count(*) from baile_personas where casa <> 'Profesorado'),
       'cierre', baile_cfg('cierre')::timestamptz, 'baile', baile_cfg('baile')::timestamptz);
   end if;
 
@@ -637,16 +639,18 @@ begin
     return coalesce((select jsonb_agg(jsonb_build_object('id', id, 'nombre', nombre, 'casa', casa, 'estado', estado) order by nombre)
                      from baile_personas where id <> me and (casa = 'Profesorado') = (yo.casa = 'Profesorado')), '[]');
 
-  elsif accion = 'sala' then                 -- ☕ Sala de profesores: quién está y qué parejas ya van juntas (sin fotos ni datos privados)
+  elsif accion = 'sala' then                 -- ☕ Sala de profesores: el chisme de los ALUMNOS (nada de otros profesores, sin fotos)
     if yo.casa <> 'Profesorado' then raise exception 'Solo para profesores'; end if;
     return jsonb_build_object(
       'personas', coalesce((select jsonb_agg(jsonb_build_object('nombre', nombre, 'casa', casa, 'estado', estado) order by casa, nombre)
-                            from baile_personas), '[]'),
+                            from baile_personas where casa <> 'Profesorado'), '[]'),
       'parejas', coalesce((select jsonb_agg(jsonb_build_object(
           'a', x.nombre, 'casa_a', x.casa, 'b', y.nombre, 'casa_b', y.casa) order by pa.id desc)
-        from baile_parejas pa join baile_personas x on x.id = pa.a join baile_personas y on y.id = pa.b), '[]'),
-      'invitaciones', (select count(*) from baile_invitaciones),
-      'regalos', (select count(*) from baile_secretos) + (select count(*) from baile_lechuzas));
+        from baile_parejas pa join baile_personas x on x.id = pa.a join baile_personas y on y.id = pa.b
+        where x.casa <> 'Profesorado' and y.casa <> 'Profesorado'), '[]'),
+      'invitaciones', (select count(*) from baile_invitaciones i join baile_personas x on x.id = i.de where x.casa <> 'Profesorado'),
+      'regalos', (select count(*) from baile_secretos z join baile_personas x on x.id = z.de where x.casa <> 'Profesorado')
+               + (select count(*) from baile_lechuzas l join baile_personas x on x.id = l.de where x.casa <> 'Profesorado'));
 
   elsif accion = 'modo' then                 -- 'busca' (busco pareja) o 'tiene' (ya tengo con quién ir)
     if yo.estado = 'pareja' then raise exception 'Ya tienes pareja confirmada'; end if;

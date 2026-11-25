@@ -1159,10 +1159,10 @@ function mandarRegalo(p) {
 }
 // ---- ☕ Sala de profesores: quién está y quién va con quién (sin fotos ni datos privados)
 function vistaSala(d) {
-  const alumnos = d.personas.filter((x) => !esProfe(x.casa)), profes = d.personas.filter((x) => esProfe(x.casa));
+  const alumnos = d.personas.filter((x) => !esProfe(x.casa));
   const ETQ = { busca: 'buscando', tiene: 'ya tiene con quién', pareja: 'va con alguien' };
   const fila = (x) => `<div class="sala-fila"><span style="flex:1">${esc(x.nombre)}</span><span class="estado e-${x.estado}">${ETQ[x.estado]}</span></div>`;
-  let h = orla('Sala de profesores') + `<p class="suave centro" style="margin-top:0">Un rincón para el profesorado: quién está en el baile y quién va con quién ☕</p>
+  let h = orla('Sala de profesores') + `<p class="suave centro" style="margin-top:0">Un rincón para el profesorado: qué alumnos están en el baile y quién va con quién ☕<br><span class="tenue">Lo de otros profesores es privado.</span></p>
     <div class="cifras"><div><b>${alumnos.length}</b><span>alumnos</span></div><div><b>${d.parejas.length}</b><span>parejas</span></div>
       <div><b>${alumnos.filter((x) => x.estado === 'busca').length}</b><span>buscando</span></div></div>
     <div class="tarjeta brillo"><h3>💃 Ya van juntos</h3>
@@ -1173,8 +1173,7 @@ function vistaSala(d) {
     h += `<details class="tarjeta"><summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px"><h3 style="flex:1">${c.e} ${c.id}</h3><span class="tenue">${l.length} ▾</span></summary>
       <div style="margin-top:8px">${l.length ? l.map(fila).join('') : '<p class="tenue">Nadie todavía</p>'}</div></details>`;
   }
-  h += `<div class="tarjeta"><h3>🎓 Profesorado (${profes.length})</h3><div style="margin-top:8px">${profes.map(fila).join('')}</div></div>
-    <p class="tenue centro">${d.invitaciones} ${d.invitaciones === 1 ? 'invitación enviada' : 'invitaciones enviadas'} · ${d.regalos} ${d.regalos === 1 ? 'regalo' : 'regalos'}</p>`;
+  h += `<p class="tenue centro">${d.invitaciones} ${d.invitaciones === 1 ? 'invitación enviada' : 'invitaciones enviadas'} · ${d.regalos} ${d.regalos === 1 ? 'regalo' : 'regalos'}</p>`;
   return h;
 }
 function vistaPrevia(yo) {
