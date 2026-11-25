@@ -5,7 +5,7 @@ actualizan solos en todos los celulares. Es un proyecto aparte del juego de
 Quidditch: vive en esta carpeta (`marcador/`) y se publica por separado, gratis,
 en Cloudflare.
 
-- **Página pública:** `https://marcador-casas.<tu-subdominio>.workers.dev/`
+- **Página pública:** https://marcador-casas.hogwarts-rol.workers.dev/
 - **Personal:** la misma dirección + `/personal`
 
 ## Cómo funciona (en palabras simples)
