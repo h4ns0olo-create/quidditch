@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Copa de las Casas</title>
+  <meta name="description" content="Marcador en vivo de los puntos de las cuatro casas.">
+  <meta name="theme-color" content="#0b0d2a">
+  <link rel="icon" href="icono.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&display=swap">
+  <link rel="stylesheet" href="estilo.css">
+  <link rel="stylesheet" href="marcador.css">
+</head>
+<body>
+  <div id="escena" aria-hidden="true"></div>
+
+  <header class="cabecera">
+    <div class="paisaje" id="paisaje" aria-hidden="true"></div>
+    <div class="vivo conectando" id="vivo" role="status">
+      <span class="punto" aria-hidden="true"></span><span class="txt">Conectando…</span>
+    </div>
+    <p class="antetitulo">✦ Puntos de las casas ✦</p>
+    <h1>Copa de las Casas</h1>
+  </header>
+
+  <div class="cinta-envoltura">
+    <div class="cinta pergamino">
+      <p id="ultimo" aria-live="polite">Aún no hay cambios</p>
+    </div>
+  </div>
+
+  <main class="tablero" id="tablero" aria-label="Puntos de cada casa"></main>
+
+  <footer class="pie">
+    <p>Los puntos se actualizan solos en todos los celulares.<br>No necesitas recargar la página.</p>
+    <a class="acceso" href="personal.html">Acceso del personal</a>
+  </footer>
+
+  <script src="escena.js"></script>
+  <script src="gemas.js"></script>
+  <script src="envivo.js"></script>
+  <script src="marcador.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "marcador-casas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Marcador público de puntos de las casas (Cloudflare Workers + Durable Objects)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node test/prueba-carga.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.158.0"
+  }
+}

@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Personal · Copa de las Casas</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b0d2a">
+  <link rel="icon" href="icono.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600;1,700&display=swap">
+  <link rel="stylesheet" href="estilo.css">
+  <link rel="stylesheet" href="personal.css">
+</head>
+<body>
+  <!-- ============ Entrada con contraseña ============ -->
+  <main id="vista-entrar" class="contenedor oculto">
+    <section class="panel piedra arco">
+      <p class="antetitulo">✦ Copa de las Casas ✦</p>
+      <h1>Acceso del personal</h1>
+      <form id="form-entrar" autocomplete="on">
+        <label for="clave">Contraseña</label>
+        <div class="campo-clave">
+          <input id="clave" name="password" type="password" autocomplete="current-password" required minlength="6" maxlength="200">
+          <button type="button" class="ver" id="ver-clave" aria-label="Mostrar contraseña">Ver</button>
+        </div>
+        <p class="mensaje error" id="error-entrar" role="alert"></p>
+        <button class="boton boton-dorado ancho" type="submit" id="boton-entrar">Entrar</button>
+      </form>
+      <a class="volver" href="index.html">← Ver el marcador</a>
+    </section>
+  </main>
+
+  <!-- ============ Panel ============ -->
+  <div id="vista-panel" class="oculto">
+    <header class="barra">
+      <div>
+        <p class="rol" id="rol">Curso</p>
+        <h1 id="nombre">—</h1>
+      </div>
+      <button class="boton boton-pequeno" id="salir" type="button">Salir</button>
+    </header>
+
+    <nav class="pestanas oculto" id="pestanas" aria-label="Secciones">
+      <button class="pestana activa" type="button" data-vista="puntos" aria-pressed="true">Puntos</button>
+      <button class="pestana" type="button" data-vista="registro" aria-pressed="false">Registro</button>
+    </nav>
+
+    <!-- ----- Sumar / restar ----- -->
+    <main id="vista-puntos" class="contenedor">
+      <div class="actuales" id="actuales" aria-label="Puntos actuales"></div>
+
+      <form id="form-cambio" class="panel piedra">
+        <div class="interruptor" role="group" aria-label="Sumar o restar">
+          <button type="button" class="modo activo" data-modo="sumar" aria-pressed="true">＋ Sumar</button>
+          <button type="button" class="modo" data-modo="restar" aria-pressed="false">− Restar</button>
+        </div>
+
+        <h2 class="etiqueta">Casa</h2>
+        <div class="casas" id="casas" role="group" aria-label="Elige la casa"></div>
+
+        <h2 class="etiqueta">Cantidad</h2>
+        <div class="cantidades" role="group" aria-label="Elige la cantidad">
+          <button type="button" class="opcion cantidad" data-cantidad="5">5</button>
+          <button type="button" class="opcion cantidad" data-cantidad="10">10</button>
+          <button type="button" class="opcion cantidad" data-cantidad="20">20</button>
+          <button type="button" class="opcion cantidad" data-cantidad="otra">Otra</button>
+        </div>
+        <div class="otra oculto" id="caja-otra">
+          <label for="otra">¿Cuántos puntos?</label>
+          <input id="otra" type="number" inputmode="numeric" min="1" step="1" placeholder="Ej.: 15">
+        </div>
+
+        <h2 class="etiqueta"><label for="motivo">Motivo</label></h2>
+        <input id="motivo" type="text" maxlength="200" placeholder="Ej.: respuesta brillante en clase" autocomplete="off">
+
+        <p class="resumen pergamino" id="resumen" aria-live="polite">Elige una casa y una cantidad</p>
+        <p class="mensaje error" id="error-cambio" role="alert"></p>
+        <button class="boton boton-dorado ancho grande" type="submit" id="confirmar" disabled>Confirmar y sumar</button>
+        <p class="nota" id="nota-maximo">Máximo 100 puntos por cambio.</p>
+      </form>
+    </main>
+
+    <!-- ----- Registro (directora y desarrollador) ----- -->
+    <main id="vista-registro" class="contenedor oculto">
+      <section id="herramientas" class="panel piedra oculto" aria-labelledby="titulo-herr">
+        <h2 id="titulo-herr">Herramientas</h2>
+        <p class="ayuda">Solo para la desarrolladora. Cada acción pide confirmación.</p>
+
+        <div class="herr">
+          <h3>Deshacer el último cambio</h3>
+          <button class="boton ancho" type="button" id="deshacer">Deshacer último cambio…</button>
+        </div>
+
+        <div class="herr">
+          <h3>Fijar un puntaje exacto</h3>
+          <div class="fila">
+            <select id="fijar-casa" aria-label="Casa"></select>
+            <input id="fijar-puntos" type="number" inputmode="numeric" min="0" step="1" placeholder="Puntos" aria-label="Puntos exactos">
+          </div>
+          <button class="boton ancho" type="button" id="fijar">Fijar puntaje…</button>
+        </div>
+
+        <div class="herr">
+          <h3>Máximo de puntos por cambio</h3>
+          <div class="fila">
+            <input id="maximo" type="number" inputmode="numeric" min="1" max="1000" step="1" aria-label="Máximo por cambio">
+            <button class="boton" type="button" id="guardar-maximo">Guardar</button>
+          </div>
+        </div>
+
+        <div class="herr">
+          <h3>Reiniciar todos los puntos</h3>
+          <button class="boton boton-peligro ancho" type="button" id="reiniciar">Reiniciar todo a 0…</button>
+        </div>
+      </section>
+
+      <section class="panel piedra">
+        <div class="cabeza-registro">
+          <h2>Registro de cambios</h2>
+          <button class="boton boton-pequeno" type="button" id="actualizar-registro">Actualizar</button>
+        </div>
+        <p class="ayuda" id="ayuda-registro">Solo lectura.</p>
+        <ol class="registro" id="lista-registro"></ol>
+        <button class="boton ancho oculto" type="button" id="mas-registro">Ver más antiguos</button>
+      </section>
+    </main>
+  </div>
+
+  <!-- Aviso flotante -->
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+  <!-- Ventana de confirmación -->
+  <dialog id="dialogo" class="piedra">
+    <form method="dialog">
+      <h2 id="dialogo-titulo">¿Seguro?</h2>
+      <p id="dialogo-texto"></p>
+      <div id="dialogo-campo" class="oculto">
+        <label for="dialogo-input" id="dialogo-etiqueta"></label>
+        <input id="dialogo-input" type="text" autocomplete="off" autocapitalize="characters">
+      </div>
+      <div class="dialogo-botones">
+        <button class="boton" value="no" type="submit">Cancelar</button>
+        <button class="boton boton-dorado" value="si" type="submit" id="dialogo-si">Sí</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="gemas.js"></script>
+  <script src="envivo.js"></script>
+  <script src="personal.js"></script>
+</body>
+</html>

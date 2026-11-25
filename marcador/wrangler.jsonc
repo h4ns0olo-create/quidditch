@@ -1,0 +1,22 @@
+// Configuración de Cloudflare para el marcador de las casas.
+// No hay contraseñas aquí: se guardan como "secretos" en el panel de Cloudflare.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "marcador-casas",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-01",
+
+  // Las páginas (HTML, estilos, dibujos) se sirven gratis y sin límite.
+  "assets": {
+    "directory": "./public"
+  },
+
+  // El "guardián" de los puntos: un único objeto que guarda todo en SQLite
+  // y avisa en vivo a todos los celulares conectados.
+  "durable_objects": {
+    "bindings": [{ "name": "MARCADOR", "class_name": "Marcador" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Marcador"] }],
+
+  "observability": { "enabled": true }
+}

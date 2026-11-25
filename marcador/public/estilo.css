@@ -1,0 +1,131 @@
+/* =====================================================================
+   Tema visual compartido: noche mágica, piedra, pergamino y latón
+   ===================================================================== */
+:root {
+  color-scheme: dark;
+  --noche-1: #060a22;
+  --noche-2: #1a1748;
+  --noche-3: #3a2160;
+  --pergamino: #f1e2bf;
+  --pergamino-osc: #d9c393;
+  --tinta: #3b2a1a;
+  --dorado: #e2c46f;
+  --dorado-claro: #f6e3a3;
+  --dorado-osc: #a9832f;
+  --texto: #f3ead6;
+  --texto-suave: #cfc3ad;
+  --piedra: #1c1926;
+  --piedra-2: #262233;
+  --rubi: #c8102e;
+  --topacio: #f2b705;
+  --zafiro: #2f5fc4;
+  --esmeralda: #1e8a5a;
+  --ok: #5fd69a;
+  --peligro: #ff7a85;
+  --titulo: "Cinzel", "Times New Roman", serif;
+  --cuerpo: "Cormorant Garamond", Georgia, serif;
+  --ruido: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .62 0 0 0 0 .6 0 0 0 0 .68 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Colores de cada casa */
+.casa-gryffindor { --casa: #c8102e; --casa-claro: #ff7a85; --casa-brillo: rgba(255, 70, 90, .35); }
+.casa-hufflepuff { --casa: #f2b705; --casa-claro: #f7cd4a; --casa-brillo: rgba(242, 183, 5, .3); }
+.casa-ravenclaw  { --casa: #2f5fc4; --casa-claro: #8cb0ff; --casa-brillo: rgba(80, 130, 255, .35); }
+.casa-slytherin  { --casa: #1e8a5a; --casa-claro: #5fd69a; --casa-brillo: rgba(40, 190, 120, .32); }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--noche-1) linear-gradient(180deg, var(--noche-1), var(--noche-2) 55%, var(--noche-3)) fixed;
+  color: var(--texto);
+  font-family: var(--cuerpo);
+  font-size: 18px;
+  line-height: 1.4;
+  overflow-x: hidden;
+}
+
+/* Fondo dibujado (detrás de todo) */
+#escena {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+#escena svg { width: 100%; height: 100%; display: block; }
+.titila { animation: titilar 3s ease-in-out infinite alternate; }
+@keyframes titilar { from { opacity: 1; } to { opacity: .15; } }
+.ventana { animation: vela 3s ease-in-out infinite; }
+@keyframes vela { 0%, 100% { opacity: .95; } 45% { opacity: .55; } 50% { opacity: .85; } 70% { opacity: .4; } }
+.niebla { animation: niebla 38s ease-in-out infinite alternate; }
+.niebla.n2 { animation-duration: 52s; animation-direction: alternate-reverse; }
+@keyframes niebla { from { transform: translateX(-60px); } to { transform: translateX(60px); } }
+.reflejo { animation: reflejo 4s ease-in-out infinite alternate; }
+@keyframes reflejo { from { opacity: .5; transform: translateX(-4px); } to { opacity: 1; transform: translateX(4px); } }
+
+/* Títulos */
+h1, h2, h3, .titulo { font-family: var(--titulo); font-weight: 700; letter-spacing: .04em; margin: 0; }
+
+/* Piedra oscura con textura */
+.piedra {
+  background-color: rgba(28, 25, 38, .9);
+  background-image:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, .07), transparent 60%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .35)),
+    var(--ruido);
+}
+
+/* Pergamino */
+.pergamino {
+  background:
+    radial-gradient(130% 120% at 50% 50%, transparent 55%, rgba(120, 80, 30, .28)),
+    var(--ruido),
+    var(--pergamino);
+  background-blend-mode: normal, soft-light, normal;
+  color: var(--tinta);
+}
+
+/* Botones */
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.boton {
+  min-height: 48px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(226, 196, 111, .55);
+  background: rgba(38, 34, 51, .95);
+  color: var(--texto);
+  font-family: var(--titulo);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.boton:hover { border-color: var(--dorado); }
+.boton:focus-visible, .opcion:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid var(--dorado-claro);
+  outline-offset: 2px;
+}
+.boton:disabled { opacity: .45; cursor: not-allowed; }
+.boton-dorado {
+  background: linear-gradient(180deg, #f6e3a3, #e2c46f 45%, #b8933a);
+  color: #2a1c0c;
+  border-color: #fff0bf;
+  box-shadow: 0 4px 16px rgba(226, 196, 111, .3), inset 0 1px 0 rgba(255, 255, 255, .6);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .4);
+}
+.boton-peligro { border-color: rgba(255, 122, 133, .7); color: #ffd3d7; background: rgba(90, 16, 28, .75); }
+.boton-pequeno { min-height: 44px; padding: 6px 14px; font-size: 13px; }
+
+.oculto { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+  .titila, .ventana, .niebla, .reflejo { animation: none !important; }
+}
