@@ -72,7 +72,7 @@ siguiente. Al terminar, toca **Deploy**.
 |---|---|
 | `CLAVE_PROFESORES` | Todos los profesores (al entrar eligen su curso) |
 | `CLAVE_DIRECTORA` | Directora |
-| `CLAVE_DESARROLLADOR` | Tú (desarrolladora) |
+| `CLAVE_DESARROLLADOR` | Tú (desarrollador) |
 
 Con la clave de profesores, la pantalla pregunta "¿De qué curso eres?" y el
 registro anota ese curso en cada cambio. Los cursos son: Cuidado de criaturas
@@ -93,12 +93,12 @@ Reglas de las contraseñas:
 |---|---|---|---|
 | Profesores | ✔ | | |
 | Directora | ✔ | ✔ (solo lectura) | |
-| Desarrolladora | ✔ | ✔ | ✔ |
+| Desarrollador | ✔ | ✔ | ✔ |
 
-- Máximo 100 puntos por cambio para profesores y directora (la desarrolladora puede cambiarlo, hasta 1000). La desarrolladora no tiene límite por cambio.
+- Máximo 100 puntos por cambio para profesores y directora (el desarrollador puede cambiarlo, hasta 1000). El desarrollador no tiene límite por cambio.
 - Ninguna casa puede quedar en negativo.
 - El cielo sigue la hora de Argentina: amanecer (~6:45), día, atardecer (~18:45) y noche. Para ver otra hora: agregar `?hora=19` a la dirección.
-- El tubo es una regla fija: 1000 puntos = tubo lleno. Si una casa pasa ese número, la escala crece sola. La desarrolladora puede cambiar el 1000 en Registro → Herramientas.
+- El tubo es una regla fija: 1000 puntos = tubo lleno. Si una casa pasa ese número, la escala crece sola. El desarrollador puede cambiar el 1000 en Registro → Herramientas.
 - Tras 5 contraseñas equivocadas seguidas desde el mismo lugar, se bloquea 15 minutos.
 - Todo esto lo revisa el servidor, no solo la pantalla.
 

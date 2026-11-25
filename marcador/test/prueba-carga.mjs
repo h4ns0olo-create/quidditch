@@ -41,7 +41,7 @@ const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 // ---------------------------------------------------------------
 console.log("— Preparación");
 const dev = await entrar("desarrollador");
-ok(!!dev, "la desarrolladora entra con su contraseña");
+ok(!!dev, "el desarrollador entra con su contraseña");
 await api("/api/maximo", { token: dev, datos: { maximo: 100 } });
 const reinicio = await api("/api/reiniciar", { token: dev, datos: { confirmacion: "REINICIAR" } });
 ok(reinicio.ok, "reinicio a 0 (con la palabra REINICIAR)");
@@ -129,8 +129,8 @@ ok((await api("/api/deshacer", { token: dir, datos: {} })).status === 403, "la d
 ok((await api("/api/reiniciar", { token: curso, datos: { confirmacion: "REINICIAR" } })).status === 403, "un curso NO puede reiniciar");
 ok((await api("/api/maximo", { token: dir, datos: { maximo: 500 } })).status === 403, "la directora NO cambia el máximo");
 ok((await api("/api/cambio", { token: curso, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 101, motivo: "demasiado" } })).status === 400, "más de 100 por cambio: rechazado");
-const grande = await api("/api/cambio", { token: dev, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 250, motivo: "la desarrolladora no tiene límite" } });
-ok(grande.ok, "la desarrolladora SÍ puede sumar más de 100 de una vez");
+const grande = await api("/api/cambio", { token: dev, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 250, motivo: "el desarrollador no tiene límite" } });
+ok(grande.ok, "el desarrollador SÍ puede sumar más de 100 de una vez");
 await api("/api/cambio", { token: dev, datos: { casa: "ravenclaw", modo: "restar", cantidad: 250, motivo: "devolver" } });
 ok((await api("/api/cambio", { token: dir, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 101, motivo: "demasiado" } })).status === 400, "la directora NO puede pasar de 100");
 ok((await api("/api/cambio", { token: curso, datos: { casa: "ravenclaw", modo: "sumar", cantidad: 5.5, motivo: "decimal" } })).status === 400, "cantidades con decimales: rechazadas");
@@ -148,7 +148,7 @@ ok((await api("/api/reiniciar", { token: dev, datos: { confirmacion: "si" } })).
 console.log("— Capacidad del tubo");
 ok((await api("/api/estado")).capacidad === 1000, "por defecto, 1000 puntos llenan un tubo");
 ok((await api("/api/capacidad", { token: dir, datos: { capacidad: 2000 } })).status === 403, "la directora NO cambia la capacidad");
-ok((await api("/api/capacidad", { token: dev, datos: { capacidad: 2000 } })).ok && (await api("/api/estado")).capacidad === 2000, "la desarrolladora SÍ la cambia");
+ok((await api("/api/capacidad", { token: dev, datos: { capacidad: 2000 } })).ok && (await api("/api/estado")).capacidad === 2000, "el desarrollador SÍ la cambia");
 await api("/api/capacidad", { token: dev, datos: { capacidad: 1000 } });
 
 console.log("— Deshacer");

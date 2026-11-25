@@ -139,7 +139,7 @@
   });
 
   // ------------------------- Panel -------------------------
-  const NOMBRES_ROL = { curso: "Curso", directora: "Directora", desarrollador: "Desarrolladora" };
+  const NOMBRES_ROL = { curso: "Curso", directora: "Directora", desarrollador: "Desarrollador" };
 
   // Profesores: elegir de qué curso son
   function pedirCurso(datos) {
@@ -261,7 +261,7 @@
   function actualizarMaximo(m) {
     $("nota-maximo").textContent =
       sesion && sesion.sinLimite
-        ? `Como desarrolladora no tienes límite por cambio (los demás: máximo ${m}).`
+        ? `Como desarrollador no tienes límite por cambio (los demás: máximo ${m}).`
         : `Máximo ${plural(m)} por cambio.`;
     if (sesion && sesion.sinLimite) $("otra").removeAttribute("max");
     else $("otra").max = m;

@@ -46,7 +46,7 @@ const CURSOS = [
 
 // ---------- Reglas ----------
 const MAXIMO_POR_DEFECTO = 100;
-const MAXIMO_TOPE = 1000; // ni la desarrolladora puede poner un máximo mayor
+const MAXIMO_TOPE = 1000; // ni el desarrollador puede poner un máximo mayor
 const CAPACIDAD_POR_DEFECTO = 1000; // puntos que llenan un tubo
 const PUNTOS_TOPE = 999999; // ninguna casa puede pasar de aquí
 const LARGO_MIN_CLAVE = 6; // contraseñas más cortas se ignoran
@@ -162,7 +162,7 @@ export class Marcador extends DurableObject {
       // Herramientas: solo desarrollador.
       const herramientas = ["/api/deshacer", "/api/fijar", "/api/reiniciar", "/api/maximo", "/api/capacidad"];
       if (herramientas.includes(ruta)) {
-        if (cuenta.rol !== "desarrollador") return error(403, "Solo la desarrolladora puede usar esto.");
+        if (cuenta.rol !== "desarrollador") return error(403, "Solo el desarrollador puede usar esto.");
         if (ruta === "/api/deshacer" && metodo === "GET") return json({ pendiente: this.describirDeshacer() });
         if (metodo !== "POST") return error(405, "Método no permitido.");
         const datos = await leerJSON(request);
@@ -320,7 +320,7 @@ export class Marcador extends DurableObject {
       );
     }
     if (coincidencias.length > 1) {
-      return error(409, "Esa contraseña está repetida en dos cuentas. La desarrolladora debe cambiar una.");
+      return error(409, "Esa contraseña está repetida en dos cuentas. El desarrollador debe cambiar una.");
     }
 
     const cuenta = coincidencias[0];
@@ -367,7 +367,7 @@ export class Marcador extends DurableObject {
       rol: cuenta.rol,
       maximo: this.maximo(),
       capacidad: this.capacidad(),
-      sinLimite: cuenta.rol === "desarrollador", // la desarrolladora no tiene máximo por cambio
+      sinLimite: cuenta.rol === "desarrollador", // el desarrollador no tiene máximo por cambio
       puedeVerRegistro: cuenta.rol !== "curso",
       herramientas: cuenta.rol === "desarrollador",
     };
@@ -383,7 +383,7 @@ export class Marcador extends DurableObject {
     const casa = validarCasa(datos.casa);
     const modo = datos.modo === "restar" ? "restar" : datos.modo === "sumar" ? "sumar" : null;
     if (!modo) throw new ErrorUsuario("Elige sumar o restar.");
-    // La desarrolladora no tiene máximo por cambio (solo el tope total del marcador)
+    // El desarrollador no tiene máximo por cambio (solo el tope total del marcador)
     const maximo = cuenta.rol === "desarrollador" ? PUNTOS_TOPE : this.maximo();
     const cantidad = Number(datos.cantidad);
     if (!Number.isInteger(cantidad) || cantidad < 1) throw new ErrorUsuario("La cantidad debe ser un número entero mayor que 0.");
