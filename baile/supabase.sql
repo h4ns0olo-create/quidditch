@@ -340,8 +340,7 @@ declare
   i int;
   casas text[] := array['Gryffindor', 'Slytherin', 'Ravenclaw', 'Hufflepuff'];
   -- 🎁 Regalos permitidos (si quitas uno en regalos.js, quítalo también aquí). 'propio' = foto de tu propio regalo.
-  regalos text[] := array['rosa', 'rana', 'grajeas', 'ramillete', 'cerveza', 'bufanda', 'pluma', 'vela', 'cancion',
-                          'copo', 'pastel', 'snitch', 'lechuza', 'muerdago', 'varita', 'amortentia', 'carta', 'bola', 'propio'];
+  regalos text[] := array['rosa', 'rana', 'grajeas', 'ramillete', 'copo', 'pastel', 'snitch', 'lechuza', 'amortentia', 'propio'];
   fid bigint;
   tit text;
 begin

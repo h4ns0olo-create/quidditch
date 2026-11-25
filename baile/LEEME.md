@@ -11,7 +11,7 @@ datos se guardan gratis en **Supabase**.
 - **Que el Sombrero me ayude:** el Sombrero te presenta a la persona libre con la que más coincides (lo raro cuenta más:
   coincidir en "Metal" pesa más que en "Pizza"). **Solo propone si tienen al menos 3 cosas en común** (se cambia en
   `#admin`); si no hay nadie así, espera a que se registre más gente. Ves sus fotos, su casa, su frase y en qué coinciden.
-  - **Invitar al baile:** eliges un regalo de la lista (18 regalos dibujados, en `regalos.js`) **o tu propio regalo**
+  - **Invitar al baile:** eliges un regalo de la lista (9 regalos dibujados, en `regalos.js`) **o tu propio regalo**
     (foto + qué es), y un mensaje (frases hechas o uno propio de máx. 140 letras). La otra persona ve tu regalo y tu mensaje.
   - Si **los dos dicen que sí** → ¡pareja! (con celebración y los regalos van al buzón).
   - Si **cualquiera dice que no** → a la otra persona le sale "*Fulano ha rechazado tu invitación*" y a los dos se les
