@@ -351,8 +351,23 @@ begin
   perform baile_cancelar_invitaciones(y);
   update baile_solicitudes set estado = 'cancelada', visto = true
    where estado = 'pendiente' and (de in (x, y) or para in (x, y));
+  update baile_externas set estado = 'cancelada' where de in (x, y) and estado in ('pendiente', 'aceptada');
   insert into baile_parejas (a, b, origen) values (least(x, y), greatest(x, y), origen);
   update baile_personas set estado = 'pareja' where id in (x, y);
+end $$;
+
+-- 💌→🏰 La pareja de fuera crea su perfil: la invitación por link se convierte en una pareja de la página
+create or replace function baile_unir_externa(codigo_ text, me bigint) returns void
+language plpgsql set search_path = public as $$
+declare x baile_externas;
+begin
+  select * into x from baile_externas where codigo = codigo_ and estado in ('pendiente', 'aceptada');
+  if not found then raise exception 'Esa invitación ya no está disponible'; end if;
+  if exists (select 1 from baile_parejas where a = x.de or b = x.de) then raise exception 'Quien te invitó ya tiene otra pareja'; end if;
+  update baile_externas set estado = 'unida', respondida = coalesce(respondida, now()), visto = true where id = x.id;
+  perform baile_formar_pareja(x.de, me, 'invitacion');
+  insert into baile_lechuzas (de, para, regalo, nota, foto, titulo, musica, letra)       -- el regalo de la invitación llega a su buzón
+  values (x.de, me, x.regalo, x.nota, x.foto, x.titulo, x.musica, x.letra);
 end $$;
 
 -- Aceptar una invitación (con regalo y carta de vuelta)
@@ -450,7 +465,7 @@ begin
   j := j || jsonb_build_object('externa', (select jsonb_build_object('id', x.id, 'codigo', x.codigo, 'nombre', x.nombre, 'regalo', x.regalo,
       'nota', x.nota, 'titulo', x.titulo, 'foto', x.foto, 'musica', x.musica, 'letra', x.letra, 'estado', x.estado, 'respuesta', x.respuesta, 'visto', x.visto,
       'creada', x.creada, 'respondida', x.respondida)
-    from baile_externas x where x.de = me and x.estado <> 'cancelada' order by x.id desc limit 1));
+    from baile_externas x where x.de = me and x.estado not in ('cancelada', 'unida') order by x.id desc limit 1));
 
   -- ✂️ Hilo dorado: solicitud pendiente y resultados que aún no ha visto
   j := j || jsonb_build_object(
@@ -549,7 +564,7 @@ declare
   v text;
   i int;
   fid bigint;
-  casas text[] := array['Gryffindor', 'Slytherin', 'Ravenclaw', 'Hufflepuff', 'Profesorado'];
+  casas text[] := array['Gryffindor', 'Slytherin', 'Ravenclaw', 'Hufflepuff', 'Profesorado', 'Invitados'];
 begin
   perform pg_advisory_xact_lock(20261205);   -- una petición a la vez: nadie se queda con la misma pareja dos veces
   perform baile_caducar();
@@ -630,7 +645,9 @@ begin
     update baile_personas set fotos_ver = 1 where id = me;
     tok := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
     insert into baile_sesiones (token, persona_id) values (tok, me);
-    if p->>'estado' = 'tiene' and nullif(p->>'pareja_id', '') is not null then
+    if nullif(p->>'externa', '') is not null then   -- viene del link de su pareja: quedan como pareja de la página
+      perform baile_unir_externa(p->>'externa', me);
+    elsif p->>'estado' = 'tiene' and nullif(p->>'pareja_id', '') is not null then
       perform baile(jsonb_build_object('accion', 'pedir_pareja', 'token', tok, 'para', p->'pareja_id'));
     end if;
     return jsonb_build_object('token', tok, 'estado', baile_estado(me));
@@ -1045,7 +1062,7 @@ end $$;
 revoke execute on function baile_cfg(text), baile_regalos(), baile_norm(text), baile_compat(text, text, text, text),
   baile_compatibles(bigint, bigint), baile_mismo_grupo(bigint, bigint), baile_abiertas(), baile_publico(bigint), baile_comunes(bigint, bigint),
   baile_foto_regalo(bigint, jsonb), baile_musica(jsonb), baile_letra(jsonb), baile_caducar(), baile_cancelar_invitaciones(bigint), baile_limpiar_invitaciones(bigint),
-  baile_formar_pareja(bigint, bigint, text), baile_aceptar(bigint, jsonb), baile_perfiles(bigint), baile_estado(bigint)
+  baile_formar_pareja(bigint, bigint, text), baile_unir_externa(text, bigint), baile_aceptar(bigint, jsonb), baile_perfiles(bigint), baile_estado(bigint)
   from public, anon, authenticated;
 revoke execute on function baile(jsonb) from public;
 grant execute on function baile(jsonb) to anon, authenticated;

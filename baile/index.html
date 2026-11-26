@@ -98,6 +98,8 @@ select option{background:#0d1633}
 .casa-Hufflepuff[aria-pressed=true]{border-color:#ecb939;background:rgba(236,185,57,.2);box-shadow:inset 0 0 0 1px #ecb939}
 .casa-Profesorado[aria-pressed=true]{border-color:#b9a2f0;background:rgba(110,80,190,.32);box-shadow:inset 0 0 0 1px #b9a2f0}
 .i-Profesorado{background:rgba(110,80,190,.4);border-color:#a48be0;color:#efe6ff}
+.casa-Invitados[aria-pressed=true]{border-color:#f3cf88;background:rgba(243,207,136,.18);box-shadow:inset 0 0 0 1px #f3cf88}
+.i-Invitados{background:rgba(243,207,136,.2);border-color:#f3cf88;color:#fff4d6}
 .sala-fila{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--borde)}
 .sala-fila:first-child{border-top:0}
 .insignia{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:800;border:1px solid var(--borde)}
@@ -333,6 +335,7 @@ details.cancion .cuerpo{padding:0 14px 14px}
 const CASAS = [
   { id: 'Gryffindor', e: '🦁' }, { id: 'Slytherin', e: '🐍' }, { id: 'Ravenclaw', e: '🦅' }, { id: 'Hufflepuff', e: '🦡' },
   { id: 'Profesorado', e: '🎓', n: 'Soy profesor/a' },
+  { id: 'Invitados', e: '🌟', n: 'Soy invitado/a' },
 ];
 const esProfe = (c) => c === 'Profesorado';
 const CATALOGO = [
@@ -921,9 +924,10 @@ function entrar() {
 }
 
 // ====================================================================== Registro (por pasos)
-function registro() {
+function registro(desdeLink) {
   const R = { nombre: '', pin: '', pin2: '', casa: '', soy: '', voy_con: '', plan: '', frase: '', estado: '', pareja_id: '', fotos: [], intereses: [] };
-  const PASOS = ['cuenta', 'sobre', 'pareja', 'fotos', 'intereses'];
+  if (desdeLink) Object.assign(R, { nombre: desdeLink.nombre || '', casa: 'Invitados', estado: 'tiene', externa: desdeLink.codigo });
+  const PASOS = desdeLink ? ['cuenta', 'sobre', 'fotos', 'intereses'] : ['cuenta', 'sobre', 'pareja', 'fotos', 'intereses'];
   let paso = 0;
   const busca = () => R.estado === 'busca';
   function pintar() {
@@ -934,7 +938,7 @@ function registro() {
       <div class="tarjeta brillo" id="paso"></div>
       <div class="pila"><button class="btn ${paso === PASOS.length - 1 ? 'carmesi' : ''}" id="seguir">${paso === PASOS.length - 1 ? '🎩 ¡Listo, entrar al baile!' : 'Siguiente'}</button>
       ${id === 'intereses' && !busca() ? '<button class="btn2" id="saltar">Saltar este paso</button>' : ''}</div>`;
-    $('#volver').addEventListener('click', () => { if (paso) { paso--; pintar(); } else portada(); });
+    $('#volver').addEventListener('click', () => { if (paso) { paso--; pintar(); } else if (desdeLink) paginaCarta(desdeLink.codigo); else portada(); });
     PINTAR[id]($('#paso'));
     $('#seguir').addEventListener('click', seguir);
     if ($('#saltar')) $('#saltar').addEventListener('click', () => { R.intereses = []; enviar(); });
@@ -943,6 +947,7 @@ function registro() {
   const PINTAR = {
     cuenta(c) {
       c.innerHTML = `<h2>Tu invitación</h2>
+        ${desdeLink ? `<div class="secreto-banda" style="margin-top:8px"><span style="font-size:1.5rem">💃</span><div>Entras al baile como pareja de <b>${esc(desdeLink.de)}</b>. Podrán mandarse regalos y cartas aquí dentro.</div></div>` : ''}
         <p class="suave">Con tu nombre y un PIN de 4 números podrás entrar desde cualquier celular.</p>
         <label class="campo" for="n">Tu nombre (como te conocen en la comunidad)</label>
         <input type="text" id="n" maxlength="30" value="${esc(R.nombre)}" autocomplete="username">
@@ -952,7 +957,8 @@ function registro() {
         </div>
         <label class="campo">Tu casa</label>
         <div class="opciones" id="casas">${CASAS.map((x) => `<button type="button" class="opcion casa-${x.id}" data-v="${x.id}" aria-pressed="${x.id === R.casa}"><span class="e">${x.e}</span>${x.n || x.id}</button>`).join('')}</div>
-        <p class="tenue">🎓 Si eres profesor/a, verás e invitarás solo a otros profesores, y tendrás tu propia <b>Sala de profesores</b> ☕</p>`;
+        <p class="tenue">🎓 Si eres profesor/a, verás e invitarás solo a otros profesores, y tendrás tu propia <b>Sala de profesores</b> ☕<br>
+        🌟 ¿No eres de la comunidad? Elige <b>Soy invitado/a</b>.</p>`;
       $('#n', c).addEventListener('input', (e) => (R.nombre = e.target.value));
       $('#p', c).addEventListener('input', (e) => (R.pin = e.target.value.replace(/\D/g, '')));
       $('#p2', c).addEventListener('input', (e) => (R.pin2 = e.target.value.replace(/\D/g, '')));
@@ -1648,6 +1654,7 @@ function conectar(E) {
     if (E.lechuzas.some((l) => !l.leida && !l.cerrada)) api({ accion: 'leer_lechuzas', token: S.token }).then((e) => (S.estado = e)).catch(() => {});
     if (E.secretos.some((x) => !x.leida)) api({ accion: 'leer_secretos', token: S.token }).then((e) => (S.estado = e)).catch(() => {});
   }
+  if (document.querySelector('.fiesta')) return;          // ya hay una celebración en pantalla: no repetirla
   if (E.pareja && E.pareja.nueva) celebrar(E);
   else if (E.externa && !E.externa.visto && E.externa.estado === 'aceptada') celebrarExterna(E);
   else if (E.externa && !E.externa.visto && E.externa.estado === 'rechazada') accion({ accion: 'visto', tipo: 'externa' }).catch(() => {});
@@ -1976,11 +1983,19 @@ function htmlCarta(d, codigo) {
     <div id="respuesta" style="margin-top:14px">${d.estado === 'pendiente'
       ? `<div class="fila"><button class="btn carmesi" id="carta-si">💌 ¡Sí, acepto!</button><button class="btn2" id="carta-no">Ahora no</button></div>
          <p class="tenue" style="margin-top:8px">Solo se puede responder una vez.</p>`
-      : d.estado === 'aceptada' ? `<p class="versalitas" style="font-size:1.15rem;color:var(--carmesi)">✨ ¡Aceptaste! Nos vemos en el baile ✨</p>${d.respuesta ? `<p class="tenue">Tu respuesta: “${esc(d.respuesta)}”</p>` : ''}`
+      : d.estado === 'aceptada' ? `<p class="versalitas" style="font-size:1.15rem;color:var(--carmesi)">✨ ¡Aceptaste! Nos vemos en el baile ✨</p>${d.respuesta ? `<p class="tenue">Tu respuesta: “${esc(d.respuesta)}”</p>` : ''}
+        <div class="regalo-grande" style="margin-top:14px;display:block;text-align:center"><b>🏰 ¿Quieres entrar tú también a la página?</b>
+          <p class="tenue" style="margin:4px 0 10px">Crea tu perfil: tendrás tu buzón, podrás mandarle regalos y cartas a ${esc(d.de)} y a tus amigos, y aparecerán como pareja.</p>
+          <button class="btn carmesi" id="carta-unirse">✨ Crear mi perfil</button></div>`
+      : d.estado === 'unida' ? `<p class="versalitas" style="font-size:1.15rem;color:var(--carmesi)">✨ Ya están juntos en la página ✨</p>
+        <button class="btn2" id="carta-entrar" style="margin-top:8px">Entrar con mi perfil</button>`
       : `<p class="suave">Respondiste que esta vez no. ¡Gracias por responder!</p>`}</div>
     <p class="tenue" style="margin-top:14px">Se ruega vestir para impresionar</p></div>`;
 }
 function conectarCarta(d, codigo) {
+  const un = $('#carta-unirse'), en = $('#carta-entrar');
+  if (un) un.addEventListener('click', () => registro({ codigo, nombre: d.nombre, de: d.de }));
+  if (en) en.addEventListener('click', () => { location.hash = ''; portada(); setTimeout(entrar, 0); });
   const si = $('#carta-si'), no = $('#carta-no'); if (!si) return;
   si.addEventListener('click', () => {
     const v = hoja(`<h2>💌 ¡Qué ilusión!</h2><p class="suave">¿Quieres dejarle un mensaje a ${esc(d.de)}? (opcional)</p>
@@ -1992,7 +2007,7 @@ function conectarCarta(d, codigo) {
       try {
         await api({ accion: 'externa_responder', codigo, acepta: true, respuesta: $('#resp', v).value });
         v.remove(); d.estado = 'aceptada'; d.respuesta = $('#resp', v).value.trim();
-        $('#dentro').innerHTML = htmlCarta(d, codigo); confeti();
+        $('#dentro').innerHTML = htmlCarta(d, codigo); conectarCarta(d, codigo); confeti();
       } catch (e) { toast(e.message, true); b.disabled = false; }
     });
   });

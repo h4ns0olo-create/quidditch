@@ -27,7 +27,9 @@ datos se guardan gratis en **Supabase**.
 - **Invitación por link 💌:** si tu pareja **no está en la comunidad**, en "Ya tengo con quién ir" creas una invitación con su
   nombre, un regalo y una carta, y te damos un **link** para mandárselo. Lo abre como un sobre con sello de lacre que se abre
   con una animación; puede responder **una sola vez** ("¡Sí, acepto!" con un mensaje, o "Ahora no"). Si acepta, cuentan como pareja.
-  Cualquiera con el link puede ver la invitación (la página lo advierte).
+  Cualquiera con el link puede ver la invitación (la página lo advierte). Después de aceptar, la pareja de fuera puede
+  **crear su perfil** (como "🌟 Invitado/a"): entra como pareja de la página y le llega el regalo de la invitación a su buzón.
+- **Gente de fuera:** cualquiera puede registrarse eligiendo "🌟 Soy invitado/a" en vez de una casa.
 - **Profesores 🎓:** en "Tu casa" hay un botón "Soy profesor/a". Los profesores solo ven e invitan a otros profesores
   (y solo les mandan regalos a ellos); los alumnos nunca ven ni invitan a profesores. Además tienen la pestaña
   **☕ Sala de profesores**: qué alumnos están registrados en cada casa, quién busca y qué parejas de alumnos ya van juntas
