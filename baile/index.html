@@ -143,6 +143,24 @@ select option{background:#0d1633}
 .carrusel .flecha[hidden]{display:none}
 .perfil-feed{margin:18px 0 34px}
 .cat-regalo{font-size:.95rem;margin:14px 0 8px;color:var(--hielo)}
+/* ✂️ El hilo dorado */
+.firma-pad{position:relative;margin-top:6px}
+.firma-pad canvas{display:block;width:100%;height:130px;border-radius:10px;touch-action:none;cursor:crosshair;
+  background:repeating-linear-gradient(180deg,transparent 0 96px,rgba(29,38,84,.35) 96px 97px,transparent 97px 130px),linear-gradient(180deg,#faf8fd,#ebe6f3)}
+.firma-pad .borrar{position:absolute;top:6px;right:8px;font-size:.8rem;color:var(--tinta-p2);text-decoration:underline}
+.firma-pad .x{position:absolute;left:12px;top:72px;font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--tinta-p2);pointer-events:none}
+.firma-img{display:block;max-width:220px;width:100%;margin:6px auto 0;border-bottom:1px solid rgba(29,38,84,.35)}
+.hilo-escena{position:relative;width:100%;max-width:340px;margin:20px auto 6px}
+.hilo-escena .nombres{display:flex;justify-content:space-between;font-family:'Almendra SC',serif;font-size:1.25rem;color:#fff;text-shadow:0 0 12px rgba(243,207,136,.6)}
+.hilo-escena svg{display:block;width:100%;height:auto;overflow:visible;filter:drop-shadow(0 0 6px rgba(243,207,136,.9))}
+.hilo-escena .mitad{transform-box:fill-box;transition:transform 1.4s ease-in,opacity 1.4s ease-in}
+.hilo-escena.cortado .izq{transform:translate(-14px,30px) rotate(-14deg);transform-origin:left center;opacity:.25}
+.hilo-escena.cortado .der{transform:translate(14px,30px) rotate(14deg);transform-origin:right center;opacity:.25}
+.tijeras{position:absolute;left:50%;top:-70px;margin-left:-26px;font-size:52px;line-height:1;animation:tijeras 1.1s ease-in forwards}
+@keyframes tijeras{0%{transform:translateY(0) rotate(-40deg);opacity:0}25%{opacity:1}75%{transform:translateY(78px) rotate(-90deg)}88%{transform:translateY(78px) rotate(-90deg) scale(1.25)}100%{transform:translateY(78px) rotate(-90deg) scale(1);opacity:1}}
+.chispa{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#ffe9a8;opacity:0}
+.hilo-escena.cortado .chispa{animation:chispa .9s ease-out forwards}
+@keyframes chispa{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--cx),var(--cy))}}
 /* 🎵 Canción que acompaña al regalo */
 .musica{margin-top:10px}
 .musica iframe{display:block;width:100%;border:0;border-radius:12px;background:#0d1638}
@@ -325,7 +343,7 @@ const CATALOGO = [
   { id: 'pelis', e: '🎬', n: 'Películas y series', ops: ['Fantasía', 'Terror', 'Comedia', 'Romance', 'Ciencia ficción', 'Anime', 'Acción', 'Animación', 'Misterio', 'Superhéroes', 'Dramas', 'Documentales'] },
   { id: 'hobbies', e: '✨', n: 'Hobbies', ops: ['Bailar', 'Cantar', 'Tocar un instrumento', 'Dibujar / Arte', 'Fotografía', 'Cocinar', 'Leer', 'Escribir', 'Videojuegos', 'Juegos de mesa', 'Manualidades', 'Viajar', 'Naturaleza', 'Ir al cine', 'Maratón de series', 'Salir de fiesta', 'Café y charla'] },
   { id: 'deporte', e: '⚽', n: 'Deportes', ops: ['Fútbol', 'Básquet', 'Vóley', 'Natación', 'Gimnasio', 'Correr', 'Baile', 'Artes marciales', 'Ciclismo', 'Yoga', 'Quidditch', 'Ninguno'] },
-  { id: 'asignatura', e: '🧪', n: 'Asignatura favorita de Hogwarts', ops: ['Pociones', 'Defensa Contra las Artes Oscuras', 'Encantamientos', 'Transformaciones', 'Herbología', 'Cuidado de Criaturas Mágicas', 'Adivinación', 'Astronomía', 'Historia de la Magia', 'Runas Antiguas', 'Aritmancia', 'Vuelo'] },
+  { id: 'asignatura', e: '🧪', n: 'Asignatura favorita de Hogwarts', ops: ['Cuidado de criaturas mágicas', 'Pociones (años mayores)', 'Pociones (años menores)', 'Historia de la magia', 'DCLAO', 'Encantamientos', 'Vuelo', 'Aparición', 'Aritmancia', 'Astronomía', 'Runas antiguas', 'Adivinación'] },
 ];
 const TODOS_REGALOS = window.REGALOS || [];
 const REGALOS = TODOS_REGALOS.filter((r) => !r.oculto);   // los que se pueden elegir
@@ -1074,7 +1092,11 @@ function navegacion(E) {
 // ---- Avisos y solicitudes
 function avisosHTML(E) {
   const hh = E.cfg.horas;
-  return E.avisos.map((a) => {
+  const r = E.ruptura_aviso;
+  const hilo = r && r.estado === 'rechazada' && r.soy === 'de'
+    ? `<div class="tarjeta aviso"><span class="e">🧵</span><div><h3>${esc(r.nombre)} prefirió no cortar el hilo dorado</h3><p class="suave">El hilo sigue intacto: siguen yendo juntos al baile.</p></div>
+      <button class="cerrar" data-aviso="ruptura" data-id="${r.id}" aria-label="Cerrar">×</button></div>` : '';
+  return hilo + E.avisos.map((a) => {
     let e = '💫', t = '', d = '';
     if (a.tipo === 'inv_rechazada') { e = '💌'; t = `${a.nombre} ha rechazado tu invitación`; d = 'Puedes invitar a otra persona cuando quieras.'; }
     else if (a.tipo === 'inv_caducada' && a.rol === 'de') { e = '⌛'; t = `Tu invitación a ${a.nombre} ha caducado`; d = `No respondió en ${hh} horas. No es un rechazo: ya puedes invitar a otra persona, o volver a invitarle.`; }
@@ -1329,7 +1351,95 @@ function bloquePareja(E) {
       <div class="contador" id="cuenta-baile"></div>
       <div class="pila"><button class="btn carmesi" id="lechuza">🦉 Mandarle una lechuza con un regalo</button>
       <button class="btn2" data-ir="buzon">📬 Ver mi buzón</button></div>
-    </div>`;
+      ${!E.ruptura ? `<button class="enlace" id="cortar-hilo" style="margin-top:12px;color:var(--tinta-p2);font-size:.9rem">✂️ Cortar el hilo dorado</button>` : ''}
+    </div>${bloqueRuptura(E)}`;
+}
+// ✂️ El hilo dorado: cuando dos personas aceptan ir juntas al baile, un hilo dorado invisible las une.
+// Solo las tijeras mágicas pueden cortarlo… y solo si las dos firman.
+function bloqueRuptura(E) {
+  const r = E.ruptura; if (!r) return '';
+  if (r.soy === 'de') return `<div class="tarjeta brillo centro"><div style="font-size:2rem">🧵✂️</div>
+      <h3>Pediste cortar el hilo dorado</h3><p class="suave">Esperando la firma de ${esc(r.nombre)}. Hasta que firme, el hilo sigue intacto.</p>
+      <button class="enlace" id="retirar-hilo">Retirar la solicitud</button></div>`;
+  return `<div class="invitacion centro">${estrellasEsquinas()}
+      <div style="font-size:2rem">🧵✂️</div>
+      <h3 style="font-family:'Almendra SC',serif;font-weight:400;font-size:1.45rem;color:var(--carmesi);margin:4px 14px 0">${esc(r.nombre)} quiere cortar el hilo dorado que los une</h3>
+      <p class="tenue">Solo las tijeras mágicas pueden cortarlo, y solo si los dos firman.</p>
+      <div class="carta-papel" style="display:block;text-align:left;animation:none"><b style="font-style:normal">Motivo:</b>\n${esc(r.motivo)}</div>
+      <p class="tenue" style="margin:10px 0 0">Firma de ${esc(r.nombre)}:</p><img class="firma-img" src="${esc(r.firma_de)}" alt="Firma de ${esc(r.nombre)}">
+      <div class="fila" style="margin-top:14px"><button class="btn carmesi" id="firmar-hilo">✍️ Firmar y cortar</button><button class="btn2" id="negar-hilo">No, sigamos juntos</button></div></div>`;
+}
+// Firma dibujada con el dedo
+function padFirma(cont) {
+  cont.innerHTML = `<div class="firma-pad"><canvas width="600" height="260"></canvas><span class="x">✗</span><button type="button" class="borrar">Borrar</button></div>`;
+  const c = cont.querySelector('canvas'), ctx = c.getContext('2d');
+  let dibujando = false, trazos = 0, ult = null;
+  const pos = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; };
+  ctx.lineWidth = 4.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1d2654';
+  c.addEventListener('pointerdown', (e) => { dibujando = true; ult = pos(e); c.setPointerCapture(e.pointerId); trazos++; });
+  c.addEventListener('pointermove', (e) => { if (!dibujando) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(...ult); ctx.lineTo(...p); ctx.stroke(); ult = p; });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => c.addEventListener(t, () => (dibujando = false)));
+  cont.querySelector('.borrar').addEventListener('click', () => { ctx.clearRect(0, 0, c.width, c.height); trazos = 0; });
+  return { vacio: () => trazos === 0, imagen: () => c.toDataURL('image/png') };
+}
+function pedirRuptura() {
+  const p = S.estado.pareja.persona;
+  const v = hoja(`<h2>✂️ Cortar el hilo dorado</h2>
+    <p class="suave">Cuando dos personas aceptan ir juntas al baile, un <b>hilo dorado</b> invisible las une. No cualquier tijera puede cortarlo:
+    solo las <b>tijeras mágicas</b>, y solo si <b>los dos firman</b>. ${esc(p.nombre)} recibirá tu solicitud con el motivo y tu firma.</p>
+    <label class="campo" for="motivo-hilo">Motivo</label><textarea id="motivo-hilo" maxlength="300" rows="3" placeholder="Escribe con cariño por qué quieres cortar el hilo…"></textarea>
+    <label class="campo">Tu firma</label><div id="pad-hilo"></div>
+    <div class="pila" style="margin-top:14px"><button class="btn carmesi" id="enviar-hilo">✂️ Enviar solicitud firmada</button><button class="btn2" id="cancelar-hilo">Cancelar</button></div>`);
+  const pad = padFirma($('#pad-hilo', v));
+  $('#cancelar-hilo', v).addEventListener('click', () => v.remove());
+  $('#enviar-hilo', v).addEventListener('click', async () => {
+    const motivo = $('#motivo-hilo', v).value.trim();
+    if (motivo.length < 3) return toast('Escribe el motivo', true);
+    if (pad.vacio()) return toast('Firma con el dedo en el recuadro', true);
+    const b = $('#enviar-hilo', v); b.disabled = true;
+    try { await accion({ accion: 'ruptura_pedir', motivo, firma: pad.imagen() }, `Solicitud enviada a ${p.nombre} 🧵`); v.remove(); pintar(); }
+    catch (e) { toast(e.message, true); b.disabled = false; }
+  });
+}
+function firmarRuptura() {
+  const r = S.estado.ruptura, yo = S.estado.yo.nombre;
+  const v = hoja(`<h2>✍️ Firmar y cortar el hilo</h2>
+    <p class="suave">Si firmas, las tijeras mágicas cortarán el hilo dorado y ${esc(r.nombre)} y tú volverán a ser libres para el baile.</p>
+    <label class="campo">Tu firma</label><div id="pad-hilo"></div>
+    <div class="pila" style="margin-top:14px"><button class="btn carmesi" id="firmar-ya">✂️ Firmar y cortar el hilo</button><button class="btn2" id="cancelar-hilo">Volver</button></div>`);
+  const pad = padFirma($('#pad-hilo', v));
+  $('#cancelar-hilo', v).addEventListener('click', () => v.remove());
+  $('#firmar-ya', v).addEventListener('click', async () => {
+    if (pad.vacio()) return toast('Firma con el dedo en el recuadro', true);
+    const b = $('#firmar-ya', v); b.disabled = true;
+    try { await accion({ accion: 'ruptura_responder', id: r.id, acepta: true, firma: pad.imagen() }); v.remove(); hiloCortado(yo, r.nombre); }
+    catch (e) { toast(e.message, true); b.disabled = false; }
+  });
+}
+// La escena de las tijeras mágicas cortando el hilo dorado
+function hiloCortado(a, b, rupturaId) {
+  if (rupturaId) accion({ accion: 'visto', tipo: 'ruptura', id: rupturaId }).catch(() => {});
+  const f = document.createElement('div');
+  f.className = 'fiesta';
+  const chispas = Array.from({ length: 12 }, (_, k) => { const ang = k * 30 * Math.PI / 180, d = 40 + (k % 3) * 18;
+    return `<span class="chispa" style="--cx:${Math.round(Math.cos(ang) * d)}px;--cy:${Math.round(Math.sin(ang) * d)}px"></span>`; }).join('');
+  f.innerHTML = `<div class="dentro">
+    <p class="sub">✦ Las tijeras mágicas ✦</p>
+    <div class="hilo-escena" id="escena"><div class="nombres"><span>${esc(a)}</span><span>${esc(b)}</span></div>
+      <div style="position:relative">
+        <svg viewBox="0 0 300 80" aria-hidden="true"><defs><linearGradient id="oro" x1="0" x2="1"><stop offset="0" stop-color="#fff4cf"/><stop offset=".5" stop-color="#f3cf88"/><stop offset="1" stop-color="#fff4cf"/></linearGradient></defs>
+          <path class="mitad izq" d="M10 40C60 8 100 72 150 40" stroke="url(#oro)" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+          <path class="mitad der" d="M150 40C200 8 240 72 290 40" stroke="url(#oro)" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+          <circle cx="10" cy="40" r="5" fill="#f3cf88"/><circle cx="290" cy="40" r="5" fill="#f3cf88"/></svg>
+        <span class="tijeras">✂️</span>${chispas}
+      </div></div>
+    <p id="texto-hilo" style="font-size:1.08rem;margin-top:18px;opacity:0;transition:opacity .8s">El hilo dorado se ha cortado.<br>${esc(a)} y ${esc(b)} vuelven a ser libres para el baile ✨</p>
+    <p class="tenue" id="texto-hilo2" style="opacity:0;transition:opacity .8s">Ojalá el Sombrero les tenga preparada otra historia bonita.</p>
+    <div style="margin-top:16px"><button class="btn2" id="ok-hilo">Cerrar</button></div></div>`;
+  document.body.appendChild(f);
+  setTimeout(() => { f.querySelector('#escena').classList.add('cortado'); }, 1000);
+  setTimeout(() => { f.querySelector('#texto-hilo').style.opacity = 1; f.querySelector('#texto-hilo2').style.opacity = 1; }, 2100);
+  f.querySelector('#ok-hilo').addEventListener('click', async () => { f.remove(); await refrescar(true); });
 }
 
 // ---- Buzón
@@ -1495,6 +1605,13 @@ function conectar(E) {
   on('#barajar', () => { S.saltados.clear(); $('#mazo').innerHTML = htmlMazo(S.estado); conectarMazo(); });
   on('[data-verpersona]', (b) => { const m = E.matches.find((x) => x.persona.id === +b.dataset.verpersona); if (m) verPersona(m.persona, m.comunes); });
   on('#externa-nueva', crearExterna);
+  on('#cortar-hilo', pedirRuptura);
+  on('#firmar-hilo', firmarRuptura);
+  on('#negar-hilo', async () => {
+    if (!confirm('¿Prefieres que sigan juntos? El hilo no se cortará.')) return;
+    try { await accion({ accion: 'ruptura_responder', id: E.ruptura.id, acepta: false }, 'El hilo dorado sigue intacto 🧵'); pintar(); } catch (e) { toast(e.message, true); }
+  });
+  on('#retirar-hilo', async () => { try { await accion({ accion: 'ruptura_cancelar' }, 'Solicitud retirada 🧵'); pintar(); } catch (e) { toast(e.message, true); } });
   on('#copiar-link', async () => { const i = $('#link-carta'); try { await navigator.clipboard.writeText(i.value); toast('📋 Link copiado'); } catch (e) { i.select(); document.execCommand('copy'); toast('📋 Link copiado'); } });
   on('#compartir-link', () => navigator.share({ title: 'Baile de Navidad', text: `💌 ${E.yo.nombre} tiene una invitación para ti`, url: $('#link-carta').value }).catch(() => {}));
   on('#cancelar-externa', async () => {
@@ -1534,6 +1651,7 @@ function conectar(E) {
   if (E.pareja && E.pareja.nueva) celebrar(E);
   else if (E.externa && !E.externa.visto && E.externa.estado === 'aceptada') celebrarExterna(E);
   else if (E.externa && !E.externa.visto && E.externa.estado === 'rechazada') accion({ accion: 'visto', tipo: 'externa' }).catch(() => {});
+  else if (E.ruptura_aviso && E.ruptura_aviso.estado === 'cortada' && !document.querySelector('.fiesta')) hiloCortado(E.ruptura_aviso.yo, E.ruptura_aviso.nombre, E.ruptura_aviso.id);
   else { const m = (E.matches || []).find((x) => x.nuevo); if (m && !document.querySelector('.fiesta')) celebrarMatch({ ...m.persona, comunes: m.comunes }, m.id); }
 }
 function conectarMazo() {

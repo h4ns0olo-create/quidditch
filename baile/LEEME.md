@@ -7,7 +7,7 @@ datos se guardan gratis en **Supabase**.
 - Cada persona crea su perfil: nombre, **PIN de 4 números**, casa, cómo se identifica, con quién le gustaría ir,
   **cómo le gustaría ir** (💞 en plan romántico, 🤝 en plan amistad o ✨ le da igual; se ve en su perfil),
   una frase, **de 1 a 3 fotos** e **intereses** (mínimo 8). En "Perfil" hay una **vista previa** de cómo te ven. Categorías: música, animales, comida, color, películas
-  y series, hobbies, deportes y asignatura favorita de Hogwarts; cada una con "Otro: escribe el tuyo".
+  y series, hobbies, deportes y asignatura favorita (las 12 de la comunidad); cada una con "Otro: escribe el tuyo".
 - **Ya tengo pareja:** eliges a tu pareja de la lista y ella lo confirma. Luego se pueden mandar regalos.
 - **El Sombrero Seleccionador 🎩:** te presenta **una persona a la vez**, empezando por las que más se parecen a ti
   (mismo grupo, los dos se sienten a gusto y **al menos 3 cosas en común**; se cambia en `#admin`). Deslizas la tarjeta
@@ -21,6 +21,9 @@ datos se guardan gratis en **Supabase**.
 - **Canción 🎵 (opcional) con cualquier regalo:** pegas un enlace de **YouTube** (eliges desde qué minuto suena) o de
   **Spotify** (suena desde el principio), y puedes escribir **la parte de la letra que le dedicas**. Quien lo recibe la escucha
   ahí mismo, con el reproductor dentro del regalo (buzón, invitaciones e invitación por link).
+- **Cortar el hilo dorado ✂️:** una pareja confirmada solo se deshace si **los dos firman**. Quien quiere cortarlo escribe
+  el motivo y firma con el dedo; la otra persona ve la solicitud (motivo + firma) y puede **firmar** (las tijeras mágicas
+  cortan el hilo con una animación y los dos quedan libres) o decir que prefiere seguir juntos.
 - **Invitación por link 💌:** si tu pareja **no está en la comunidad**, en "Ya tengo con quién ir" creas una invitación con su
   nombre, un regalo y una carta, y te damos un **link** para mandárselo. Lo abre como un sobre con sello de lacre que se abre
   con una animación; puede responder **una sola vez** ("¡Sí, acepto!" con un mensaje, o "Ahora no"). Si acepta, cuentan como pareja.

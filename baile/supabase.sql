@@ -171,8 +171,26 @@ alter table baile_invitaciones add column if not exists musica text, add column 
 alter table baile_lechuzas add column if not exists musica text, add column if not exists letra text;
 alter table baile_secretos add column if not exists musica text, add column if not exists letra text;
 alter table baile_externas add column if not exists musica text, add column if not exists letra text;
+-- ✂️ Cortar el hilo dorado: una pareja solo se deshace si los dos firman
+create table if not exists baile_rupturas (
+  id         bigint generated always as identity primary key,
+  de         bigint not null references baile_personas(id) on delete cascade,   -- quien lo pide
+  para       bigint not null references baile_personas(id) on delete cascade,   -- quien tiene que firmar
+  motivo     text not null,
+  firma_de   text not null,                       -- firma dibujada (imagen)
+  firma_para text,
+  estado     text not null default 'pendiente',   -- pendiente | cortada | rechazada | cancelada
+  visto_de   boolean not null default false,
+  visto_para boolean not null default false,
+  creada     timestamptz not null default now(),
+  cerrada    timestamptz
+);
 create index if not exists baile_invitaciones_estado on baile_invitaciones (estado);
 create index if not exists baile_lechuzas_para on baile_lechuzas (para);
+
+-- Asignaturas: "Defensa Contra las Artes Oscuras" pasa a llamarse DCLAO (se conserva en los perfiles que ya la tenían)
+update baile_personas set intereses = array_replace(intereses, 'asignatura:defensa-contra-las-artes-oscuras', 'asignatura:dclao')
+ where 'asignatura:defensa-contra-las-artes-oscuras' = any (intereses);
 
 -- Lo de la versión anterior (propuestas del Sombrero) ya no se usa
 drop function if exists baile_repartir();
@@ -195,9 +213,10 @@ alter table baile_bloqueos     enable row level security;
 alter table baile_votos        enable row level security;
 alter table baile_matches      enable row level security;
 alter table baile_externas     enable row level security;
+alter table baile_rupturas     enable row level security;
 revoke all on baile_config, baile_personas, baile_fotos, baile_sesiones, baile_vetos, baile_parejas, baile_solicitudes,
-  baile_invitaciones, baile_lechuzas, baile_regalo_fotos, baile_secretos, baile_bloqueos, baile_votos, baile_matches, baile_externas
-  from anon, authenticated;
+  baile_invitaciones, baile_lechuzas, baile_regalo_fotos, baile_secretos, baile_bloqueos, baile_votos, baile_matches, baile_externas,
+  baile_rupturas from anon, authenticated;
 
 -- ---------------------------------------------------------------- Ayudantes
 create or replace function baile_cfg(k text) returns text
@@ -428,6 +447,17 @@ begin
       'creada', x.creada, 'respondida', x.respondida)
     from baile_externas x where x.de = me and x.estado <> 'cancelada' order by x.id desc limit 1));
 
+  -- ✂️ Hilo dorado: solicitud pendiente y resultados que aún no ha visto
+  j := j || jsonb_build_object(
+    'ruptura', (select jsonb_build_object('id', r.id, 'soy', case when r.de = me then 'de' else 'para' end,
+        'nombre', (select nombre from baile_personas where id = case when r.de = me then r.para else r.de end),
+        'motivo', r.motivo, 'firma_de', r.firma_de, 'creada', r.creada)
+      from baile_rupturas r where r.estado = 'pendiente' and (r.de = me or r.para = me) order by r.id desc limit 1),
+    'ruptura_aviso', (select jsonb_build_object('id', r.id, 'estado', r.estado, 'soy', case when r.de = me then 'de' else 'para' end,
+        'yo', yo.nombre, 'nombre', (select nombre from baile_personas where id = case when r.de = me then r.para else r.de end))
+      from baile_rupturas r where r.estado in ('cortada', 'rechazada')
+        and ((r.de = me and not r.visto_de) or (r.para = me and not r.visto_para)) order by r.id desc limit 1));
+
   -- Invitaciones
   j := j || jsonb_build_object(
     'recibidas', coalesce((select jsonb_agg(jsonb_build_object('id', i.id, 'persona', baile_publico(i.de),
@@ -635,6 +665,9 @@ begin
       if (p->>'a')::bigint = (p->>'b')::bigint then raise exception 'Elige dos personas distintas'; end if;
       perform baile_formar_pareja((p->>'a')::bigint, (p->>'b')::bigint, 'admin');
     elsif accion = 'admin_deshacer' then
+      update baile_rupturas set estado = 'cancelada', cerrada = now()
+       where estado = 'pendiente' and (de in (select a from baile_parejas where id = (p->>'pareja')::bigint union select b from baile_parejas where id = (p->>'pareja')::bigint)
+                                    or para in (select a from baile_parejas where id = (p->>'pareja')::bigint union select b from baile_parejas where id = (p->>'pareja')::bigint));
       update baile_personas set estado = 'busca'
        where id in (select a from baile_parejas where id = (p->>'pareja')::bigint
                     union select b from baile_parejas where id = (p->>'pareja')::bigint);
@@ -833,6 +866,38 @@ begin
       return baile_estado(me) || jsonb_build_object('match_con', baile_publico(otro) || jsonb_build_object('comunes', to_jsonb(baile_comunes(me, otro))));
     end if;
 
+  elsif accion = 'ruptura_pedir' then        -- ✂️ pedir cortar el hilo dorado (con motivo y firma)
+    select case when a = me then b else a end into otro from baile_parejas where a = me or b = me;
+    if otro is null then raise exception 'No tienes pareja confirmada'; end if;
+    if exists (select 1 from baile_rupturas where estado = 'pendiente' and (de in (me, otro) or para in (me, otro))) then
+      raise exception 'Ya hay una solicitud para cortar el hilo esperando firma';
+    end if;
+    if length(trim(coalesce(p->>'motivo', ''))) < 3 then raise exception 'Escribe el motivo'; end if;
+    if coalesce(p->>'firma', '') !~ '^data:image/(png|jpeg|webp);base64,' or length(p->>'firma') > 200000 then
+      raise exception 'Firma la solicitud antes de enviarla';
+    end if;
+    insert into baile_rupturas (de, para, motivo, firma_de) values (me, otro, left(trim(p->>'motivo'), 300), p->>'firma');
+
+  elsif accion = 'ruptura_cancelar' then     -- retirar la solicitud
+    update baile_rupturas set estado = 'cancelada', cerrada = now() where de = me and estado = 'pendiente';
+
+  elsif accion = 'ruptura_responder' then    -- firmar (se corta el hilo) o negarse
+    select de into otro from baile_rupturas where id = (p->>'id')::bigint and para = me and estado = 'pendiente';
+    if otro is null then raise exception 'Esa solicitud ya no está pendiente'; end if;
+    if (p->>'acepta')::boolean then
+      if coalesce(p->>'firma', '') !~ '^data:image/(png|jpeg|webp);base64,' or length(p->>'firma') > 200000 then
+        raise exception 'Firma para cortar el hilo';
+      end if;
+      update baile_rupturas set estado = 'cortada', firma_para = p->>'firma', cerrada = now(), visto_para = true
+       where id = (p->>'id')::bigint;
+      delete from baile_parejas where (a = me and b = otro) or (a = otro and b = me);
+      update baile_personas set estado = 'tiene' where id in (me, otro);
+      delete from baile_votos where (de = me and para = otro) or (de = otro and para = me);   -- el Sombrero no los vuelve a juntar solo
+      delete from baile_matches where a = least(me, otro) and b = greatest(me, otro);
+    else
+      update baile_rupturas set estado = 'rechazada', cerrada = now(), visto_para = true where id = (p->>'id')::bigint;
+    end if;
+
   elsif accion = 'externa_crear' then        -- 💌 invitación por link para tu pareja de fuera de la comunidad
     if yo.estado = 'pareja' then raise exception 'Ya tienes pareja confirmada'; end if;
     if exists (select 1 from baile_externas where de = me and estado = 'pendiente') then
@@ -902,6 +967,9 @@ begin
   elsif accion = 'visto' then
     if p->>'tipo' = 'match' then
       update baile_matches set visto_a = visto_a or a = me, visto_b = visto_b or b = me where id = (p->>'id')::bigint and (a = me or b = me);
+    elsif p->>'tipo' = 'ruptura' then
+      update baile_rupturas set visto_de = visto_de or de = me, visto_para = visto_para or para = me
+       where id = (p->>'id')::bigint and (de = me or para = me);
     elsif p->>'tipo' = 'externa' then
       update baile_externas set visto = true where de = me;
     elsif p->>'tipo' = 'solicitud_rechazada' then
