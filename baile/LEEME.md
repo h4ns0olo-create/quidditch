@@ -7,7 +7,7 @@ datos se guardan gratis en **Supabase**.
 - Cada persona crea su perfil: nombre, **PIN de 4 números**, casa, cómo se identifica, con quién le gustaría ir,
   **cómo le gustaría ir** (💞 en plan romántico, 🤝 en plan amistad o ✨ le da igual; se ve en su perfil),
   una frase, **de 1 a 3 fotos** e **intereses** (mínimo 8). En "Perfil" hay una **vista previa** de cómo te ven. Categorías: música, animales, comida, color, películas
-  y series, hobbies, deportes y asignatura favorita (las 12 de la comunidad); cada una con "Otro: escribe el tuyo".
+  y series, hobbies, deportes y asignatura favorita (las 11 de la comunidad); cada una con "Otro: escribe el tuyo".
 - **Ya tengo pareja:** eliges a tu pareja de la lista y ella lo confirma. Luego se pueden mandar regalos.
 - **El Sombrero Seleccionador 🎩:** te presenta **una persona a la vez**, empezando por las que más se parecen a ti
   (mismo grupo, los dos se sienten a gusto y **al menos 3 cosas en común**; se cambia en `#admin`). Deslizas la tarjeta

@@ -192,6 +192,11 @@ create index if not exists baile_lechuzas_para on baile_lechuzas (para);
 update baile_personas set intereses = array_replace(intereses, 'asignatura:defensa-contra-las-artes-oscuras', 'asignatura:dclao')
  where 'asignatura:defensa-contra-las-artes-oscuras' = any (intereses);
 
+-- Pociones vuelve a ser una sola asignatura (por si alguien eligió "años mayores" o "años menores")
+update baile_personas set intereses = (select array_agg(distinct case when i in ('asignatura:pociones-anos-mayores', 'asignatura:pociones-anos-menores')
+                                                                   then 'asignatura:pociones' else i end) from unnest(intereses) i)
+ where intereses && array['asignatura:pociones-anos-mayores', 'asignatura:pociones-anos-menores'];
+
 -- Lo de la versión anterior (propuestas del Sombrero) ya no se usa
 drop function if exists baile_repartir();
 drop function if exists baile_cancelar_propuesta(bigint);
