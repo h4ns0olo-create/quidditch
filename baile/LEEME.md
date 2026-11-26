@@ -18,6 +18,9 @@ datos se guardan gratis en **Supabase**.
   - Si rechaza → "*Fulano ha rechazado tu invitación*"; si no responde en **12 horas**, la invitación **caduca**.
 - **Regalos:** 23 dibujados (ramos de flores, pasteles, peluches de criaturas mágicas…), en `regalos.js`, cada uno con su
   descripción; o **tu propio regalo** (foto + qué es). Para quitar uno: bórralo en `regalos.js` y en `baile_regalos()` de `supabase.sql`.
+- **Canción 🎵 (opcional) con cualquier regalo:** pegas un enlace de **YouTube** (eliges desde qué minuto suena) o de
+  **Spotify** (suena desde el principio), y puedes escribir **la parte de la letra que le dedicas**. Quien lo recibe la escucha
+  ahí mismo, con el reproductor dentro del regalo (buzón, invitaciones e invitación por link).
 - **Invitación por link 💌:** si tu pareja **no está en la comunidad**, en "Ya tengo con quién ir" creas una invitación con su
   nombre, un regalo y una carta, y te damos un **link** para mandárselo. Lo abre como un sobre con sello de lacre que se abre
   con una animación; puede responder **una sola vez** ("¡Sí, acepto!" con un mensaje, o "Ahora no"). Si acepta, cuentan como pareja.

@@ -143,6 +143,19 @@ select option{background:#0d1633}
 .carrusel .flecha[hidden]{display:none}
 .perfil-feed{margin:18px 0 34px}
 .cat-regalo{font-size:.95rem;margin:14px 0 8px;color:var(--hielo)}
+/* 🎵 Canción que acompaña al regalo */
+.musica{margin-top:10px}
+.musica iframe{display:block;width:100%;border:0;border-radius:12px;background:#0d1638}
+.musica .yt{aspect-ratio:16/9}
+.musica .sp{height:152px}
+.musica .letra{margin-top:8px;padding:12px 14px;border-radius:12px;border-left:3px solid var(--rosa);background:rgba(163,32,58,.12);
+  font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:1.12rem;line-height:1.45;white-space:pre-wrap}
+.musica .letra:before{content:"🎶 ";font-style:normal}
+.invitacion .musica .letra{background:rgba(255,255,255,.5);color:var(--tinta-p)}
+details.cancion{margin-top:16px;border:1px solid var(--borde);border-radius:16px;background:rgba(214,228,250,.04)}
+details.cancion>summary{list-style:none;cursor:pointer;padding:13px 14px;font-weight:800}
+details.cancion>summary::-webkit-details-marker{display:none}
+details.cancion .cuerpo{padding:0 14px 14px}
 .carrusel.fijo .pistas{overflow:hidden;touch-action:pan-y}
 .carrusel img{-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
 /* 🎩 El Sombrero */
@@ -411,6 +424,38 @@ function dibujo(i) {
   if (i.regalo === 'propio') return `<img class="foto-regalo" data-fr="${+i.foto || ''}" alt="Foto del regalo">`;
   return `<span class="dib">${window.dibujoRegalo ? window.dibujoRegalo(i.regalo) : regalo(i.regalo).e}</span>`;
 }
+// 🎵 Canción: un enlace de YouTube (puede empezar en un segundo concreto) o de Spotify → 'yt:ID:seg' / 'sp:tipo:ID'
+function segundos(t) {
+  t = String(t || '').trim(); if (!t) return 0;
+  const p = t.split(':').map((x) => parseInt(x, 10) || 0);
+  return p.length === 1 ? p[0] : p.length === 2 ? p[0] * 60 + p[1] : p[0] * 3600 + p[1] * 60 + p[2];
+}
+function parseMusica(url, inicio) {
+  url = String(url || '').trim(); if (!url) return '';
+  let m = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (m) {
+    let s = segundos(inicio);
+    if (!s) { const t = url.match(/[?&#]t=(\d+)/); if (t) s = +t[1]; }
+    return 'yt:' + m[1] + (s ? ':' + Math.min(s, 99999) : '');
+  }
+  m = url.match(/open\.spotify\.com\/(?:intl-[a-z]{2}(?:-[a-zA-Z]{2})?\/)?(track|album|playlist)\/([A-Za-z0-9]{22})/) || url.match(/spotify:(track|album|playlist):([A-Za-z0-9]{22})/);
+  if (m) return 'sp:' + m[1] + ':' + m[2];
+  return null;
+}
+function reproductor(token) {
+  const t = String(token || '').split(':');
+  if (t[0] === 'yt' && /^[A-Za-z0-9_-]{11}$/.test(t[1])) {
+    const s = parseInt(t[2], 10) || 0;
+    return `<iframe class="yt" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen title="Canción"
+      src="https://www.youtube-nocookie.com/embed/${t[1]}?rel=0&playsinline=1${s ? '&start=' + s : ''}"></iframe>`;
+  }
+  if (t[0] === 'sp' && /^(track|album|playlist)$/.test(t[1]) && /^[A-Za-z0-9]{22}$/.test(t[2]))
+    return `<iframe class="sp" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" title="Canción"
+      src="https://open.spotify.com/embed/${t[1]}/${t[2]}?theme=0"></iframe>`;
+  return '';
+}
+const musicaHTML = (i) => i && i.musica ? `<div class="musica">${reproductor(i.musica)}${i.letra ? `<div class="letra">${esc(i.letra)}</div>` : ''}</div>` : '';
+
 // Carta: sobre cerrado que se abre al tocarlo
 function carta(nota, firma, abierta) {
   if (!nota) return '';
@@ -694,6 +739,17 @@ function elegirRegalo({ titulo, intro, frases, conSorpresa, conRevelar, conAnoni
       <textarea id="nota" maxlength="${MAX_NOTA}" rows="5" style="margin-top:10px" placeholder="Querid@…">${esc(frases[0])}</textarea>
       <div class="contar" id="contar"></div>`
     : `<div class="frases">${frases.map((f, i) => `<button type="button" class="frase" data-f="${i}" aria-pressed="${i === 0}">${esc(f)}</button>`).join('')}</div>`}
+    <details class="cancion"><summary>🎵 Acompáñalo con una canción <span class="tenue" style="font-weight:600">(opcional)</span></summary><div class="cuerpo">
+      <p class="tenue" style="margin-top:0">Pega el enlace de la canción de <b>YouTube</b> o <b>Spotify</b>.</p>
+      <input type="text" id="musica-url" placeholder="https://youtu.be/… o https://open.spotify.com/track/…" inputmode="url" autocomplete="off">
+      <div id="musica-yt" style="display:none"><label class="campo" for="musica-inicio">¿Desde qué parte quieres que suene? (min:seg)</label>
+        <input type="text" id="musica-inicio" placeholder="Ej.: 1:15" inputmode="numeric" style="max-width:160px"></div>
+      <p class="tenue" id="musica-sp" style="display:none">En Spotify la canción suena desde el principio. Si quieres elegir el momento exacto, usa un enlace de YouTube.</p>
+      <p class="tenue" id="musica-mal" style="display:none;color:var(--rojo)">Ese enlace no parece de YouTube ni de Spotify.</p>
+      <div id="musica-vista"></div>
+      <div id="musica-letra" style="display:none"><label class="campo" for="letra">La parte de la letra que le dedicas (opcional)</label>
+        <textarea id="letra" maxlength="300" rows="3" placeholder="Escribe aquí el pedacito de la canción que va para esa persona…"></textarea></div>
+    </div></details>
     ${conRevelar ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="revela" checked> 🤫 Contarle que los regalos en secreto eran míos</label>` : ''}
     ${conAnonimo ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="anonimo"> 🤫 Mandarlo en secreto (sin mi nombre)</label>` : ''}
     ${conSorpresa ? `<label class="interruptor" style="margin-top:14px"><input type="checkbox" id="sorpresa"> 🎁 Sorpresa: que lo abra el día del baile</label>` : ''}
@@ -716,6 +772,16 @@ function elegirRegalo({ titulo, intro, frases, conSorpresa, conRevelar, conAnoni
   });
   const nota = $('#nota', v), contar = () => { if (nota) $('#contar', v).textContent = `${nota.value.length} / ${MAX_NOTA}`; };
   if (nota) { nota.addEventListener('input', contar); contar(); }
+  let tMusica = null, ultima = '';
+  const verMusica = () => {
+    const url = $('#musica-url', v).value, tok = parseMusica(url, $('#musica-inicio', v).value);
+    $('#musica-yt', v).style.display = tok && tok.startsWith('yt') ? 'block' : 'none';
+    $('#musica-sp', v).style.display = tok && tok.startsWith('sp') ? 'block' : 'none';
+    $('#musica-mal', v).style.display = tok === null ? 'block' : 'none';
+    $('#musica-letra', v).style.display = tok ? 'block' : 'none';
+    if ((tok || '') !== ultima) { ultima = tok || ''; $('#musica-vista', v).innerHTML = tok ? `<div class="musica">${reproductor(tok)}</div>` : ''; }
+  };
+  ['#musica-url', '#musica-inicio'].forEach((id) => $(id, v).addEventListener('input', () => { clearTimeout(tMusica); tMusica = setTimeout(verMusica, 500); }));
   v.querySelectorAll('.frase').forEach((b) => b.addEventListener('click', () => {
     const f = frases[+b.dataset.f];
     if (nota) { nota.value = f; contar(); nota.focus(); }
@@ -733,6 +799,9 @@ function elegirRegalo({ titulo, intro, frases, conSorpresa, conRevelar, conAnoni
     if (conRevelar) extra.revela = $('#revela', v).checked;
     if (conSorpresa) extra.sorpresa = $('#sorpresa', v).checked;
     if (conAnonimo) extra.anonimo = $('#anonimo', v).checked;
+    const tok = parseMusica($('#musica-url', v).value, $('#musica-inicio', v).value);
+    if (tok === null) return toast('El enlace de la canción no es de YouTube ni de Spotify', true);
+    if (tok) { extra.musica = tok; extra.letra = $('#letra', v).value.trim(); }
     const btn = $('#enviar', v); btn.disabled = true;
     try { await alEnviar(reg, texto, extra); v.remove(); }
     catch (e) { toast(e.message, true); btn.disabled = false; }
@@ -1164,7 +1233,7 @@ function tarjetaEnviada(inv) {
   const info = { regalo: inv.regalo, titulo: inv.titulo, foto: inv.foto };
   return `<div class="tarjeta brillo"><div class="fila" style="align-items:center"><div style="flex:0 0 64px;height:64px">${dibujo(info)}</div>
       <div><h3>🦉 Invitaste a ${esc(inv.persona.nombre)}</h3><p class="tenue" style="margin:2px 0 0">Le mandaste ${esc(nombreRegalo(info))}${inv.revela ? ' y le contaste que los regalos en secreto eran tuyos 🤫' : ''}. Tiene hasta el ${esc(fecha(inv.vence))} para responder.</p></div></div>
-    ${carta(inv.nota, 'ti')}
+    ${carta(inv.nota, 'ti')}${musicaHTML(inv)}
     <div class="centro" style="margin-top:6px"><button class="enlace" id="cancelar-inv">Cancelar invitación</button></div></div>`;
 }
 
@@ -1283,7 +1352,7 @@ function vistaBuzon(E) {
   if (E.enviadas.length) {
     vacio = false;
     h += `<div class="tarjeta"><h3>📤 Lo que mandaste</h3>${E.enviadas.map((l) => `<div class="item"><span class="e">${dibujo(l)}</span><div><b>${esc(nombreRegalo(l))}</b>
-      <div class="tenue">para ${esc(l.para)} · ${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 sorpresa' : ''}</div>${carta(l.nota, 'ti')}</div></div>`).join('')}</div>`;
+      <div class="tenue">para ${esc(l.para)} · ${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 sorpresa' : ''}</div>${carta(l.nota, 'ti')}${musicaHTML(l)}</div></div>`).join('')}</div>`;
   }
   if (vacio) h += `<div class="tarjeta centro"><div style="font-size:2.4rem">📭</div><h3>Tu buzón está vacío por ahora</h3>
     <p class="suave">Aquí llegarán las invitaciones al baile, las cartas y los regalos ❄️</p></div>`;
@@ -1301,7 +1370,7 @@ function invitacionRecibida(inv) {
     </div>
     <div class="regalo-grande" style="margin-top:12px"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>
       <p class="tenue" style="margin:2px 0 0">${esc(inv.regalo === 'propio' ? 'Un regalo de ' + p.nombre : regalo(inv.regalo).d)}</p></div></div>
-    ${carta(inv.nota, p.nombre, true)}
+    ${carta(inv.nota, p.nombre, true)}${musicaHTML(inv)}
     <p class="tenue centro" style="margin-top:10px">Tienes hasta el ${esc(fecha(inv.vence))} para responder.</p>
     <div class="fila" style="margin-top:8px"><button class="btn carmesi" data-aceptar="${inv.id}">💌 Aceptar</button>
     <button class="btn2" data-rechazar="${inv.id}">No, gracias</button></div></div>`;
@@ -1312,13 +1381,13 @@ function itemBuzon(l) {
   const info = { regalo: l.regalo, titulo: l.titulo, foto: l.foto };
   return `<div class="item"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>${!l.leida ? '<span class="nuevo">nueva</span>' : ''}
     <div class="tenue">de ${esc(l.de)} · ${esc(fechaCorta(l.creada))}${l.sorpresa ? ' · 🎁 era sorpresa' : ''}</div>
-    ${carta(l.nota, l.de)}</div></div>`;
+    ${carta(l.nota, l.de)}${musicaHTML(l)}</div></div>`;
 }
 function itemSecreto(x) {
   const info = { regalo: x.regalo, titulo: x.titulo, foto: x.foto };
   const de = x.anonimo ? 'alguien en secreto 🤫' : x.de;
   return `<div class="item"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>${!x.leida ? '<span class="nuevo">nuevo</span>' : ''}
-    <div class="tenue">de ${esc(de)} · ${esc(fechaCorta(x.creada))}</div>${carta(x.nota, x.anonimo ? 'alguien en secreto' : x.de)}</div></div>`;
+    <div class="tenue">de ${esc(de)} · ${esc(fechaCorta(x.creada))}</div>${carta(x.nota, x.anonimo ? 'alguien en secreto' : x.de)}${musicaHTML(x)}</div></div>`;
 }
 
 // ---- Regalos: para quien quieras, con tu nombre o en secreto
@@ -1337,7 +1406,7 @@ function vistaRegalos(E) {
     const info = { regalo: x.regalo, titulo: x.titulo, foto: x.foto };
     return `<div class="item"><span class="e">${dibujo(info)}</span><div><b>${esc(nombreRegalo(info))}</b>
       <div class="tenue">para ${esc(x.para)} · ${x.anonimo ? '🤫 en secreto' : 'con tu nombre'} · ${esc(fechaCorta(x.creada))}${x.leida ? ' · visto 👀' : ''}${x.bloqueado ? ' · no quiere recibir más' : ''}</div>
-      ${carta(x.nota, 'ti')}</div></div>`; }).join('')}</div>`;
+      ${carta(x.nota, 'ti')}${musicaHTML(x)}</div></div>`; }).join('')}</div>`;
   return h;
 }
 async function elegirDestinatario() {
@@ -1785,7 +1854,7 @@ function htmlCarta(d, codigo) {
     <p class="versalitas" style="margin-top:8px">5 de diciembre · Gran Comedor</p>
     <div class="regalo-grande" style="margin-top:14px;text-align:left"><span class="e">${regaloImg}</span><div><b>${esc(nombreRegalo(info))}</b>
       <p class="tenue" style="margin:2px 0 0">${esc(d.regalo === 'propio' ? 'Un regalo de ' + d.de : regalo(d.regalo).d)}</p></div></div>
-    ${carta(d.nota, d.de, true)}
+    ${carta(d.nota, d.de, true)}${musicaHTML(d)}
     <div id="respuesta" style="margin-top:14px">${d.estado === 'pendiente'
       ? `<div class="fila"><button class="btn carmesi" id="carta-si">💌 ¡Sí, acepto!</button><button class="btn2" id="carta-no">Ahora no</button></div>
          <p class="tenue" style="margin-top:8px">Solo se puede responder una vez.</p>`
