@@ -1038,7 +1038,8 @@ function vistaInicio(E) {
   if (E.enviada) h += tarjetaEnviada(E.enviada);
   if (E.matches.length) h += bloqueMatches(E);
   h += `<div id="mazo">${htmlMazo(E)}</div>`;
-  h += `<div class="centro" style="margin-top:10px"><button class="enlace" id="ya-tengo">En realidad ya tengo con quién ir</button></div>`;
+  h += `<div class="tarjeta centro" style="margin-top:14px"><p class="suave" style="margin:0 0 10px">¿Ya tienes con quién ir? ¿O tu pareja no está en la comunidad?</p>
+    <button class="btn2" id="ya-tengo">💃 Ya tengo con quién ir · 💌 Invitación por link</button></div>`;
   return h;
 }
 // Tus matches: aquí se desbloquea la invitación con regalo y carta
@@ -1211,6 +1212,18 @@ function bloqueParejaExterna(E) {
       <div class="contador" id="cuenta-baile"></div>
       <a class="enlace" style="color:var(--tinta-p)" href="${esc(linkCarta(x.codigo))}" target="_blank" rel="noopener">Ver la invitación que le mandaste</a>
     </div>`;
+}
+// "Ya tengo con quién ir": ¿está en la comunidad o es de fuera?
+function yaTengo() {
+  const v = hoja(`<h2>💃 ¿Con quién vas al baile?</h2>
+    <div class="opciones" style="grid-template-columns:1fr;margin-top:12px">
+      <button type="button" class="opcion" id="yt-dentro"><span class="e">🏰</span>Está en la comunidad<br><span class="tenue" style="font-weight:600">Le pediremos que lo confirme</span></button>
+      <button type="button" class="opcion" id="yt-fuera"><span class="e">💌</span>No está en la comunidad<br><span class="tenue" style="font-weight:600">Le mandas una invitación por link</span></button>
+    </div>
+    <div style="margin-top:12px"><button class="btn2" id="yt-cancelar">Cancelar</button></div>`);
+  $('#yt-cancelar', v).addEventListener('click', () => v.remove());
+  $('#yt-dentro', v).addEventListener('click', () => { v.remove(); elegirMiPareja(); });
+  $('#yt-fuera', v).addEventListener('click', () => { v.remove(); crearExterna(); });
 }
 function crearExterna() {
   const v = hoja(`<h2>💌 Invitación para tu pareja</h2>
@@ -1407,7 +1420,7 @@ function conectar(E) {
     try { await accion({ accion: 'bloquear_secreto', id: +b.dataset.bloq }, 'Listo, ya no recibirás más de esa persona'); pintar(); } catch (e) { toast(e.message, true); }
   });
   on('#lechuza', mandarLechuza);
-  on('#ya-tengo', elegirMiPareja);
+  on('#ya-tengo', yaTengo);
   on('#cambiar-pareja', elegirMiPareja);
   on('#mandar-regalo', elegirDestinatario);
   on('#barajar', () => { S.saltados.clear(); $('#mazo').innerHTML = htmlMazo(S.estado); conectarMazo(); });
