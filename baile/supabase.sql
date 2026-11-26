@@ -200,9 +200,9 @@ language sql stable set search_path = public as $$ select valor from baile_confi
 -- 🎁 Regalos permitidos (si quitas uno en regalos.js, quítalo también aquí). 'propio' = foto de tu propio regalo.
 create or replace function baile_regalos() returns text[]
 language sql immutable as $$
-  select array['ramo_rosas', 'ramo_tulipanes', 'ramo_margaritas', 'ramo_girasoles', 'ramo_lirios', 'ramo_mixto', 'rosa', 'ramillete',
+  select array['ramo_rosas', 'ramo_tulipanes', 'ramo_margaritas', 'ramo_girasoles', 'ramo_lirios', 'rosa',
                'pastel', 'pastel_chocolate', 'tres_leches', 'pastel_fresas', 'pie_limon', 'rana', 'grajeas',
-               'lechuza', 'gato', 'conejo', 'crup', 'kneazle', 'escarbato', 'micropuff', 'hipogrifo', 'fenix',
+               'lechuza', 'gato', 'conejo', 'crup', 'micropuff', 'hipogrifo', 'fenix',
                'snitch', 'copo', 'amortentia', 'propio']
 $$;
 
@@ -368,7 +368,7 @@ begin
   select * into yo from baile_personas where id = me;
   j := jsonb_build_object(
     'yo', baile_publico(me) || jsonb_build_object('soy', yo.soy, 'voy_con', yo.voy_con, 'estado', yo.estado),
-    'limite_regalos', 5,
+    'limite_regalos', 10,
     'cfg', jsonb_build_object('abiertas', baile_abiertas(), 'sombrero', baile_cfg('sombrero'), 'cierre', baile_cfg('cierre')::timestamptz,
       'baile', baile_t, 'horas', baile_cfg('horas')::int, 'minimo', baile_cfg('minimo')::int,
       'nota_libre', baile_cfg('nota_libre') = 'si', 'ahora', now()),
@@ -917,8 +917,8 @@ begin
     if otro is null or otro = me or not exists (select 1 from baile_personas where id = otro) then raise exception 'Elige a quién se lo mandas'; end if;
     if not baile_mismo_grupo(me, otro) then raise exception 'Profesores con profesores y alumnos con alumnos 🎓'; end if;
     if exists (select 1 from baile_bloqueos where para = otro and de = me) then raise exception 'Esa persona prefiere no recibir regalos tuyos'; end if;
-    if (select count(*) from baile_secretos where de = me and creada > now() - interval '1 day') >= 5 then
-      raise exception 'Ya mandaste 5 regalos hoy 🎁 Mañana puedes mandar más.';
+    if (select count(*) from baile_secretos where de = me and creada > now() - interval '1 day') >= 10 then
+      raise exception 'Ya mandaste 10 regalos hoy 🎁 Mañana puedes mandar más.';
     end if;
     fid := baile_foto_regalo(me, p);
     insert into baile_secretos (de, para, regalo, nota, foto, titulo, anonimo)
