@@ -9,15 +9,19 @@ datos se guardan gratis en **Supabase**.
   una frase, **de 1 a 3 fotos** e **intereses** (mínimo 8). En "Perfil" hay una **vista previa** de cómo te ven. Categorías: música, animales, comida, color, películas
   y series, hobbies, deportes y asignatura favorita de Hogwarts; cada una con "Otro: escribe el tuyo".
 - **Ya tengo pareja:** eliges a tu pareja de la lista y ella lo confirma. Luego se pueden mandar regalos.
-- **Buscar pareja:** al entrar vas bajando y aparecen los perfiles de las personas compatibles contigo (los dos se
-  sienten a gusto yendo juntos y tienen **al menos 3 cosas en común**; se cambia en `#admin`). Quienes más se parecen a ti
-  salen primero. Cada perfil: fotos (con flechitas ‹ › o deslizando), nombre, casa, frase y en qué coinciden.
-  - **Invitar al baile:** eliges un regalo de la lista (9 regalos dibujados, en `regalos.js`) **o tu propio regalo**
-    (foto + qué es), y una **carta** (hasta 500 letras). Llega como un sobre con sello de lacre que se abre al tocarlo.
-  - Solo puedes tener **una invitación pendiente** a la vez (esperas la respuesta o la cancelas). Recibir, puedes varias.
-  - Si la otra persona **acepta** (con un regalo y carta de vuelta) → ¡pareja! Si te había invitado y tú la invitas, es pareja directa.
-  - Si **rechaza** → te sale "*Fulano ha rechazado tu invitación*" y ya no le puedes volver a invitar.
-  - Si no responde en **12 horas**, la invitación **caduca** ("*Tu invitación a Fulano ha caducado*", que no es un rechazo).
+- **El Sombrero Seleccionador 🎩:** te presenta **una persona a la vez**, empezando por las que más se parecen a ti
+  (mismo grupo, los dos se sienten a gusto y **al menos 3 cosas en común**; se cambia en `#admin`). Deslizas la tarjeta
+  (o tocas los botones): **💚 me gusta** o **✖️ paso**. Las fotos se pasan con las flechitas o tocando los lados de la foto.
+  Nadie ve a quién pasas. Cuando ya viste a todos, el Sombrero **vuelve a barajar** y te enseña otra vez a quienes pasaste.
+  - **¡Match!** Si los dos se dan 💚, sale la pantalla de match y se desbloquea la **invitación con regalo y carta**.
+    Solo puedes tener una invitación pendiente a la vez. Si acepta (con regalo y carta de vuelta) → ¡van juntos al baile!
+  - Si rechaza → "*Fulano ha rechazado tu invitación*"; si no responde en **12 horas**, la invitación **caduca**.
+- **Regalos:** 23 dibujados (ramos de flores, pasteles, peluches de criaturas mágicas…), en `regalos.js`, cada uno con su
+  descripción; o **tu propio regalo** (foto + qué es). Para quitar uno: bórralo en `regalos.js` y en `baile_regalos()` de `supabase.sql`.
+- **Invitación por link 💌:** si tu pareja **no está en la comunidad**, en "Ya tengo con quién ir" creas una invitación con su
+  nombre, un regalo y una carta, y te damos un **link** para mandárselo. Lo abre como un sobre con sello de lacre que se abre
+  con una animación; puede responder **una sola vez** ("¡Sí, acepto!" con un mensaje, o "Ahora no"). Si acepta, cuentan como pareja.
+  Cualquiera con el link puede ver la invitación (la página lo advierte).
 - **Profesores 🎓:** en "Tu casa" hay un botón "Soy profesor/a". Los profesores solo ven e invitan a otros profesores
   (y solo les mandan regalos a ellos); los alumnos nunca ven ni invitan a profesores. Además tienen la pestaña
   **☕ Sala de profesores**: qué alumnos están registrados en cada casa, quién busca y qué parejas de alumnos ya van juntas
@@ -25,7 +29,7 @@ datos se guardan gratis en **Supabase**.
 - **Barra de abajo:** Inicio · Buzón (invitaciones, cartas y regalos) · Regalos · Perfil.
 - **Prefiero no ir con…** (secreto, hasta 3 personas): el Sombrero nunca te las presenta.
 - **Regalos 🎁:** cualquiera puede mandarle un regalo con carta a quien quiera, **con su nombre o en secreto** (lo elige
-  cada vez; hasta 5 al día). Quien recibe puede tocar "No quiero recibir más de esta persona". Si mandaste regalos en
+  cada vez; hasta 10 al día). Quien recibe puede tocar "No quiero recibir más de esta persona". Si mandaste regalos en
   secreto y luego invitas a esa persona al baile, puedes contarle que eran tuyos.
   En `#admin` el organizador ve quién manda a quién (solo por seguridad).
 - **Correo Lechuza 🦉:** las parejas se mandan regalos con nota. Opción **🎁 sorpresa**: se abre el día del baile.
