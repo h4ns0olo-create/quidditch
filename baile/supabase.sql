@@ -133,6 +133,38 @@ create table if not exists baile_bloqueos (         -- "no quiero recibir más r
   de   bigint not null references baile_personas(id) on delete cascade,
   primary key (para, de)
 );
+create table if not exists baile_votos (            -- 🎩 el Sombrero: 💚 me gusta / ✖️ pasar (nadie ve tus ✖️)
+  de     bigint not null references baile_personas(id) on delete cascade,
+  para   bigint not null references baile_personas(id) on delete cascade,
+  gusta  boolean not null,
+  creado timestamptz not null default now(),
+  primary key (de, para)
+);
+create table if not exists baile_matches (          -- 💚 + 💚 = match → se desbloquea la invitación
+  id      bigint generated always as identity primary key,
+  a       bigint not null references baile_personas(id) on delete cascade,
+  b       bigint not null references baile_personas(id) on delete cascade,
+  visto_a boolean not null default false,
+  visto_b boolean not null default false,
+  creada  timestamptz not null default now(),
+  unique (a, b),
+  check (a < b)
+);
+create table if not exists baile_externas (         -- 💌 invitación por link para una pareja de fuera de la comunidad
+  id         bigint generated always as identity primary key,
+  codigo     text not null unique,
+  de         bigint not null references baile_personas(id) on delete cascade,
+  nombre     text not null,                       -- nombre de la pareja de fuera
+  regalo     text not null,
+  nota       text not null default '',
+  foto       bigint,
+  titulo     text,
+  estado     text not null default 'pendiente',   -- pendiente | aceptada | rechazada | cancelada
+  respuesta  text not null default '',            -- lo que contesta la pareja
+  visto      boolean not null default true,       -- false cuando hay respuesta que la persona aún no vio
+  creada     timestamptz not null default now(),
+  respondida timestamptz
+);
 create index if not exists baile_invitaciones_estado on baile_invitaciones (estado);
 create index if not exists baile_lechuzas_para on baile_lechuzas (para);
 
@@ -154,8 +186,12 @@ alter table baile_lechuzas     enable row level security;
 alter table baile_regalo_fotos enable row level security;
 alter table baile_secretos     enable row level security;
 alter table baile_bloqueos     enable row level security;
+alter table baile_votos        enable row level security;
+alter table baile_matches      enable row level security;
+alter table baile_externas     enable row level security;
 revoke all on baile_config, baile_personas, baile_fotos, baile_sesiones, baile_vetos, baile_parejas, baile_solicitudes,
-  baile_invitaciones, baile_lechuzas, baile_regalo_fotos, baile_secretos, baile_bloqueos from anon, authenticated;
+  baile_invitaciones, baile_lechuzas, baile_regalo_fotos, baile_secretos, baile_bloqueos, baile_votos, baile_matches, baile_externas
+  from anon, authenticated;
 
 -- ---------------------------------------------------------------- Ayudantes
 create or replace function baile_cfg(k text) returns text
@@ -164,7 +200,10 @@ language sql stable set search_path = public as $$ select valor from baile_confi
 -- 🎁 Regalos permitidos (si quitas uno en regalos.js, quítalo también aquí). 'propio' = foto de tu propio regalo.
 create or replace function baile_regalos() returns text[]
 language sql immutable as $$
-  select array['rosa', 'rana', 'grajeas', 'ramillete', 'copo', 'pastel', 'snitch', 'lechuza', 'amortentia', 'propio']
+  select array['ramo_rosas', 'ramo_tulipanes', 'ramo_margaritas', 'ramo_girasoles', 'ramo_lirios', 'ramo_mixto', 'rosa', 'ramillete',
+               'pastel', 'pastel_chocolate', 'tres_leches', 'pastel_fresas', 'pie_limon', 'rana', 'grajeas',
+               'lechuza', 'gato', 'conejo', 'crup', 'kneazle', 'escarbato', 'micropuff', 'hipogrifo', 'fenix',
+               'snitch', 'copo', 'amortentia', 'propio']
 $$;
 
 create or replace function baile_norm(t text) returns text
@@ -303,7 +342,9 @@ language sql stable set search_path = public as $$
         'me_invito', exists (select 1 from baile_invitaciones i where i.de = y.id and i.para = me and i.estado = 'pendiente'),
         'le_invite', exists (select 1 from baile_invitaciones i where i.de = me and i.para = y.id and i.estado = 'pendiente'),
         'me_rechazo', exists (select 1 from baile_invitaciones i where i.de = me and i.para = y.id and i.estado = 'rechazada'),
-        'le_mande_secretos', exists (select 1 from baile_secretos z where z.de = me and z.para = y.id and z.anonimo)) as o,
+        'le_mande_secretos', exists (select 1 from baile_secretos z where z.de = me and z.para = y.id and z.anonimo),
+        'mi_voto', (select gusta from baile_votos v where v.de = me and v.para = y.id),
+        'match', exists (select 1 from baile_matches m where m.a = least(me, y.id) and m.b = greatest(me, y.id))) as o,
       cardinality(c.comunes) as n, y.nombre
     from baile_personas x
     join baile_personas y on baile_compatibles(x.id, y.id)
@@ -332,7 +373,8 @@ begin
       'baile', baile_t, 'horas', baile_cfg('horas')::int, 'minimo', baile_cfg('minimo')::int,
       'nota_libre', baile_cfg('nota_libre') = 'si', 'ahora', now()),
     'resumen', jsonb_build_object(
-      'parejas', (select count(*) from baile_parejas pa join baile_personas x on x.id = pa.a where x.casa <> 'Profesorado'),
+      'parejas', (select count(*) from baile_parejas pa join baile_personas x on x.id = pa.a where x.casa <> 'Profesorado')
+               + (select count(*) from baile_externas e join baile_personas x on x.id = e.de where e.estado = 'aceptada' and x.casa <> 'Profesorado'),
       'buscando', (select count(*) from baile_personas where estado = 'busca' and casa <> 'Profesorado')),
     'vetos', coalesce((select jsonb_agg(vetado_id) from baile_vetos where persona_id = me), '[]'));
 
@@ -346,6 +388,21 @@ begin
       'era_admirador', exists (select 1 from baile_invitaciones i where i.estado = 'aceptada'
         and ((i.de = otro and i.para = me and i.revela) or (i.para = otro and i.de = me and i.revela_resp)))));
   end if;
+
+  -- 💚 Matches con quien todavía busca (para invitarle) y matches nuevos sin ver
+  j := j || jsonb_build_object('matches', coalesce((select jsonb_agg(jsonb_build_object('id', m.id,
+      'persona', baile_publico(case when m.a = me then m.b else m.a end),
+      'comunes', to_jsonb(baile_comunes(me, case when m.a = me then m.b else m.a end)),
+      'nuevo', not (case when m.a = me then m.visto_a else m.visto_b end)) order by m.id desc)
+    from baile_matches m where (m.a = me or m.b = me) and baile_compatibles(m.a, m.b)), '[]'),
+    'likes_pendientes', (select count(*) from baile_votos v where v.de = me and v.gusta and baile_compatibles(me, v.para)
+      and not exists (select 1 from baile_matches m where m.a = least(me, v.para) and m.b = greatest(me, v.para))));
+
+  -- 💌 Pareja de fuera de la comunidad (la última invitación por link que no se canceló)
+  j := j || jsonb_build_object('externa', (select jsonb_build_object('id', x.id, 'codigo', x.codigo, 'nombre', x.nombre, 'regalo', x.regalo,
+      'nota', x.nota, 'titulo', x.titulo, 'foto', x.foto, 'estado', x.estado, 'respuesta', x.respuesta, 'visto', x.visto,
+      'creada', x.creada, 'respondida', x.respondida)
+    from baile_externas x where x.de = me and x.estado <> 'cancelada' order by x.id desc limit 1));
 
   -- Invitaciones
   j := j || jsonb_build_object(
@@ -438,10 +495,38 @@ begin
   -- ======== Sin cuenta
   if accion = 'resumen' then
     return jsonb_build_object(
-      'parejas', (select count(*) from baile_parejas pa join baile_personas x on x.id = pa.a where x.casa <> 'Profesorado'),
+      'parejas', (select count(*) from baile_parejas pa join baile_personas x on x.id = pa.a where x.casa <> 'Profesorado')
+               + (select count(*) from baile_externas e join baile_personas x on x.id = e.de where e.estado = 'aceptada' and x.casa <> 'Profesorado'),
       'buscando', (select count(*) from baile_personas where estado = 'busca' and casa <> 'Profesorado'),
       'personas', (select count(*) from baile_personas where casa <> 'Profesorado'),
       'cierre', baile_cfg('cierre')::timestamptz, 'baile', baile_cfg('baile')::timestamptz);
+  end if;
+
+  if accion = 'externa_ver' then            -- lo que ve la pareja de fuera al abrir su link
+    return (select jsonb_build_object('nombre', x.nombre, 'de', d.nombre, 'casa', d.casa, 'regalo', x.regalo, 'nota', x.nota,
+        'titulo', x.titulo, 'foto_regalo', (select datos from baile_regalo_fotos where id = x.foto),
+        'foto', (select datos from baile_fotos where persona_id = d.id order by orden limit 1),
+        'estado', x.estado, 'respuesta', x.respuesta, 'baile', baile_cfg('baile')::timestamptz)
+      from baile_externas x join baile_personas d on d.id = x.de where x.codigo = p->>'codigo');
+  end if;
+
+  if accion = 'externa_responder' then      -- la pareja de fuera responde (una sola vez)
+    if not exists (select 1 from baile_externas where codigo = p->>'codigo' and estado = 'pendiente') then
+      raise exception 'Esta invitación ya fue respondida o ya no está disponible';
+    end if;
+    update baile_externas set estado = case when (p->>'acepta')::boolean then 'aceptada' else 'rechazada' end,
+           respuesta = left(trim(coalesce(p->>'respuesta', '')), 300), respondida = now(), visto = false
+     where codigo = p->>'codigo' and estado = 'pendiente' returning de into me;
+    if (p->>'acepta')::boolean then
+      if exists (select 1 from baile_parejas where a = me or b = me) then
+        update baile_externas set estado = 'cancelada' where codigo = p->>'codigo';
+        raise exception 'Esta invitación ya no está disponible';
+      end if;
+      perform baile_cancelar_invitaciones(me);
+      update baile_solicitudes set estado = 'cancelada', visto = true where estado = 'pendiente' and (de = me or para = me);
+      update baile_personas set estado = 'pareja' where id = me;
+    end if;
+    return jsonb_build_object('ok', true);
   end if;
 
   if accion = 'nombres_libres' then        -- para elegir pareja al registrarse (solo de su mismo grupo)
@@ -527,6 +612,11 @@ begin
        where id in (select a from baile_parejas where id = (p->>'pareja')::bigint
                     union select b from baile_parejas where id = (p->>'pareja')::bigint);
       delete from baile_parejas where id = (p->>'pareja')::bigint;
+    elsif accion = 'admin_deshacer_externa' then
+      update baile_personas set estado = 'busca'
+       where id = (select de from baile_externas where id = (p->>'id')::bigint)
+         and not exists (select 1 from baile_parejas where a = baile_personas.id or b = baile_personas.id);
+      update baile_externas set estado = 'cancelada' where id = (p->>'id')::bigint;
     elsif accion = 'admin_borrar' then
       delete from baile_personas where id = (p->>'persona')::bigint;
     elsif accion = 'admin_pin' then
@@ -553,6 +643,9 @@ begin
           'a', (select nombre from baile_personas where id = pa.a), 'b', (select nombre from baile_personas where id = pa.b)
         ) order by pa.id) from baile_parejas pa), '[]'),
       'lechuzas', (select count(*) from baile_lechuzas),
+      'matches', (select count(*) from baile_matches),
+      'externas', coalesce((select jsonb_agg(jsonb_build_object('id', e.id, 'de', d.nombre, 'nombre', e.nombre, 'estado', e.estado) order by e.id)
+        from baile_externas e join baile_personas d on d.id = e.de where e.estado <> 'cancelada'), '[]'),
       'secretos', coalesce((select jsonb_agg(jsonb_build_object('de', d.nombre, 'para', t.nombre, 'n', g.n, 'anonimos', g.anon,
           'bloqueado', exists (select 1 from baile_bloqueos k where k.para = g.para and k.de = g.de)) order by g.n desc)
         from (select de, para, count(*) n, count(*) filter (where anonimo) anon from baile_secretos group by de, para) g
@@ -590,7 +683,8 @@ begin
     fid := (p->>'id')::bigint;
     if not exists (select 1 from baile_lechuzas where foto = fid and (de = me or (para = me and not (sorpresa and now() < baile_cfg('baile')::timestamptz))))
        and not exists (select 1 from baile_invitaciones where (foto = fid or foto_resp = fid) and (de = me or para = me))
-       and not exists (select 1 from baile_secretos where foto = fid and (de = me or para = me)) then
+       and not exists (select 1 from baile_secretos where foto = fid and (de = me or para = me))
+       and not exists (select 1 from baile_externas where foto = fid and de = me) then
       raise exception 'No puedes ver esa foto';
     end if;
     return to_jsonb((select datos from baile_regalo_fotos where id = fid));
@@ -647,7 +741,10 @@ begin
       'parejas', coalesce((select jsonb_agg(jsonb_build_object(
           'a', x.nombre, 'casa_a', x.casa, 'b', y.nombre, 'casa_b', y.casa) order by pa.id desc)
         from baile_parejas pa join baile_personas x on x.id = pa.a join baile_personas y on y.id = pa.b
-        where x.casa <> 'Profesorado' and y.casa <> 'Profesorado'), '[]'),
+        where x.casa <> 'Profesorado' and y.casa <> 'Profesorado'), '[]')
+        || coalesce((select jsonb_agg(jsonb_build_object('a', d.nombre, 'casa_a', d.casa, 'b', e.nombre || ' (de fuera)', 'casa_b', '')
+             order by e.id desc) from baile_externas e join baile_personas d on d.id = e.de
+           where e.estado = 'aceptada' and d.casa <> 'Profesorado'), '[]'),
       'invitaciones', (select count(*) from baile_invitaciones i join baile_personas x on x.id = i.de where x.casa <> 'Profesorado'),
       'regalos', (select count(*) from baile_secretos z join baile_personas x on x.id = z.de where x.casa <> 'Profesorado')
                + (select count(*) from baile_lechuzas l join baile_personas x on x.id = l.de where x.casa <> 'Profesorado'));
@@ -697,7 +794,43 @@ begin
       update baile_solicitudes set estado = 'rechazada' where id = s.id;
     end if;
 
-  elsif accion = 'invitar' then              -- "¿vamos juntos al baile?" con regalo y carta
+  elsif accion = 'votar' then                -- 🎩 💚 / ✖️ en el Sombrero
+    otro := (p->>'para')::bigint;
+    if yo.estado <> 'busca' then raise exception 'Solo mientras buscas con quién ir'; end if;
+    if not baile_compatibles(me, otro) then raise exception 'Esa persona ya no está disponible'; end if;
+    insert into baile_votos (de, para, gusta) values (me, otro, (p->>'gusta')::boolean)
+    on conflict (de, para) do update set gusta = excluded.gusta, creado = now();
+    if (p->>'gusta')::boolean and exists (select 1 from baile_votos where de = otro and para = me and gusta) then
+      insert into baile_matches (a, b, visto_a, visto_b) values (least(me, otro), greatest(me, otro), me < otro, me > otro)
+      on conflict (a, b) do nothing;
+      return baile_estado(me) || jsonb_build_object('match_con', baile_publico(otro) || jsonb_build_object('comunes', to_jsonb(baile_comunes(me, otro))));
+    end if;
+
+  elsif accion = 'externa_crear' then        -- 💌 invitación por link para tu pareja de fuera de la comunidad
+    if yo.estado = 'pareja' then raise exception 'Ya tienes pareja confirmada'; end if;
+    if exists (select 1 from baile_externas where de = me and estado = 'pendiente') then
+      raise exception 'Ya tienes una invitación por link esperando respuesta';
+    end if;
+    v := trim(coalesce(p->>'nombre', ''));
+    if length(v) < 2 or length(v) > 40 then raise exception 'Escribe el nombre de tu pareja'; end if;
+    fid := baile_foto_regalo(me, p);
+    tok := substr(replace(gen_random_uuid()::text, '-', ''), 1, 14);
+    insert into baile_externas (codigo, de, nombre, regalo, nota, foto, titulo)
+    values (tok, me, v, p->>'regalo', left(trim(coalesce(p->>'nota', '')), 500), fid,
+            case when fid is not null then left(trim(p->>'titulo'), 40) end);
+    perform baile_cancelar_invitaciones(me);
+    update baile_solicitudes set estado = 'cancelada', visto = true where de = me and estado = 'pendiente';
+    update baile_personas set estado = 'tiene' where id = me;
+
+  elsif accion = 'externa_cancelar' then
+    update baile_externas set estado = 'cancelada' where de = me and estado in ('pendiente', 'rechazada');
+    if yo.estado = 'pareja' and not exists (select 1 from baile_parejas where a = me or b = me)
+       and (p->>'tambien_aceptada')::boolean then
+      update baile_externas set estado = 'cancelada' where de = me and estado = 'aceptada';
+      update baile_personas set estado = 'tiene' where id = me;
+    end if;
+
+  elsif accion = 'invitar' then              -- "¿vamos juntos al baile?" con regalo y carta (solo después de un match)
     otro := (p->>'para')::bigint;
     if not baile_abiertas() then
       if now() > baile_cfg('cierre')::timestamptz then raise exception 'El plazo para invitar ya terminó'; end if;
@@ -710,8 +843,8 @@ begin
       perform baile_aceptar(inv.id, p);
       return baile_estado(me);
     end if;
-    if cardinality(baile_comunes(me, otro)) < baile_cfg('minimo')::int then
-      raise exception 'Necesitan al menos % cosas en común', baile_cfg('minimo');
+    if not exists (select 1 from baile_matches where a = least(me, otro) and b = greatest(me, otro)) then
+      raise exception 'Primero tienen que hacer match en el Sombrero ✨';
     end if;
     if exists (select 1 from baile_invitaciones where de = me and estado = 'pendiente') then
       raise exception 'Ya tienes una invitación esperando respuesta. Espera o cancélala para invitar a otra persona.';
@@ -739,7 +872,11 @@ begin
     update baile_invitaciones set estado = 'cancelada', cerrada = now(), visto_de = true where de = me and estado = 'pendiente';
 
   elsif accion = 'visto' then
-    if p->>'tipo' = 'solicitud_rechazada' then
+    if p->>'tipo' = 'match' then
+      update baile_matches set visto_a = visto_a or a = me, visto_b = visto_b or b = me where id = (p->>'id')::bigint and (a = me or b = me);
+    elsif p->>'tipo' = 'externa' then
+      update baile_externas set visto = true where de = me;
+    elsif p->>'tipo' = 'solicitud_rechazada' then
       update baile_solicitudes set visto = true where id = (p->>'id')::bigint and de = me;
     elsif p->>'tipo' = 'pareja' then
       update baile_parejas set visto_a = visto_a or a = me, visto_b = visto_b or b = me where a = me or b = me;
