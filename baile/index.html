@@ -1175,7 +1175,7 @@ function bloqueTiene(E) {
     h += `<div class="invitacion centro">${estrellasEsquinas()}
       <div style="width:70px;height:70px;margin:0 auto">${dibujo({ regalo: x.regalo, titulo: x.titulo, foto: x.foto })}</div>
       <h3 style="margin-top:6px">💌 Invitación para ${esc(x.nombre)}</h3>
-      <p class="suave">Esperando su respuesta. Mándale este link por WhatsApp o donde quieras:</p>
+      <p class="suave">Esperando su respuesta. Mándale este enlace:</p>
       <div class="enlace-caja"><input type="text" readonly value="${esc(linkCarta(x.codigo))}" id="link-carta">
         <button class="btn3" style="color:var(--tinta-p);border-color:rgba(29,38,84,.3)" id="copiar-link">📋 Copiar</button></div>
       ${navigator.share ? `<div style="margin-top:10px"><button class="btn carmesi" id="compartir-link">📤 Compartir</button></div>` : ''}
